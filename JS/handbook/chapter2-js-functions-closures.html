@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JS Mastery Handbook — Chapter 2: Functions, Scopes & Closures</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="handbook.css">
+</head>
+<body>
+
+  <!-- Navigation Sidebar -->
+  <aside>
+    <div class="brand">
+      <div class="tag">// handbook.javascript</div>
+      <h1>Interview Bible</h1>
+      <div class="sub">Chapter 2: Functions & Closures</div>
+    </div>
+    <ul class="nav-list">
+      <li class="nav-item active" id="nav-nullish-diff"><a href="#nullish-diff"><span class="num">01.</span> Nullish vs Falsy</a></li>
+      <li class="nav-item" id="nav-execution-context"><a href="#execution-context"><span class="num">02.</span> Execution Context</a></li>
+      <li class="nav-item" id="nav-scope-chain"><a href="#scope-chain"><span class="num">03.</span> Scope Chain</a></li>
+      <li class="nav-item" id="nav-this-binding"><a href="#this-binding"><span class="num">04.</span> this Binding</a></li>
+      <li class="nav-item" id="nav-closures"><a href="#closures"><span class="num">05.</span> Closures</a></li>
+      <li class="nav-item" id="nav-var-loop"><a href="#var-loop"><span class="num">06.</span> Loop with var</a></li>
+      <li class="nav-item" id="nav-common-pitfalls"><a href="#common-pitfalls"><span class="num">07.</span> Common Pitfalls</a></li>
+      <li class="nav-item" id="nav-interview-qa"><a href="#interview-qa"><span class="num">08.</span> Interview Q&A</a></li>
+    </ul>
+  </aside>
+
+  <!-- Main Content -->
+  <main>
+    <div style="display: flex; gap: 16px; margin-bottom: 30px;">
+      <a href="index.html" class="top-nav-link" id="handbook-home-link" style="margin-bottom: 0;">← Handbook Home</a>
+      <span style="color: var(--text-faint);">|</span>
+      <a href="../../index.html" class="top-nav-link" id="hub-link" style="margin-bottom: 0;">← Hub Dashboard</a>
+    </div>
+    
+    <div class="intro-header">
+      <h2>Chapter 2: Scopes, Contexts & Closures</h2>
+      <p>
+        Master the runtime engine: understand execution context mechanics, scope chain lookups, variable environment generation, <code>this</code> bindings, and closures.
+      </p>
+    </div>
+
+    <!-- 1. NULLISH VS FALSY -->
+    <section id="nullish-diff">
+      <div class="sec-header">
+        <span class="sec-num">01</span>
+        <h3 class="sec-title">Nullish vs. Falsy Fallbacks</h3>
+      </div>
+      
+      <div class="desc">
+        <p>
+          Before moving deeper into execution environments, let's establish clean clarity on one of the most critical coding traps in standard applications: using <code>||</code> vs <code>??</code> for configuring default variables.
+        </p>
+      </div>
+
+      <div class="info-box answer">
+        <div class="box-header">Interview-Ready Formulation</div>
+        <div class="box-body">
+          "The nullish coalescing operator (<code>??</code>) only falls back to the default when the value is strictly null or undefined — it ignores every other falsy value. The logical OR operator (<code>||</code>) falls back on any falsy value — <code>0</code>, <code>""</code>, <code>false</code>, <code>NaN</code>, <code>null</code>, and <code>undefined</code>. If a config parameter like <code>PORT</code> is legitimately the string <code>"0"</code> or an empty string, <code>||</code> would incorrectly overwrite it with the default. <code>??</code> respects that the falsy value was intentionally set, and only kicks in when the value is truly missing."
+        </div>
+      </div>
+
+      <pre><span class="comment">// Concrete Bug Example</span>
+<span class="keyword">const</span> config = { retries: <span class="number">0</span>, timeout: <span class="string">""</span> };
+
+<span class="keyword">const</span> retries = config.retries || <span class="number">3</span>;   <span class="comment">// 3  ← BUG! 0 was intentional, overwritten</span>
+<span class="keyword">const</span> retries2 = config.retries ?? <span class="number">3</span>;  <span class="comment">// 0  ← Correct! 0 is preserved</span>
+
+<span class="keyword">const</span> timeout = config.timeout || <span class="number">5000</span>;  <span class="comment">// 5000 ← BUG! "" was deliberate, overwritten</span>
+<span class="keyword">const</span> timeout2 = config.timeout ?? <span class="number">5000</span>; <span class="comment">// ""   ← Correct!</span></pre>
+
+      <div class="info-box hood">
+        <div class="box-header">Interview Strategy Recommendation</div>
+        <div class="box-body">
+          When asked about this in an interview, always <b>lead with the general rule</b> (the concept of Falsy vs. Nullish values) before showing Port/Timeout examples. Highlighting this general rule signals that you understand the underlying runtime specifications, rather than just memorizing standard templates.
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. EXECUTION CONTEXT -->
+    <section id="execution-context">
+      <div class="sec-header">
+        <span class="sec-num">02</span>
+        <h3 class="sec-title">Execution Context (Global vs. Function)</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          <b>The Workspace Analogy:</b> Think of an execution context like a workspace created before you start working on a project. Before the JavaScript engine executes a single line of code, it allocates a desk (memory for variables), lays out your tools (function declarations), and defines what "you" represents in that room (the <code>this</code> reference).
+        </p>
+        <p>
+          The engine relies on Execution Contexts to manage where code runs, track active scope environments, and maintain call dependencies. There are two primary types of execution contexts:
+        </p>
+        <ul style="margin-left: 24px; margin-bottom: 20px;">
+          <li><b>Global Execution Context (GEC):</b> Created once when your script first runs. It generates the global object (<code>window</code> in browsers, <code>global</code> in Node.js) and sets <code>this</code> to match.</li>
+          <li><b>Function Execution Context (FEC):</b> Created dynamically every single time a function is called (even if the same function is invoked repeatedly).</li>
+        </ul>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Under the Hood: The Lifecycle Phases</div>
+        <div class="box-body">
+          Every execution context has a two-phase lifecycle:
+          <ol style="margin-left: 20px; margin-top: 8px;">
+            <li>
+              <b>Creation Phase (Allocation):</b>
+              <ul style="margin-left: 20px;">
+                <li>Sets up the <i>Variable Environment</i>: memory is allocated for variables declared with <code>var</code> (set to <code>undefined</code>), and function declarations (fully hoisted in memory). Variables declared with <code>let</code>/<code>const</code> are allocated memory but left unitialized (Temporal Dead Zone).</li>
+                <li>Builds the <i>Scope Chain</i> (references to surrounding lexically defined environments).</li>
+                <li>Determines the value of the <code>this</code> binding.</li>
+              </ul>
+            </li>
+            <li>
+              <b>Execution Phase (Evaluation):</b>
+              The engine runs the source code line-by-line, assigning values to variables and invoking function calls.
+            </li>
+          </ol>
+        </div>
+      </div>
+
+      <pre><span class="comment">// Hoisting in the Creation Phase</span>
+console.log(a);   <span class="comment">// undefined (allocated and initialized to undefined)</span>
+console.log(foo); <span class="comment">// [Function: foo] (fully hoisted in Variable Environment)</span>
+
+<span class="keyword">var</span> a = <span class="number">10</span>;
+<span class="keyword">function</span> foo() { console.log(<span class="string">"hi"</span>); }
+
+foo(); <span class="comment">// Creates a new Function Execution Context</span></pre>
+
+      <div class="diagram-panel">
+Call Stack Lifecycle (LIFO: Last In, First Out)
+
+When executing:
+function outer() {
+  function inner() {
+    console.log("inner");
+  }
+  inner();
+}
+outer();
+
+Call Stack State Transitions:
+
+1. GEC Pushed        2. outer() FEC Pushed     3. inner() FEC Pushed     4. inner() Popped (Done)
+┌─────────────────┐  ┌─────────────────┐       ┌─────────────────┐       ┌─────────────────┐
+│                 │  │                 │       │ inner() FEC     │  ──▶  │                 │
+├─────────────────┤  ├─────────────────┤       ├─────────────────┤       ├─────────────────┤
+│                 │  │ outer() FEC     │  ──▶  │ outer() FEC     │       │ outer() FEC     │
+├─────────────────┤  ├─────────────────┤       ├─────────────────┤       ├─────────────────┤
+│ Global EC (GEC) │  │ Global EC (GEC) │       │ Global EC (GEC) │       │ Global EC (GEC) │
+└─────────────────┘  └─────────────────┘       └─────────────────┘       └─────────────────┘</div>
+
+      <div class="info-box trap">
+        <div class="box-header">Interview Trap: Let vs Var Hoisting</div>
+        <div class="box-body">
+          <p>
+            An interviewer might ask: "Does <code>let</code> hoist?". 
+            <br><b>Yes!</b> Both <code>var</code> and <code>let</code> are hoisted (meaning the engine allocates memory slot bindings for them in the creation phase). 
+            However, <code>var</code> is initialized immediately with <code>undefined</code>. In contrast, <code>let</code>/<code>const</code> are left uninitialized (having no value binding). The region between scope entry and actual initialization line is the <b>Temporal Dead Zone (TDZ)</b>. Accessing the variable in this zone throws a <code>ReferenceError</code>.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. SCOPE CHAIN -->
+    <section id="scope-chain">
+      <div class="sec-header">
+        <span class="sec-num">03</span>
+        <h3 class="sec-title">Scope Chain & Lexical Scoping</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          <b>The Nested Rooms Analogy:</b> Think of scopes like nested rooms in a house. If you are standing in the kitchen (the innermost scope) and ask for the salt (a variable), you look in the kitchen first. If it's not there, you look in the living room (the surrounding parent scope). If it's still not there, you check outside (the global environment). You can look outward/upward, but people standing outside the house cannot look inside to find variables local to the kitchen.
+        </p>
+        <p>
+          JavaScript uses <b>Lexical Scoping</b> (also called Static Scoping). This means variable access boundaries are determined entirely by where the function was <i>written</i> in the source code, not where it is <i>invoked</i> at runtime.
+        </p>
+      </div>
+
+      <pre><span class="keyword">const</span> globalVar = <span class="string">"I'm global"</span>;
+
+<span class="keyword">function</span> outer() {
+  <span class="keyword">const</span> outerVar = <span class="string">"I'm in outer"</span>;
+
+  <span class="keyword">function</span> inner() {
+    <span class="keyword">const</span> innerVar = <span class="string">"I'm in inner"</span>;
+    console.log(innerVar);  <span class="comment">// found locally</span>
+    console.log(outerVar);  <span class="comment">// walks up to outer's scope</span>
+    console.log(globalVar); <span class="comment">// walks up to global scope</span>
+  }
+
+  inner();
+}
+outer();</pre>
+
+      <div class="info-box trap">
+        <div class="box-header">Classic Trap: Lexical vs. Dynamic Scope Lookup</div>
+        <div class="box-body">
+          <p>
+            Consider this common question:
+          </p>
+          <pre style="margin: 10px 0; padding: 8px; background: rgba(0,0,0,0.2);">
+const value = "global";
+function first() {
+  console.log(value);
+}
+function second() {
+  const value = "local";
+  first();
+}
+second(); // What does this log?</pre>
+          <p>
+            It logs <b>"global"</b>, not "local". Since <code>first()</code> is defined globally, its parent scope is the global execution context. It has no structural link to the execution environment of <code>second()</code>, despite being called from inside it. Lexical scope chain lookups look at placement, not call path.
+          </p>
+        </div>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">💡 Scope Walkthrough Quiz</div>
+        <div class="quiz-question">
+          What does this code log, and how does the lookup happen?
+          <pre>let x = "outer";
+function printX() {
+  console.log(x);
+}
+function run() {
+  let x = "inner";
+  printX();
+}
+run();</pre>
+        </div>
+        <button class="quiz-btn" id="quiz-scope-btn" onclick="toggleQuiz('quiz-scope')">Show Answer & Walkthrough</button>
+        <div class="quiz-answer" id="quiz-scope">
+          <b>Answer:</b> <code>"outer"</code>
+          <br><br>
+          <b>Step-by-step lookup process:</b>
+          <ol style="margin-left: 20px; margin-top: 8px;">
+            <li><code>run()</code> is executed, generating its local variable environment containing <code>x = "inner"</code>.</li>
+            <li>Inside <code>run</code>, <code>printX()</code> is called. This triggers the creation of an FEC for <code>printX</code>.</li>
+            <li>The scope chain of <code>printX</code> is fixed lexically: <code>printX scope ──▶ Global scope</code>. It does not look at <code>run</code>'s scope because <code>printX</code> was declared at the global level.</li>
+            <li>Inside <code>printX</code>, the lookup for <code>x</code> fails locally, so the engine climbs the lexical scope chain to the global scope where it finds <code>x = "outer"</code> and logs it.</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. THIS BINDING -->
+    <section id="this-binding">
+      <div class="sec-header">
+        <span class="sec-num">04</span>
+        <h3 class="sec-title">this Binding (The 5 Rules)</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          <b>The Pronoun Analogy:</b> Think of the <code>this</code> keyword like the word "I" in a sentence. Its meaning depends entirely on who is speaking, not where the sentence was written down. <code>this</code> is determined at runtime based on the call site and invocation pattern of the function.
+        </p>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">The 5 Rules of this (Priority Order: Highest to Lowest)</div>
+        <div class="box-body">
+          <ol style="margin-left: 20px;">
+            <li style="margin-bottom: 10px;">
+              <b>New Binding (Constructor function):</b> When called with the <code>new</code> keyword, <code>this</code> points to the newly allocated object instance.
+              <pre style="margin: 6px 0; padding: 8px; font-size: 12px;">function User(n) { this.name = n; }
+const u = new User("Marwa"); // this = u</pre>
+            </li>
+            <li style="margin-bottom: 10px;">
+              <b>Explicit Binding (call, apply, bind):</b> We directly specify what <code>this</code> should refer to.
+              <pre style="margin: 6px 0; padding: 8px; font-size: 12px;">greet.call(targetObj, args); // this = targetObj</pre>
+            </li>
+            <li style="margin-bottom: 10px;">
+              <b>Implicit Binding (Method on object):</b> When called as an object method, <code>this</code> binds to the object to the left of the dot.
+              <pre style="margin: 6px 0; padding: 8px; font-size: 12px;">myObj.greet(); // this = myObj</pre>
+            </li>
+            <li style="margin-bottom: 10px;">
+              <b>Default Binding (Global execution/plain invocation):</b> In a standalone function call, <code>this</code> binds to the global object (<code>window</code> in browsers) or evaluates to <code>undefined</code> in strict mode (<code>"use strict"</code>).
+            </li>
+            <li style="margin-bottom: 10px;">
+              <b>Arrow Functions (Lexical Context):</b> Arrow functions do not declare a <code>this</code> binding slot. They look up <code>this</code> lexically via the scope chain from the enclosing scope.
+            </li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="info-box trap">
+        <div class="box-header">Interview Trap: Callback Method Detachment</div>
+        <div class="box-body">
+          <p>
+            Passing an object method as a callback causes the method to lose its implicit reference:
+          </p>
+          <pre style="margin: 10px 0; padding: 8px; background: rgba(0,0,0,0.2);">
+const obj = {
+  name: "Marwa",
+  greet() { console.log(this.name); }
+};
+setTimeout(obj.greet, 100); // undefined!</pre>
+          <p>
+            <b>Why?</b> <code>obj.greet</code> is passed as a bare function reference, detached from the parent object. When called later inside <code>setTimeout</code>, default binding applies.
+            <br><b>Fix 1:</b> Use an arrow wrapper: <code>setTimeout(() =&gt; obj.greet(), 100)</code>
+            <br><b>Fix 2:</b> Bind explicitly: <code>setTimeout(obj.greet.bind(obj), 100)</code>
+          </p>
+        </div>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">💡 Mini Quiz: Method vs Arrow this</div>
+        <div class="quiz-question">
+          What does this log, and why?
+          <pre>const obj = {
+  name: "Marwa",
+  regularGreet: function() {
+    console.log(this.name);
+  },
+  arrowGreet: () => {
+    console.log(this.name);
+  }
+};
+
+obj.regularGreet();
+obj.arrowGreet();</pre>
+        </div>
+        <button class="quiz-btn" id="quiz-this-btn" onclick="toggleQuiz('quiz-this')">Show Answer & Explanation</button>
+        <div class="quiz-answer" id="quiz-this">
+          <b>Output:</b>
+          <br><code>"Marwa"</code>
+          <br><code>undefined</code> (or the name of the global scope object)
+          <br><br>
+          <b>Explanation:</b>
+          <br>1. <code>obj.regularGreet()</code> uses implicit binding. The function is invoked on <code>obj</code>, so <code>this</code> resolves to <code>obj</code> and logs <code>obj.name</code> ("Marwa").
+          <br>2. <code>obj.arrowGreet()</code> is an arrow function. It has no <code>this</code>. It inherits <code>this</code> from the surrounding lexical scope where it was defined. The surrounding scope of the <code>obj</code> literal declaration is the global scope (object literals do not establish a local scope block). In the global scope, <code>this</code> is the global object, which does not have a <code>name</code> property defined, resulting in <code>undefined</code>.
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. CLOSURES -->
+    <section id="closures">
+      <div class="sec-header">
+        <span class="sec-num">05</span>
+        <h3 class="sec-title">Closures</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          <b>The Backpack Analogy:</b> Imagine a function like a traveler. When a function is created inside another function, it packs a virtual backpack containing all the variables from its surrounding scope that it might need later. Even after the parent function completes execution and leaves the stack, the child function carries that backpack wherever it is passed.
+        </p>
+        <p>
+          A <span class="bold-term">Closure</span> is the combination of a function bundled together with references to its surrounding state (its lexical environment). Closures allow functions to maintain private state, encapsulation, and persistent variables without cluttering global namespaces.
+        </p>
+      </div>
+
+      <pre><span class="keyword">function</span> makeCounter() {
+  <span class="keyword">let</span> count = <span class="number">0</span>; <span class="comment">// private state variable</span>
+  <span class="keyword">return</span> <span class="keyword">function</span>() {
+    count++;
+    <span class="keyword">return</span> count;
+  };
+}
+
+<span class="keyword">const</span> counter = makeCounter();
+console.log(counter()); <span class="comment">// 1</span>
+console.log(counter()); <span class="comment">// 2</span>
+console.log(counter()); <span class="comment">// 3 (state is preserved in the closure)</span></pre>
+
+      <div class="info-box hood">
+        <div class="box-header">Under the Hood: Memory & Garbage Collection</div>
+        <div class="box-body">
+          Normally, when a function completes execution, its execution context is popped off the Call Stack and garbage collected.
+          <br>However, when a nested function is returned or passed out, it retains a internal property <code>[[Scope]]</code> which holds a reference to its lexical environment. Because a live reference to the outer variable (e.g. <code>count</code>) still exists inside the returned function, JavaScript's Garbage Collector is prevented from cleaning it up, keeping it alive in memory.
+        </div>
+      </div>
+
+      <div class="diagram-panel">
+Execution context & Closure storage:
+
+GEC Executing
+┌─────────────────────────────────┐
+│ counter = (returned function)   │ ──┐
+└─────────────────────────────────┘   │
+                                      ▼
+                               ┌───────────────┐
+                               │ [[Scope]]     │ ──▶ References the kept-alive
+                               └───────────────┘     Variable Environment of
+                                                     makeCounter() { count: 3 }</div>
+    </section>
+
+    <!-- 6. LOOP WITH VAR -->
+    <section id="var-loop">
+      <div class="sec-header">
+        <span class="sec-num">06</span>
+        <h3 class="sec-title">The Classic Loop-with-Var Problem</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          This is arguably the single most common closure-related question asked in technical interviews.
+        </p>
+      </div>
+
+      <pre><span class="comment">// The famous bug:</span>
+<span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>; i &lt; <span class="number">3</span>; i++) {
+  setTimeout(() =&gt; console.log(i), <span class="number">100</span>);
+}
+<span class="comment">// Logs: 3, 3, 3 (not 0, 1, 2!)</span></pre>
+
+      <div class="desc">
+        <p>
+          <b>Why does this happen?</b>
+          Variables declared with <code>var</code> are function-scoped (or globally scoped if not inside a function), not block-scoped. In this loop, there is only one physical instance of the variable <code>i</code> allocated in memory. The three timeout callback closures all reference this same single variable. By the time the call stack clears and the callbacks run (after 100ms), the loop has fully finished, leaving <code>i</code> equal to <code>3</code>.
+        </p>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">How to Fix It</div>
+        <div class="box-body">
+          <b>Fix #1: Use <code>let</code> (ES6 approach):</b>
+          <pre style="margin: 6px 0; padding: 8px; font-size: 13px;">for (let i = 0; i &lt; 3; i++) {
+  setTimeout(() =&gt; console.log(i), 100);
+} // Logs: 0, 1, 2</pre>
+          <i>Explanation:</i> <code>let</code> is block-scoped. Each loop iteration creates a new, separate lexical binding for <code>i</code>. Thus, each callback closure captures its own distinct instance of <code>i</code>.
+          <br><br>
+          <b>Fix #2: Use an IIFE (Pre-ES6 approach):</b>
+          <pre style="margin: 6px 0; padding: 8px; font-size: 13px;">for (var i = 0; i &lt; 3; i++) {
+  (function(j) {
+    setTimeout(() =&gt; console.log(j), 100);
+  })(i);
+}</pre>
+          <i>Explanation:</i> An Immediately Invoked Function Expression (IIFE) creates a new function execution context on each iteration, freezing the current value of <code>i</code> by passing it as argument <code>j</code>.
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. COMMON PITFALLS -->
+    <section id="common-pitfalls">
+      <div class="sec-header">
+        <span class="sec-num">07</span>
+        <h3 class="sec-title">Common Mistakes & Pitfalls</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          Here are key edge cases and performance considerations to keep in mind when utilizing closures:
+        </p>
+        <ul style="margin-left: 24px; line-height: 1.8;">
+          <li><b>Closures reference variables, not values:</b> A closure does not copy the value of a variable at creation time. It points directly to the live reference. If the value is mutated later, the closure will read the mutated value.</li>
+          <li><b>Memory Leaks:</b> Because closures prevent enclosing variables from being garbage collected, storing closures referencing large objects or unused DOM elements can lead to memory leakages if not cleaned up.</li>
+        </ul>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Relevance to Modern Web Stack</div>
+        <div class="box-body">
+          <ul>
+            <li style="margin-bottom: 6px;"><b>React Hooks (Stale Closures):</b> In React, <code>useEffect</code>, <code>useCallback</code>, and event listeners capture variables from the current render context. If the dependency array is configured incorrectly, they will reference outdated variable states — a classic "stale closure" bug.</li>
+            <li style="margin-bottom: 6px;"><b>Express Middleware:</b> Middleware factory patterns use closures to capture initialization config:
+              <br><code>function rateLimiter(limit) { return (req, res, next) =&gt; { /* accesses limit via closure */ } }</code>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. INTERVIEW QA -->
+    <section id="interview-qa">
+      <div class="sec-header">
+        <span class="sec-num">08</span>
+        <h3 class="sec-title">Interview Questions & Answers</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          Test your preparation with these common conceptual questions:
+        </p>
+      </div>
+
+      <!-- Q1 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q1: What will the following code print?</h4>
+        <pre style="margin-bottom: 8px;">function createFunctions() {
+  const funcs = [];
+  for (let i = 0; i &lt; 3; i++) {
+    funcs.push(() => console.log(i));
+  }
+  return funcs;
+}
+const fns = createFunctions();
+fns.forEach(fn => fn());</pre>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> It prints <code>0</code>, <code>1</code>, and <code>2</code>. Because <code>i</code> is declared using <code>let</code>, it is block-scoped. Each iteration of the loop creates a distinct binding of <code>i</code>. When the closures inside <code>funcs</code> are executed, they correctly resolve their respective block-scoped values.
+        </p>
+      </div>
+
+      <!-- Q2 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q2: What is a stale closure in React?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> A stale closure occurs when a hook (like <code>useEffect</code>) captures variables from a past render state and does not update when state dependencies change. This happens if you omit dynamic variables from the dependency array, causing the hook callback closure to reference old variables.
+        </p>
+      </div>
+    </section>
+
+    <!-- Footer Navigation -->
+    <div style="margin-top: 80px; padding-top: 30px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+      <a href="chapter1-js-fundamentals.html" style="color: var(--js-yellow); text-decoration: none; font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 8px;">
+        ← Chapter 1: JS Fundamentals
+      </a>
+      <span style="color: var(--text-faint); font-size: 13px;">Chapter 2: Functions & Closures</span>
+    </div>
+  </main>
+
+  <script>
+    // Toggle answers
+    function toggleQuiz(id) {
+      const el = document.getElementById(id);
+      const btn = document.getElementById(id + '-btn');
+      if (el.classList.contains('open')) {
+        el.classList.remove('open');
+        btn.textContent = "Show Answer & Explanation";
+      } else {
+        el.classList.add('open');
+        btn.textContent = "Hide Answer";
+      }
+    }
+
+    // Scroll active item highlight
+    window.addEventListener('DOMContentLoaded', () => {
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          const id = entry.target.getAttribute('id');
+          const navItem = document.getElementById(`nav-${id}`);
+          if (entry.intersectionRatio > 0.3) {
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            if (navItem) navItem.classList.add('active');
+          }
+        });
+      }, { threshold: [0.1, 0.3, 0.5], rootMargin: "0px 0px -40% 0px" });
+
+      document.querySelectorAll('section').forEach(section => {
+        observer.observe(section);
+      });
+    });
+  </script>
+</body>
+</html>

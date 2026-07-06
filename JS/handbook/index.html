@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JavaScript Mastery Handbook Directory</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="handbook.css">
+  
+  <style>
+    /* Custom styles for directory catalog */
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+      gap: 24px;
+      margin-top: 32px;
+    }
+
+    .chapter-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .chapter-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--js-yellow);
+      box-shadow: 0 12px 30px rgba(247, 223, 30, 0.05);
+    }
+
+    .card-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .chapter-badge {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--js-yellow);
+      background: rgba(247, 223, 30, 0.08);
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(247, 223, 30, 0.15);
+    }
+
+    .read-time {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .chapter-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      line-height: 1.4;
+      color: var(--text);
+    }
+
+    .chapter-desc {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 24px;
+      flex-grow: 1;
+    }
+
+    .topics-list {
+      list-style: none;
+      margin-bottom: 28px;
+      border-top: 1px dashed var(--border);
+      padding-top: 16px;
+    }
+
+    .topic-item {
+      font-size: 13px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .topic-item::before {
+      content: "•";
+      color: var(--js-yellow);
+      font-weight: bold;
+    }
+
+    .card-action-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--sans);
+      font-weight: 600;
+      font-size: 14px;
+      padding: 12px;
+      border-radius: 10px;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .chapter-card:hover .card-action-btn {
+      background: var(--js-yellow);
+      color: var(--bg);
+      border-color: var(--js-yellow);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside>
+    <div class="brand">
+      <div class="tag">// handbook.javascript</div>
+      <h1>Interview Bible</h1>
+      <div class="sub">Catalog Dashboard</div>
+    </div>
+    <ul class="nav-list">
+      <li class="nav-item active"><a href="#"><span class="num">00.</span> Overview</a></li>
+      <li class="nav-item"><a href="chapter1-js-fundamentals.html"><span class="num">01.</span> Ch 1: Fundamentals</a></li>
+      <li class="nav-item"><a href="chapter2-js-functions-closures.html"><span class="num">02.</span> Ch 2: Functions & Closures</a></li>
+    </ul>
+  </aside>
+
+  <!-- Main Content -->
+  <main>
+    <a href="../../index.html" class="top-nav-link" id="hub-link">← Hub Dashboard</a>
+
+    <div class="intro-header">
+      <h2>JavaScript Interview Handbook</h2>
+      <p>
+        A curated suite of core-mechanics deep dives, under-the-hood engine behaviors, classic interview traps, and micro-quizzes.
+      </p>
+    </div>
+
+    <!-- Chapter Grid -->
+    <div class="grid-container">
+      
+      <!-- CHAPTER 1 -->
+      <article class="chapter-card">
+        <div>
+          <div class="card-meta">
+            <span class="chapter-badge">CHAPTER 01</span>
+            <span class="read-time">⏱ 35 min read</span>
+          </div>
+          <h3 class="chapter-title">JavaScript Fundamentals</h3>
+          <p class="chapter-desc">
+            Deep dive into V8 engine core types, equality comparisons spec, IEEE-754 floating point standard bugs, type-tag implementation history, and logical precedence rules.
+          </p>
+          <ul class="topics-list">
+            <li class="topic-item">Abstract & Strict Equality Algorithms</li>
+            <li class="topic-item">IEEE-754 & why NaN !== NaN</li>
+            <li class="topic-item">The 1995 typeof null historical bug</li>
+            <li class="topic-item">Nullish coalescing vs Logical OR</li>
+          </ul>
+        </div>
+        <a href="chapter1-js-fundamentals.html" class="card-action-btn">
+          Start Reading <span class="arrow">→</span>
+        </a>
+      </article>
+
+      <!-- CHAPTER 2 -->
+      <article class="chapter-card">
+        <div>
+          <div class="card-meta">
+            <span class="chapter-badge">CHAPTER 02</span>
+            <span class="read-time">⏱ 40 min read</span>
+          </div>
+          <h3 class="chapter-title">Functions, Scopes & Closures</h3>
+          <p class="chapter-desc">
+            Analyze the runtime Call Stack, GEC vs FEC environments, lexical scope resolution chains, dynamic "this" binding rules, and closure memory retention.
+          </p>
+          <ul class="topics-list">
+            <li class="topic-item">Execution Context Lifecycle Phases</li>
+            <li class="topic-item">Lexical Scoping vs Dynamic Calling</li>
+            <li class="topic-item">The Five Rules of "this" binding</li>
+            <li class="topic-item">Backpack closure & var in loop traps</li>
+          </ul>
+        </div>
+        <a href="chapter2-js-functions-closures.html" class="card-action-btn">
+          Start Reading <span class="arrow">→</span>
+        </a>
+      </article>
+
+    </div>
+  </main>
+
+</body>
+</html>
