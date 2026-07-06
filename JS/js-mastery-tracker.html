@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JS Mastery — Study Chain</title>
+<style>
+  :root {
+    --ink: #0b0f17;
+    --panel: #10161f;
+    --panel-2: #141c28;
+    --border: #232e3d;
+    --text: #e6ecf3;
+    --muted: #7c8ba1;
+    --ref: #5ee6d0;      /* reference type teal — "linked" / studied */
+    --prim: #f2b84b;     /* primitive amber — value / in-progress */
+    --warn: #ff7a7a;     /* mistake / gotcha coral */
+    --mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+    --sans: 'Inter', -apple-system, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ink);
+    color: var(--text);
+    font-family: var(--sans);
+    display: flex;
+    min-height: 100vh;
+  }
+  /* ---------- Sidebar ---------- */
+  #sidebar {
+    width: 300px;
+    min-width: 300px;
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    padding: 24px 0;
+    overflow-y: auto;
+    max-height: 100vh;
+    position: sticky;
+    top: 0;
+  }
+  .brand {
+    padding: 0 20px 20px 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+  .brand .tag { font-family: var(--mono); font-size: 11px; color: var(--ref); letter-spacing: 1px; }
+  .brand h1 { font-size: 18px; margin: 6px 0 4px 0; font-weight: 700; }
+  .brand .sub { font-size: 12px; color: var(--muted); }
+  .progress-wrap { padding: 14px 20px 18px 20px; border-bottom: 1px solid var(--border); }
+  .progress-bar { height: 6px; background: var(--panel-2); border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--ref), var(--prim)); border-radius: 4px; transition: width .4s ease; }
+  .progress-label { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+  .batch { border-bottom: 1px solid var(--border); }
+  .batch-head {
+    padding: 12px 20px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: .5px;
+    user-select: none;
+  }
+  .batch-head:hover { color: var(--text); }
+  .batch-head .count { font-size: 10px; opacity: .7; }
+  .topic-list { display: none; padding-bottom: 6px; }
+  .topic-list.open { display: block; }
+  .topic-item {
+    padding: 8px 20px 8px 34px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--muted);
+    border-left: 2px solid transparent;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .topic-item:hover { background: var(--panel-2); color: var(--text); }
+  .topic-item.active { background: var(--panel-2); color: var(--text); border-left-color: var(--ref); }
+  .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .dot.done { background: var(--ref); box-shadow: 0 0 6px var(--ref); }
+  .dot.pending { background: transparent; border: 1.5px dashed var(--muted); }
+
+  /* ---------- Main ---------- */
+  #main { flex: 1; padding: 40px 56px; max-width: 880px; }
+  .eyebrow { font-family: var(--mono); font-size: 12px; color: var(--ref); letter-spacing: 1px; margin-bottom: 8px; }
+  h2.title { font-size: 30px; margin: 0 0 6px 0; font-weight: 800; }
+  .status-badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 24px;
+  }
+  .status-badge.done { background: rgba(94,230,208,.12); color: var(--ref); border: 1px solid rgba(94,230,208,.35); }
+  .status-badge.pending { background: rgba(124,139,161,.1); color: var(--muted); border: 1px solid var(--border); }
+
+  .block { margin-bottom: 26px; }
+  .block h3 { font-family: var(--mono); font-size: 13px; color: var(--prim); text-transform: uppercase; letter-spacing: .5px; margin: 0 0 10px 0; }
+  .block p { line-height: 1.65; color: var(--text); font-size: 15px; margin: 0 0 10px 0; }
+  .block p.muted { color: var(--muted); }
+
+  pre {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 18px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.6;
+    color: #cfe8e2;
+  }
+  .mistake {
+    border-left: 3px solid var(--warn);
+    background: rgba(255,122,122,.06);
+    padding: 12px 16px;
+    border-radius: 0 6px 6px 0;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .mistake .label { font-family: var(--mono); font-size: 11px; color: var(--warn); letter-spacing: .5px; display:block; margin-bottom: 4px; }
+
+  .empty-state {
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--muted);
+  }
+  .empty-state .chain {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--border);
+    margin-bottom: 18px;
+  }
+  .empty-state h3 { color: var(--text); font-size: 18px; margin-bottom: 8px; }
+
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<div id="sidebar">
+  <div class="brand">
+    <div class="tag">// js-mastery.chain</div>
+    <h1>Study Chain</h1>
+    <div class="sub">Marwa's JS deep-dive tracker</div>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-label" id="progressLabel">0 / 0 linked</div>
+  </div>
+  <div id="batchContainer"></div>
+</div>
+
+<div id="main">
+  <div id="content">
+    <div class="empty-state">
+      <div class="chain">[ __proto__ ] → [ __proto__ ] → [ null ]</div>
+      <h3>Pick a topic from the chain</h3>
+      <p>Click any item on the left to revise it.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  {
+    batch: "Batch A — Core Mechanics",
+    topics: [
+      {
+        id: "prim-ref",
+        title: "Primitive vs Reference Types",
+        status: "done",
+        analogy: "A sticky note with a number on it (primitive) vs a locker key (reference). Copy the note, you get two independent notes. Copy the key, both keys open the same locker.",
+        core: "Primitives (string, number, boolean, null, undefined, symbol, bigint) are stored by value on the stack. Objects/arrays/functions are stored on the heap — the variable on the stack just holds a pointer to that heap location.",
+        code: `let a = 10;\nlet b = a;\nb = 20;\nconsole.log(a); // 10 — independent copy\n\nlet obj1 = { value: 10 };\nlet obj2 = obj1;\nobj2.value = 20;\nconsole.log(obj1.value); // 20 — same underlying object`,
+        mistake: "JS is ALWAYS pass-by-value — even for objects. What gets copied is the reference (pointer), not the object itself. Mutating a param follows the pointer and affects the original. Reassigning the param only redirects your local copy of the pointer — the original is untouched.",
+        interview: "\"JS is pass-by-value, but for objects the value passed is a reference. Mutating follows the pointer to the same heap object. Reassigning just points the local variable elsewhere.\""
+      },
+      {
+        id: "coercion",
+        title: "Type Coercion (implicit/explicit)",
+        status: "done",
+        analogy: "Like currency conversion at an airport kiosk — sometimes you ask for it (explicit), sometimes it just happens without asking (implicit).",
+        core: "Explicit: Number('5'), String(123), Boolean(0). Implicit: '5' + 3, '5' - 3, if(value). The '+' operator triggers ToPrimitive() on both sides first — calls valueOf() then toString().",
+        code: `"5" + 3;     // "53"  (string concat wins)\n"5" - 3;     // 2     (- forces numeric)\ntrue + true; // 2     (booleans -> 1/0)\n[] + [];      // ""    (both arrays -> "" via toString)\n\n// Only 8 falsy values:\n// false, 0, -0, 0n, "", null, undefined, NaN\nif ([]) {}    // TRUTHY — empty array is truthy!\nif ("0") {}   // TRUTHY — non-empty string`,
+        mistake: "'0', [], {} are all truthy despite feeling 'empty'. Also: null == undefined is true (spec special case) but null === undefined is false. Form validation and API checks break on this constantly.",
+        interview: "\"Coercion is JS converting between types automatically via operators, vs explicitly via Number()/String()/Boolean(). The '+' operator is the trickiest since it can mean concatenation or addition depending on operand types.\""
+      },
+      {
+        id: "typeof-instanceof",
+        title: "typeof / instanceof",
+        status: "done",
+        analogy: "typeof asks 'what category is this?' (quick label). instanceof asks 'does this thing's family tree include that ancestor?' (chain walk).",
+        core: "typeof returns a string for primitives but can't distinguish null, arrays, and plain objects (all return 'object' — typeof null is a 44-year-old spec bug, never fixed for backward compatibility). instanceof walks the prototype chain checking for Constructor.prototype.",
+        code: `typeof null;        // "object" (the famous bug)\ntypeof [];            // "object"\nArray.isArray([]);    // true — correct way to check arrays\n\nclass Animal {}\nclass Dog extends Animal {}\nconst d = new Dog();\nd instanceof Dog;     // true\nd instanceof Animal;  // true — walks the chain\n"x" instanceof String; // false — primitives aren't instances`,
+        mistake: "Using instanceof on primitives (always false). Relying on typeof to distinguish arrays from objects — use Array.isArray() instead.",
+        interview: "\"typeof null returning 'object' is a bug baked into JS since 1995 — null was represented internally as the null pointer (0x00), which happened to be the same tag as objects. It was never fixed because fixing it would break the web.\""
+      },
+      {
+        id: "operators-precedence",
+        title: "Operators & Precedence",
+        status: "done",
+        analogy: "Like PEMDAS in math class, but JS has way more operators competing for priority, and some care about direction (left-to-right vs right-to-left).",
+        core: "Assignment is right-to-left (a = b = c evaluates b=c first). Most others are left-to-right. && and || short-circuit — the second operand never even runs if the first decides the outcome. ?? cannot be mixed with && / || without parentheses (SyntaxError by design).",
+        code: `let a=1,b=2,c=3;\na = b = c;           // right-to-left: a=3, b=3, c=3\n2 - 3 - 1;            // left-to-right: (2-3)-1 = -2\n\nfalse && sideEffect(); // sideEffect() NEVER called\nuser && user.logout(); // classic guard pattern\n\nconst port = process.env.PORT ?? 3000;  // only falls back on null/undefined\nconst port2 = process.env.PORT || 3000; // ALSO falls back on "0" or "" — bug risk!`,
+        mistake: "Using || for defaults when 0, '', or false are valid values you want to keep — use ?? instead. Mixing ?? with && / || without parentheses throws a SyntaxError.",
+        interview: "\"?? only falls back on null/undefined, while || falls back on any falsy value. For config defaults where 0 or empty string might be intentional, ?? is safer — || would incorrectly override a real value of 0.\""
+      },
+    ]
+  },
+  {
+    batch: "Batch A — Core Mechanics (continued)",
+    topics: [
+      { id: "exec-context", title: "Execution Context (global vs function)", status: "pending" },
+      { id: "scope-chain", title: "Scope Chain (lexical scoping)", status: "pending" },
+      { id: "this-binding", title: "`this` Binding (all 5 rules)", status: "pending" },
+      { id: "call-apply-bind", title: "call / apply / bind", status: "pending" },
+    ]
+  },
+  {
+    batch: "Batch B — Functions & Closures",
+    topics: [
+      { id: "closures", title: "Closures", status: "pending" },
+      { id: "iife", title: "IIFEs", status: "pending" },
+      { id: "currying", title: "Currying", status: "pending" },
+      { id: "hof", title: "Higher-Order Functions", status: "pending" },
+      { id: "composition", title: "Function Composition", status: "pending" },
+      { id: "memoization", title: "Memoization", status: "pending" },
+    ]
+  },
+  {
+    batch: "Batch C — OOP & Prototypes",
+    topics: [
+      { id: "proto-chain", title: "Prototype Chain", status: "pending" },
+      { id: "proto-vs-prototype", title: "__proto__ vs .prototype", status: "pending" },
+      { id: "object-create", title: "Object.create", status: "pending" },
+      { id: "class-syntax", title: "ES6 class (what it desugars to)", status: "pending" },
+      { id: "inheritance", title: "Inheritance (extends/super)", status: "pending" },
+      { id: "freeze-seal", title: "Object.freeze/seal, property descriptors", status: "pending" },
+    ]
+  },
+  {
+    batch: "Batch D — Modern Syntax & Data",
+    topics: [
+      { id: "template-literals", title: "Template Literals", status: "pending" },
+      { id: "modules", title: "Modules (ESM vs CommonJS)", status: "pending" },
+      { id: "generators", title: "Generators & Iterators", status: "pending" },
+      { id: "symbol-optional", title: "Symbol, Optional Chaining, Nullish Coalescing", status: "pending" },
+      { id: "mutating-methods", title: "Mutating vs Non-mutating Array Methods", status: "pending" },
+      { id: "immutability", title: "Immutability Patterns", status: "pending" },
+      { id: "array-like", title: "Array-like Objects vs True Arrays", status: "pending" },
+    ]
+  },
+  {
+    batch: "Batch E — Memory & Performance",
+    topics: [
+      { id: "garbage-collection", title: "Garbage Collection (mark-and-sweep)", status: "pending" },
+      { id: "memory-leaks", title: "Memory Leaks", status: "pending" },
+      { id: "debounce-throttle", title: "Debounce vs Throttle", status: "pending" },
+      { id: "big-o", title: "Big O Basics in JS", status: "pending" },
+    ]
+  },
+  {
+    batch: "Batch F — Design Patterns",
+    topics: [
+      { id: "module-pattern", title: "Module Pattern", status: "pending" },
+      { id: "singleton", title: "Singleton", status: "pending" },
+      { id: "observer", title: "Observer / Pub-Sub", status: "pending" },
+      { id: "factory", title: "Factory", status: "pending" },
+      { id: "patterns-in-projects", title: "Patterns in Your Projects (Noor, etc.)", status: "pending" },
+    ]
+  },
+  {
+    batch: "Batch G — Error Handling",
+    topics: [
+      { id: "custom-errors", title: "Custom Error Classes", status: "pending" },
+      { id: "async-errors", title: "Async Error Handling (rejections)", status: "pending" },
+      { id: "error-boundaries", title: "Error Boundaries (Node context)", status: "pending" },
+    ]
+  },
+  {
+    batch: "Batch H — Engine Internals (Advanced)",
+    topics: [
+      { id: "v8-basics", title: "V8 Basics", status: "pending" },
+      { id: "jit", title: "JIT Compilation", status: "pending" },
+      { id: "hidden-classes", title: "Hidden Classes / Inline Caching", status: "pending" },
+    ]
+  },
+  {
+    batch: "Batch I — Node-Specific",
+    topics: [
+      { id: "node-event-loop", title: "Node Event Loop Phases", status: "pending" },
+      { id: "streams-buffers", title: "Streams & Buffers", status: "pending" },
+      { id: "process-modules", title: "process / module.exports vs ESM", status: "pending" },
+      { id: "blocking-io", title: "Blocking vs Non-blocking I/O", status: "pending" },
+    ]
+  },
+  {
+    batch: "Batch J — TypeScript Bridge",
+    topics: [
+      { id: "dynamic-typing-bugs", title: "Where Dynamic Typing Causes Bugs", status: "pending" },
+      { id: "ts-conceptual", title: "What TS Adds Conceptually", status: "pending" },
+    ]
+  },
+];
+
+const batchContainer = document.getElementById('batchContainer');
+const content = document.getElementById('content');
+let allTopics = [];
+
+DATA.forEach((batch, bIdx) => {
+  const batchEl = document.createElement('div');
+  batchEl.className = 'batch';
+  const doneCount = batch.topics.filter(t => t.status === 'done').length;
+  batchEl.innerHTML = `
+    <div class="batch-head" data-idx="${bIdx}">
+      <span>${batch.batch}</span>
+      <span class="count">${doneCount}/${batch.topics.length}</span>
+    </div>
+    <div class="topic-list ${bIdx === 0 ? 'open' : ''}" id="list-${bIdx}"></div>
+  `;
+  batchContainer.appendChild(batchEl);
+
+  const list = batchEl.querySelector(`#list-${bIdx}`);
+  batch.topics.forEach(topic => {
+    allTopics.push(topic);
+    const item = document.createElement('div');
+    item.className = 'topic-item';
+    item.dataset.id = topic.id;
+    item.innerHTML = `<span class="dot ${topic.status}"></span><span>${topic.title}</span>`;
+    item.addEventListener('click', () => showTopic(topic, item));
+    list.appendChild(item);
+  });
+
+  batchEl.querySelector('.batch-head').addEventListener('click', () => {
+    list.classList.toggle('open');
+  });
+});
+
+function updateProgress() {
+  const done = allTopics.filter(t => t.status === 'done').length;
+  const total = allTopics.length;
+  document.getElementById('progressFill').style.width = `${(done/total*100).toFixed(1)}%`;
+  document.getElementById('progressLabel').textContent = `${done} / ${total} linked`;
+}
+updateProgress();
+
+function showTopic(topic, itemEl) {
+  document.querySelectorAll('.topic-item').forEach(el => el.classList.remove('active'));
+  itemEl.classList.add('active');
+
+  if (topic.status === 'pending') {
+    content.innerHTML = `
+      <div class="eyebrow">// not yet linked</div>
+      <h2 class="title">${topic.title}</h2>
+      <span class="status-badge pending">pending</span>
+      <div class="empty-state" style="padding: 40px 0; text-align:left;">
+        <p style="color: var(--muted); font-size:14px;">We haven't studied this one yet. It's queued in the chain — ask to jump here whenever you're ready.</p>
+      </div>
+    `;
+    return;
+  }
+
+  content.innerHTML = `
+    <div class="eyebrow">// linked node</div>
+    <h2 class="title">${topic.title}</h2>
+    <span class="status-badge done">studied</span>
+
+    <div class="block">
+      <h3>Analogy</h3>
+      <p>${topic.analogy}</p>
+    </div>
+    <div class="block">
+      <h3>Core Idea</h3>
+      <p>${topic.core}</p>
+    </div>
+    <div class="block">
+      <h3>Code</h3>
+      <pre>${topic.code}</pre>
+    </div>
+    <div class="block">
+      <h3>Gotcha</h3>
+      <div class="mistake"><span class="label">common mistake</span>${topic.mistake}</div>
+    </div>
+    <div class="block">
+      <h3>Interview-Ready Answer</h3>
+      <p class="muted">${topic.interview}</p>
+    </div>
+  `;
+}
+</script>
+</body>
+</html>

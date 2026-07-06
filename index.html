@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marwa's Tech Interview Preparation Hub</title>
+  <meta name="description" content="A comprehensive, interactive repository of study chains, revision consoles, and interview gotchas for JavaScript and frontend web development.">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-dark: #07090e;
+      --bg-panel: #0d121b;
+      --bg-card: #121824;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-hover: rgba(255, 255, 255, 0.15);
+      
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-faint: #4b5563;
+      
+      --color-js: #f7df1e;
+      --color-html-css: #ff5722;
+      --color-react: #00d8ff;
+      --color-node: #390;
+      --color-db: #336791;
+      --color-sys: #9c27b0;
+      
+      --sans: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(at 10% 20%, rgba(247, 223, 30, 0.03) 0px, transparent 50%),
+        radial-gradient(at 90% 80%, rgba(0, 216, 255, 0.03) 0px, transparent 50%);
+      color: var(--text-main);
+      font-family: var(--sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Selection styling */
+    ::selection {
+      background: rgba(247, 223, 30, 0.2);
+      color: var(--color-js);
+    }
+
+    /* Container */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 24px;
+      width: 100%;
+      flex: 1;
+    }
+
+    /* Header section */
+    header {
+      text-align: center;
+      margin-bottom: 50px;
+      position: relative;
+    }
+
+    .badge-hub {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(247, 223, 30, 0.1);
+      border: 1px solid rgba(247, 223, 30, 0.2);
+      color: var(--color-js);
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      animation: pulse 3s infinite alternate;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 5px rgba(247, 223, 30, 0.1); }
+      100% { box-shadow: 0 0 15px rgba(247, 223, 30, 0.2); }
+    }
+
+    h1 {
+      font-size: 2.8rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #ffffff 30%, #a1a8b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* Quick Stats Bar */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 48px;
+    }
+
+    .stat-card {
+      background: rgba(13, 18, 27, 0.6);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .stat-card:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-2px);
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      font-family: var(--mono);
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .stat-value span.highlight {
+      color: var(--color-js);
+    }
+
+    /* Tracks section */
+    .tracks-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: -0.02em;
+    }
+
+    .tracks-title::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--border-color);
+    }
+
+    .tracks-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+      margin-bottom: 60px;
+    }
+
+    /* Skill Card Base */
+    .skill-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Active Skill Styling */
+    .skill-card.active-track {
+      box-shadow: 0 10px 30px -10px rgba(247, 223, 30, 0.07);
+    }
+
+    .skill-card.active-track:hover {
+      border-color: rgba(247, 223, 30, 0.4);
+      transform: translateY(-4px);
+      box-shadow: 0 15px 35px -5px rgba(247, 223, 30, 0.1);
+    }
+
+    .card-glow {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+    }
+
+    .js-glow { background: var(--color-js); }
+    .html-css-glow { background: var(--color-html-css); }
+    .react-glow { background: var(--color-react); }
+    .node-glow { background: var(--color-node); }
+    .db-glow { background: var(--color-db); }
+    .sys-glow { background: var(--color-sys); }
+
+    .card-header {
+      padding: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .skill-title-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .skill-type {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+
+    .skill-name {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .skill-badge {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      text-transform: uppercase;
+    }
+
+    .badge-active {
+      background: rgba(16, 185, 129, 0.1);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .badge-locked {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .card-body {
+      padding: 0 24px 24px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .skill-description {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+
+    .resource-links {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .resource-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      text-decoration: none;
+      color: var(--text-main);
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .resource-btn:hover {
+      background: rgba(255, 255, 255, 0.03);
+      border-color: var(--border-hover);
+      transform: translateX(3px);
+    }
+
+    .resource-btn .btn-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      text-align: left;
+    }
+
+    .resource-btn .btn-title {
+      font-weight: 600;
+    }
+
+    .resource-btn .btn-subtitle {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-family: var(--mono);
+      font-weight: normal;
+    }
+
+    .resource-btn .btn-arrow {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      transition: transform 0.2s ease;
+    }
+
+    .resource-btn:hover .btn-arrow {
+      color: var(--text-main);
+      transform: translateX(2px);
+    }
+
+    /* Locked state styling */
+    .skill-card.locked-track {
+      opacity: 0.55;
+    }
+
+    .skill-card.locked-track:hover {
+      opacity: 0.8;
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .locked-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px dashed var(--border-color);
+      border-radius: 12px;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-family: var(--mono);
+    }
+
+    /* Footer documentation panel */
+    .docs-panel {
+      background: rgba(13, 18, 27, 0.6);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 32px;
+      margin-top: auto;
+    }
+
+    .docs-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .docs-desc {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    .cmd-box {
+      background: var(--bg-dark);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 18px;
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      color: #38bdf8;
+      position: relative;
+      overflow-x: auto;
+    }
+
+    .cmd-line {
+      display: flex;
+      gap: 12px;
+      line-height: 1.8;
+    }
+
+    .cmd-prompt {
+      color: var(--text-faint);
+      user-select: none;
+    }
+
+    .cmd-text {
+      color: #93c5fd;
+    }
+
+    .cmd-comment {
+      color: var(--text-faint);
+      margin-left: auto;
+    }
+
+    footer.page-footer {
+      text-align: center;
+      margin-top: 60px;
+      padding: 24px 0;
+      border-top: 1px solid var(--border-color);
+      color: var(--text-faint);
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    footer.page-footer a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    footer.page-footer a:hover {
+      color: var(--color-js);
+    }
+  </style>
+</head>
+<body>
+  
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="badge-hub">
+        <span style="font-size: 12px;">⚡</span> Daily Interview Sprint
+      </div>
+      <h1>Interview Preparation Hub</h1>
+      <p class="subtitle">
+        Curated study chains, active-recall consoles, gotchas, and deep-dives for acing senior-level web engineering technical interviews.
+      </p>
+    </header>
+
+    <!-- Stats summary -->
+    <section class="stats-bar" aria-label="Statistics Summary">
+      <div class="stat-card">
+        <div class="stat-label">Active Focus</div>
+        <div class="stat-value"><span class="highlight">JavaScript</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Revision Consoles</div>
+        <div class="stat-value">2 <span style="font-size:0.9rem; color: var(--text-muted);">Ready</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Tracks</div>
+        <div class="stat-value">6 <span style="font-size:0.9rem; color: var(--text-muted);">Planned</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Study Status</div>
+        <div class="stat-value" style="color: #10b981;">Online</div>
+      </div>
+    </section>
+
+    <!-- Track Grid -->
+    <section>
+      <h2 class="tracks-title">Study Tracks</h2>
+      
+      <div class="tracks-grid">
+        
+        <!-- JAVASCRIPT CARD (ACTIVE) -->
+        <article class="skill-card active-track" id="track-js">
+          <div class="card-glow js-glow"></div>
+          <div class="card-header">
+            <div class="skill-title-wrap">
+              <span class="skill-type">Domain Track 01</span>
+              <h3 class="skill-name">JavaScript Deep Dive</h3>
+            </div>
+            <span class="skill-badge badge-active">Active</span>
+          </div>
+          <div class="card-body">
+            <p class="skill-description">
+              Master engine mechanics, prototype chain inheritance, closures, scoping, V8 optimization, execution context, asynchronous event loop patterns, and typical gotchas.
+            </p>
+            <div class="resource-links">
+              <a href="JS/js-mastery-tracker.html" class="resource-btn" id="btn-js-tracker">
+                <div class="btn-meta">
+                  <span class="btn-title">Study Chain Tracker</span>
+                  <span class="btn-subtitle">js-mastery-tracker.html</span>
+                </div>
+                <span class="btn-arrow">→</span>
+              </a>
+              <a href="JS/js-mastery-revision.html" class="resource-btn" id="btn-js-revision">
+                <div class="btn-meta">
+                  <span class="btn-title">Revision Console</span>
+                  <span class="btn-subtitle">js-mastery-revision.html</span>
+                </div>
+                <span class="btn-arrow">→</span>
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <!-- HTML & CSS CARD (LOCKED) -->
+        <article class="skill-card locked-track" id="track-html-css">
+          <div class="card-glow html-css-glow"></div>
+          <div class="card-header">
+            <div class="skill-title-wrap">
+              <span class="skill-type">Domain Track 02</span>
+              <h3 class="skill-name">HTML5 & CSS3 Layouts</h3>
+            </div>
+            <span class="skill-badge badge-locked">Queued</span>
+          </div>
+          <div class="card-body">
+            <p class="skill-description">
+              Advanced layouts (Flexbox, CSS Grid), semantic HTML5, SEO compliance, paint/composite rendering optimization, custom variables, container queries, and responsive web design.
+            </p>
+            <div class="locked-indicator">
+              <span>🔒</span> Under Development
+            </div>
+          </div>
+        </article>
+
+        <!-- REACT & NEXT.JS CARD (LOCKED) -->
+        <article class="skill-card locked-track" id="track-react">
+          <div class="card-glow react-glow"></div>
+          <div class="card-header">
+            <div class="skill-title-wrap">
+              <span class="skill-type">Domain Track 03</span>
+              <h3 class="skill-name">React & Next.js</h3>
+            </div>
+            <span class="skill-badge badge-locked">Queued</span>
+          </div>
+          <div class="card-body">
+            <p class="skill-description">
+              Fiber architecture, reconciliation, hooks optimization, server actions, state management models, hydration, SSR/ISR paradigms, and caching layers.
+            </p>
+            <div class="locked-indicator">
+              <span>🔒</span> Under Development
+            </div>
+          </div>
+        </article>
+
+        <!-- NODE.JS & BACKEND CARD (LOCKED) -->
+        <article class="skill-card locked-track" id="track-node">
+          <div class="card-glow node-glow"></div>
+          <div class="card-header">
+            <div class="skill-title-wrap">
+              <span class="skill-type">Domain Track 04</span>
+              <h3 class="skill-name">Node.js Internals</h3>
+            </div>
+            <span class="skill-badge badge-locked">Queued</span>
+          </div>
+          <div class="card-body">
+            <p class="skill-description">
+              Libuv event loop phases, worker threads, stream pipelines, buffer management, cluster module scalability, memory leaks profiling, and async hooks.
+            </p>
+            <div class="locked-indicator">
+              <span>🔒</span> Under Development
+            </div>
+          </div>
+        </article>
+
+        <!-- DATABASES CARD (LOCKED) -->
+        <article class="skill-card locked-track" id="track-db">
+          <div class="card-glow db-glow"></div>
+          <div class="card-header">
+            <div class="skill-title-wrap">
+              <span class="skill-type">Domain Track 05</span>
+              <h3 class="skill-name">Databases & SQL</h3>
+            </div>
+            <span class="skill-badge badge-locked">Queued</span>
+          </div>
+          <div class="card-body">
+            <p class="skill-description">
+              Query optimization, indexing strategies (B-Tree/Hash), transaction isolation levels (ACID), schema design normalization, Redis caching strategy, and aggregation frameworks.
+            </p>
+            <div class="locked-indicator">
+              <span>🔒</span> Under Development
+            </div>
+          </div>
+        </article>
+
+        <!-- SYSTEM DESIGN CARD (LOCKED) -->
+        <article class="skill-card locked-track" id="track-sys">
+          <div class="card-glow sys-glow"></div>
+          <div class="card-header">
+            <div class="skill-title-wrap">
+              <span class="skill-type">Domain Track 06</span>
+              <h3 class="skill-name">System Design</h3>
+            </div>
+            <span class="skill-badge badge-locked">Queued</span>
+          </div>
+          <div class="card-body">
+            <p class="skill-description">
+              Distributed system architecture, load balancing, rate limiters, horizontal scaling, caching strategies, CDN propagation, message queues, and microservices patterns.
+            </p>
+            <div class="locked-indicator">
+              <span>🔒</span> Under Development
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- Docs Panel -->
+    <section class="docs-panel" aria-label="Repository Information">
+      <h2 class="docs-title">🚀 Daily Study Process</h2>
+      <p class="docs-desc">
+        To add new study content, create a dedicated folder for the skill (e.g. <code>React</code>), copy the layout patterns from the <code>JS</code> templates, write up the revision details, and link it to this dashboard. Track daily updates in Git:
+      </p>
+      <div class="cmd-box">
+        <div class="cmd-line">
+          <span class="cmd-prompt">$</span>
+          <span class="cmd-text">git add .</span>
+          <span class="cmd-comment"># Stage all files, including new skills folders</span>
+        </div>
+        <div class="cmd-line">
+          <span class="cmd-prompt">$</span>
+          <span class="cmd-text">git commit -m "docs: add new interview revision notes"</span>
+          <span class="cmd-comment"># Save changes locally</span>
+        </div>
+        <div class="cmd-line">
+          <span class="cmd-prompt">$</span>
+          <span class="cmd-text">git push origin main</span>
+          <span class="cmd-comment"># Deploy changes to GitHub & GitHub Pages</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="page-footer">
+      <div>© 2026 Marwa's Study Hub. Built for interview success.</div>
+      <div>
+        <a href="https://github.com/MarwaAshraf1812/Interviews" target="_blank" id="repo-link">GitHub Repository</a>
+      </div>
+    </footer>
+  </div>
+
+</body>
+</html>
