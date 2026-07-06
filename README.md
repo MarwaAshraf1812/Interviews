@@ -17,8 +17,7 @@ The project is organized into modular folders, each dedicated to a specific skil
 ├── index.html                   # Global Hub Dashboard (HTML/CSS)
 ├── README.md                    # Repository documentation
 └── JS/                          # JavaScript Domain Track
-    ├── js-mastery-tracker.html  # Interactive Study Chain & Progress Tracker
-    └── js-mastery-revision.html # Revision Console with Code, Gotchas & Interview Questions
+    └── js-mastery-tracker.html  # Unified Study Chain Tracker & Revision Console
 ```
 
 ---
@@ -26,8 +25,7 @@ The project is organized into modular folders, each dedicated to a specific skil
 ## ⚡ Active Domain Tracks
 
 ### 1. JavaScript Deep Dive (Active)
-*   **JS Study Chain Tracker (`JS/js-mastery-tracker.html`):** Visualizes core concepts as a linked chain, tracking study progress from primitives to advanced engines.
-*   **JS Revision Console (`JS/js-mastery-revision.html`):** Focuses on technical explanation, code walkthroughs, execution context diagrams, common interview traps, and mock questions.
+*   **JS Study Chain Tracker & Revision Console (`JS/js-mastery-tracker.html`):** Visualizes core concepts as a linked chain, tracking study progress, under-the-hood V8 engine behaviors, code examples, common traps, and mock questions.
 
 ### 2. Planned Tracks (Coming Soon)
 *   HTML5 & CSS3 Layouts
@@ -46,10 +44,10 @@ When starting a new skill (e.g. `React`):
     ```bash
     mkdir React
     ```
-2.  **Add revision and tracker files** matching the established layout template (copy from `JS/` templates).
+2.  **Add tracker files** matching the established layout template (copy from `JS/` templates).
 3.  **Update the root `index.html`**:
     *   Change the target card's class from `locked-track` to `active-track`.
-    *   Add links to the new tracker and console files.
+    *   Add links to the new tracker files.
 4.  **Push to GitHub** to automatically update the live site:
     ```bash
     git add .
