@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JS Mastery Handbook — Chapter 1: Fundamentals</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg: #0b0f17;
+      --bg-panel: #101622;
+      --bg-card: #151d2a;
+      --border: #232e42;
+      --text: #e6ecf3;
+      --text-muted: #7c8ba1;
+      --text-faint: #435269;
+      --js-yellow: #f7df1e;
+      --neon-teal: #5ee6d0;
+      --neon-coral: #ff7a7a;
+      --neon-green: #5fd9a4;
+      --sans: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      display: flex;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ---------- Left Sidebar ---------- */
+    aside {
+      width: 320px;
+      min-width: 320px;
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border);
+      padding: 30px 0;
+      position: sticky;
+      top: 0;
+      max-height: 100vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand {
+      padding: 0 24px 20px 24px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+
+    .brand .tag {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--neon-teal);
+      letter-spacing: 1px;
+    }
+
+    .brand h1 {
+      font-size: 20px;
+      font-weight: 800;
+      margin: 6px 0 4px;
+    }
+
+    .brand .sub {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .nav-list {
+      list-style: none;
+    }
+
+    .nav-item a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 24px;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-decoration: none;
+      border-left: 3px solid transparent;
+      transition: all 0.2s ease;
+    }
+
+    .nav-item a:hover {
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text);
+    }
+
+    .nav-item.active a {
+      background: rgba(247, 223, 30, 0.05);
+      color: var(--js-yellow);
+      border-left-color: var(--js-yellow);
+    }
+
+    .nav-item .num {
+      font-family: var(--mono);
+      font-size: 11px;
+      width: 20px;
+      text-align: right;
+      opacity: 0.6;
+    }
+
+    /* ---------- Main Layout ---------- */
+    main {
+      flex: 1;
+      padding: 40px 60px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .top-nav-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 30px;
+      transition: color 0.2s ease;
+    }
+
+    .top-nav-link:hover {
+      color: var(--js-yellow);
+    }
+
+    .intro-header {
+      margin-bottom: 50px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 30px;
+    }
+
+    .intro-header h2 {
+      font-size: 32px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #fff 40%, var(--text-muted));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .intro-header p {
+      color: var(--text-muted);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    /* ---------- Content Sections ---------- */
+    section {
+      margin-bottom: 80px;
+      scroll-margin-top: 40px;
+    }
+
+    .sec-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+      border-bottom: 1px dashed var(--border);
+      padding-bottom: 12px;
+    }
+
+    .sec-num {
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 800;
+      background: var(--js-yellow);
+      color: var(--bg);
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+
+    .sec-title {
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    /* Explanations */
+    .desc {
+      font-size: 15px;
+      line-height: 1.7;
+      margin-bottom: 20px;
+      color: var(--text);
+    }
+
+    .desc p {
+      margin-bottom: 12px;
+    }
+
+    .bold-term {
+      color: var(--js-yellow);
+      font-weight: 600;
+    }
+
+    /* Code Blocks */
+    pre {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      overflow-x: auto;
+      font-family: var(--mono);
+      font-size: 13.5px;
+      line-height: 1.65;
+      color: #d1d9e6;
+      margin-bottom: 20px;
+    }
+
+    .comment {
+      color: var(--text-faint);
+    }
+
+    .keyword {
+      color: #ff7b72;
+    }
+
+    .string {
+      color: #a5d6ff;
+    }
+
+    .number {
+      color: #79c0ff;
+    }
+
+    /* Under the Hood & Gotcha Panels */
+    .info-box {
+      margin: 24px 0;
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .box-header {
+      padding: 10px 16px;
+      font-size: 12px;
+      font-family: var(--mono);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .box-body {
+      padding: 16px 20px;
+      font-size: 14.5px;
+      line-height: 1.65;
+    }
+
+    .info-box.hood {
+      border: 1px solid rgba(94, 230, 208, 0.2);
+    }
+
+    .info-box.hood .box-header {
+      background: rgba(94, 230, 208, 0.08);
+      color: var(--neon-teal);
+      border-bottom: 1px solid rgba(94, 230, 208, 0.15);
+    }
+
+    .info-box.hood .box-body {
+      background: rgba(94, 230, 208, 0.02);
+    }
+
+    .info-box.trap {
+      border: 1px solid rgba(255, 122, 122, 0.2);
+    }
+
+    .info-box.trap .box-header {
+      background: rgba(255, 122, 122, 0.08);
+      color: var(--neon-coral);
+      border-bottom: 1px solid rgba(255, 122, 122, 0.15);
+    }
+
+    .info-box.trap .box-body {
+      background: rgba(255, 122, 122, 0.02);
+    }
+
+    .info-box.answer {
+      border: 1px solid rgba(95, 217, 164, 0.2);
+    }
+
+    .info-box.answer .box-header {
+      background: rgba(95, 217, 164, 0.08);
+      color: var(--neon-green);
+      border-bottom: 1px solid rgba(95, 217, 164, 0.15);
+    }
+
+    .info-box.answer .box-body {
+      background: rgba(95, 217, 164, 0.02);
+      font-style: italic;
+    }
+
+    /* Diagram */
+    .diagram-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      font-family: var(--mono);
+      font-size: 12.5px;
+      line-height: 1.6;
+      color: var(--neon-teal);
+      margin: 20px 0;
+      white-space: pre;
+      overflow-x: auto;
+    }
+
+    /* Quiz styling */
+    .quiz-wrap {
+      background: rgba(255, 255, 255, 0.01);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      margin-top: 30px;
+    }
+
+    .quiz-title {
+      font-size: 15px;
+      font-family: var(--mono);
+      font-weight: 700;
+      color: var(--js-yellow);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .quiz-question {
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+
+    .quiz-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-family: var(--sans);
+      font-weight: 600;
+      font-size: 13px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .quiz-btn:hover {
+      border-color: var(--js-yellow);
+      color: var(--text);
+    }
+
+    .quiz-answer {
+      display: none;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px dashed var(--border);
+      font-size: 14.5px;
+      line-height: 1.6;
+    }
+
+    .quiz-answer.open {
+      display: block;
+      animation: slideDown 0.3s ease;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Sidebar -->
+  <aside>
+    <div class="brand">
+      <div class="tag">// handbook.javascript</div>
+      <h1>Interview Bible</h1>
+      <div class="sub">Chapter 1: JS Fundamentals</div>
+    </div>
+    <ul class="nav-list">
+      <li class="nav-item active" id="nav-equality"><a href="#equality"><span class="num">01.</span> Equality</a></li>
+      <li class="nav-item" id="nav-nan"><a href="#nan"><span class="num">02.</span> NaN</a></li>
+      <li class="nav-item" id="nav-typeof"><a href="#typeof"><span class="num">03.</span> typeof</a></li>
+      <li class="nav-item" id="nav-instanceof"><a href="#instanceof"><span class="num">04.</span> instanceof</a></li>
+      <li class="nav-item" id="nav-operators"><a href="#operators"><span class="num">05.</span> Operators</a></li>
+      <li class="nav-item" id="nav-precedence"><a href="#precedence"><span class="num">06.</span> Operator Precedence</a></li>
+      <li class="nav-item" id="nav-logical"><a href="#logical"><span class="num">07.</span> Logical Operators</a></li>
+      <li class="nav-item" id="nav-nullish"><a href="#nullish"><span class="num">08.</span> Nullish Coalescing</a></li>
+      <li class="nav-item" id="nav-bugs"><a href="#bugs"><span class="num">09.</span> Real Bugs</a></li>
+      <li class="nav-item" id="nav-interview-qa"><a href="#interview-qa"><span class="num">10.</span> Interview Q&A</a></li>
+    </ul>
+  </aside>
+
+  <!-- Main Content -->
+  <main>
+    <a href="../../index.html" class="top-nav-link" id="hub-link">← Hub Dashboard</a>
+    
+    <div class="intro-header">
+      <h2>Chapter 1: JavaScript Fundamentals</h2>
+      <p>
+        In-depth concepts, engine internals, core specifications, common traps, and real-world bugs we've analyzed during our technical preparation.
+      </p>
+    </div>
+
+    <!-- 1. EQUALITY -->
+    <section id="equality">
+      <div class="sec-header">
+        <span class="sec-num">01</span>
+        <h3 class="sec-title">Equality Comparison</h3>
+      </div>
+      
+      <div class="desc">
+        <p>
+          In JavaScript comparisons, we have two primary types: <span class="bold-term">Loose Equality (==)</span> and <span class="bold-term">Strict Equality (===)</span>.
+        </p>
+        <p>
+          Strict Equality (<span class="bold-term">===</span>) directly compares both the value and the type of the operands, without performing any data type modification. In contrast, Loose Equality (<span class="bold-term">==</span>) performs implicit <span class="bold-term">Type Coercion</span> (automatically converting data types) to force the values into the same type before comparison. This conversion follows a strictly defined standard known as the <span class="bold-term">Abstract Equality Comparison Algorithm</span>.
+        </p>
+      </div>
+
+      <pre><span class="comment">// Strict Equality (===) - No Coercion</span>
+<span class="keyword">const</span> a = <span class="number">5</span>;
+<span class="keyword">const</span> b = <span class="string">"5"</span>;
+console.log(a === b); <span class="comment">// false (number vs string)</span>
+
+<span class="comment">// Loose Equality (==) - Coercion happens</span>
+console.log(a == b);  <span class="comment">// true (string gets converted to number)</span></pre>
+
+      <div class="info-box hood">
+        <div class="box-header">Under the Hood: Abstract Equality Algorithm</div>
+        <div class="box-body">
+          According to ECMAScript spec section 7.2.14:
+          <br>When comparing <code>x == y</code>:
+          <ol style="margin-left: 20px; margin-top: 8px;">
+            <li>If Type(x) is the same as Type(y), return <code>x === y</code>.</li>
+            <li>If <code>x</code> is <b>null</b> and <code>y</code> is <b>undefined</b>, return <b>true</b>.</li>
+            <li>If <code>x</code> is <b>undefined</b> and <code>y</code> is <b>null</b>, return <b>true</b>.</li>
+            <li>If Type(x) is Number and Type(y) is String, compare <code>x == ToNumber(y)</code>.</li>
+            <li>If Type(x) is String and Type(y) is Number, compare <code>ToNumber(x) == y</code>.</li>
+            <li>If Type(x) is Boolean, compare <code>ToNumber(x) == y</code>.</li>
+            <li>If Type(x) is Object and Type(y) is either String, Number, or Symbol, compare <code>ToPrimitive(x) == y</code>.</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="desc">
+        <h4 style="margin-bottom: 8px;">The Special Case: <code>null == undefined</code></h4>
+        <p>
+          This is one of the most debated rules in JavaScript. Why does <code>null == undefined</code> yield <code>true</code>?
+          The reason is simply that the ECMAScript Specification defines this as an <b>explicit, special rule</b> in the algorithm (steps 2 and 3 above). The engine does not convert them to numbers here (meaning null is not converted to 0, and undefined is not converted to NaN). The spec states: because both represent the "absence of value", they should be considered equal under loose equality.
+        </p>
+        <p>
+          However, <code>null === undefined</code> evaluates to <code>false</code> because their types are strictly different (the first is of type Null, and the second is of type Undefined).
+        </p>
+      </div>
+
+      <div class="info-box trap">
+        <div class="box-header">Interview Trap</div>
+        <div class="box-body">
+          <p>
+            <b>Trap:</b> An interviewer might ask: "Does <code>null == 0</code> evaluate to true?".
+            <br>Many developers incorrectly guess "Yes, because null coerces to 0". 
+            <b>Correct Answer:</b> ❌ <b>False!</b> 
+            The ECMAScript specification explicitly states that null and undefined do not equal any other values besides each other under loose equality. No coercion is performed on null to make it a number when compared to 0.
+          </p>
+        </div>
+      </div>
+
+      <div class="info-box answer">
+        <div class="box-header">Interview-Ready Answer</div>
+        <div class="box-body">
+          "In JavaScript, loose equality (==) allows implicit coercion according to the Abstract Equality Comparison Algorithm, whereas strict equality (===) compares both value and type without coercion. For example, <code>null == undefined</code> evaluates to true because the ECMAScript spec explicitly defines them as equal. However, <code>null === undefined</code> is false because null has type 'Null' and undefined has type 'Undefined'."
+        </div>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">💡 Mini Quiz</div>
+        <div class="quiz-question">What is the output of: <code>[] == ![]</code>?</div>
+        <button class="quiz-btn" id="quiz-eq-btn" onclick="toggleQuiz('quiz-eq')">Show Answer & Explanation</button>
+        <div class="quiz-answer" id="quiz-eq">
+          <b>Answer:</b> <code>true</code>
+          <br><br>
+          <b>Step-by-step Execution:</b>
+          <ol style="margin-left: 20px; margin-top: 8px;">
+            <li><code>![]</code> executes first (logical NOT). Since an empty array is truthy, <code>![]</code> becomes <code>false</code>. Now we have: <code>[] == false</code>.</li>
+            <li>If one side is Boolean, convert it to a Number. <code>false</code> becomes <code>0</code>. Now we have: <code>[] == 0</code>.</li>
+            <li>If one side is Object (Array) and the other is Primitive, call <code>ToPrimitive([])</code>. For arrays, this calls <code>toString()</code> which results in <code>""</code>. Now we have: <code>"" == 0</code>.</li>
+            <li>If comparing String to Number, convert String to Number. <code>Number("")</code> is <code>0</code>. Now we have: <code>0 == 0</code>.</li>
+            <li>Both sides are now numbers, so it returns <code>true</code>.</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. NAN -->
+    <section id="nan">
+      <div class="sec-header">
+        <span class="sec-num">02</span>
+        <h3 class="sec-title">NaN (Not a Number)</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          The value <span class="bold-term">NaN</span> (Not a Number) is produced when attempting to perform an invalid mathematical operation (such as dividing 0 by 0, or subtracting a string from a number).
+        </p>
+        <p>
+          The most critical rule regarding NaN is: <span class="bold-term">NaN is the only value in JavaScript that does not equal itself!</span> That means both <code>NaN == NaN</code> and <code>NaN === NaN</code> evaluate to <code>false</code>.
+        </p>
+      </div>
+
+      <pre><span class="comment">// Producing NaN</span>
+<span class="keyword">const</span> x = <span class="number">0</span> / <span class="number">0</span>;      <span class="comment">// NaN</span>
+<span class="keyword">const</span> y = <span class="string">"hello"</span> - <span class="number">5</span>; <span class="comment">// NaN</span>
+
+console.log(x === y); <span class="comment">// false</span>
+console.log(NaN === NaN); <span class="comment">// false</span></pre>
+
+      <div class="info-box hood">
+        <div class="box-header">Under the Hood: IEEE-754 Standard & Floating Point Arithmetic</div>
+        <div class="box-body">
+          JavaScript represents numbers as double-precision floating-point format (64-bit) defined by the <b>IEEE 754</b> standard. 
+          Under IEEE 754, NaN is represented with an exponent field of all 1s and a non-zero fraction. The standard explicitly states that:
+          <br><b>"Any comparison operation involving NaN, whether strict or non-strict, must evaluate to false."</b>
+          <br>This is because NaN represents an undefined/invalid mathematical operation, and two failed calculations aren't logically identical (e.g. <code>0/0</code> is not equivalent to <code>Math.sqrt(-1)</code>).
+        </div>
+      </div>
+
+      <div class="desc">
+        <h4 style="margin-bottom: 8px;"><code>isNaN()</code> vs <code>Number.isNaN()</code></h4>
+        <p>
+          <b>Global <code>isNaN()</code>:</b> First attempts to perform Type Coercion on the input, converting it to a number. If the conversion fails and returns NaN, it returns true. Consequently, <code>isNaN("abc")</code> evaluates to true because "abc" coerces to NaN.
+          <br><b>Strict <code>Number.isNaN()</code>:</b> Does not perform any type coercion. It asks a single, strict question: "Is the type of the value Number, and is the value currently NaN?". Therefore, <code>Number.isNaN("abc")</code> evaluates to false because "abc" is a string.
+        </p>
+      </div>
+
+      <div class="info-box trap">
+        <div class="box-header">Interview Trap & Common Bugs</div>
+        <div class="box-body">
+          <p>
+            <b>Trap:</b> Using the global <code>isNaN(x)</code> to validate user input.
+            <br>If the input is <code>undefined</code>, <code>isNaN(undefined)</code> returns <code>true</code> (because undefined coerces to NaN). 
+            However, using <code>Number.isNaN(undefined)</code> correctly returns <code>false</code>.
+            <br><b>Classic Interview Trick:</b> How can you check if a value is NaN without using any helper functions?
+            <br>Answer: Use <code>value !== value</code>. If this check evaluates to true, it guarantees that the value is NaN.
+          </p>
+        </div>
+      </div>
+
+      <div class="info-box answer">
+        <div class="box-header">Interview-Ready Answer</div>
+        <div class="box-body">
+          "NaN represents an invalid mathematical operation under the IEEE 754 standard. It is unique because it is the only value in JavaScript that does not equal itself. We should never use the global <code>isNaN()</code> function to check for NaN because it performs type coercion and incorrectly flags values like <code>'abc'</code> or <code>undefined</code> as NaN. Instead, we should use the strict <code>Number.isNaN()</code>, or the self-comparison trick: <code>value !== value</code>."
+        </div>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">💡 Mini Quiz</div>
+        <div class="quiz-question">What is the output of the following checks?
+          <pre>console.log(isNaN(undefined));
+console.log(Number.isNaN(undefined));</pre>
+        </div>
+        <button class="quiz-btn" id="quiz-nan-btn" onclick="toggleQuiz('quiz-nan')">Show Answer</button>
+        <div class="quiz-answer" id="quiz-nan">
+          <b>Output:</b>
+          <br><code>true</code>
+          <br><code>false</code>
+          <br><br>
+          <b>Explanation:</b>
+          <br>The global <code>isNaN()</code> coerces <code>undefined</code> to a number. <code>Number(undefined)</code> is <code>NaN</code>, so it returns <code>true</code>.
+          <br><code>Number.isNaN()</code> checks strictly. Since <code>undefined</code> is of type <code>Undefined</code> (not <code>Number</code>), it immediately returns <code>false</code> without coercing.
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. TYPEOF -->
+    <section id="typeof">
+      <div class="sec-header">
+        <span class="sec-num">03</span>
+        <h3 class="sec-title">typeof Operator</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          The <span class="bold-term">typeof</span> operator is used to evaluate the data type of a value. It always returns a string representing the type.
+        </p>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Under the Hood: Every Possible Return Value & The null Bug</div>
+        <div class="box-body">
+          The only possible strings <code>typeof</code> can return are:
+          <ul style="margin-left: 20px; margin-top: 8px;">
+            <li><code>"undefined"</code> (for undefined values)</li>
+            <li><code>"boolean"</code> (for booleans)</li>
+            <li><code>"number"</code> (for numbers)</li>
+            <li><code>"string"</code> (for strings)</li>
+            <li><code>"symbol"</code> (for ES6 Symbols)</li>
+            <li><code>"bigint"</code> (for ES2020 BigInts)</li>
+            <li><code>"object"</code> (for arrays, null, dates, regex, plain objects)</li>
+            <li><code>"function"</code> (for callable objects/functions)</li>
+          </ul>
+          <br>
+          <b>The Historical typeof null Bug:</b>
+          <p>
+            In the initial 1995 release of JavaScript, values were stored in memory as 32-bit units, composed of a type tag (the first 1-3 bits) and the actual value.
+            The type tag for Objects was <code>000</code>. The null pointer was represented entirely as zeros (<code>0x00000000</code>).
+            The engine read the leading bits, saw <code>000</code>, and immediately assumed that null was an object, returning <code>"object"</code>! This historical bug has been preserved in the specification because fixing it would break millions of legacy websites built on this behavior.
+          </p>
+        </div>
+      </div>
+
+      <div class="diagram-panel">
+JS memory cell layout (32-bit tag system in 1995):
+┌───────────┬────────────────────────────────────────┐
+│ Tag (3b)  │ Value / Pointer bits                   │
+└───────────┴────────────────────────────────────────┘
+ 000        -> Object pointer
+ 001        -> Int number
+ 010        -> Double number
+
+Null representation:
+┌───────────┬────────────────────────────────────────┐
+│ 000 (tag) │ 00000000000000000000000000000 (value)  │
+└───────────┴────────────────────────────────────────┘
+Tag matches "000" (Object) -> typeof null evaluates to "object" ❌ (Spec bug)</div>
+
+      <div class="desc">
+        <h4 style="margin-bottom: 8px;">Why does <code>typeof function</code> return <code>"function"</code>?</h4>
+        <p>
+          Even though functions are objects under the hood, the engine returns <code>"function"</code> to easily identify them as callable objects that implement the internal <code>[[Call]]</code> method.
+        </p>
+      </div>
+
+      <div class="info-box answer">
+        <div class="box-header">Interview-Ready Answer</div>
+        <div class="box-body">
+          "The <code>typeof</code> operator returns a string indicating the type of the unevaluated operand. There are exactly 8 possible return values. <code>typeof null</code> returns <code>'object'</code> due to a 1995 design oversight where JavaScript's binary representation used type tags, and <code>000</code> was reserved for objects. Because null was represented as all zeros, the engine mistakenly identified it as an object. This remains in the spec to maintain backward compatibility."
+        </div>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">💡 Mini Quiz</div>
+        <div class="quiz-question">What is the output of the following expressions?
+          <pre>console.log(typeof typeof 42);
+console.log(typeof [1, 2, 3]);</pre>
+        </div>
+        <button class="quiz-btn" id="quiz-typeof-btn" onclick="toggleQuiz('quiz-typeof')">Show Answer</button>
+        <div class="quiz-answer" id="quiz-typeof">
+          <b>Output:</b>
+          <br><code>"string"</code>
+          <br><code>"object"</code>
+          <br><br>
+          <b>Explanation:</b>
+          <br>1. <code>typeof 42</code> evaluates to the string <code>"number"</code>. Then, <code>typeof "number"</code> evaluates to <code>"string"</code>.
+          <br>2. Arrays are objects under the hood, so <code>typeof []</code> evaluates to <code>"object"</code>.
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. INSTANCEOF -->
+    <section id="instanceof">
+      <div class="sec-header">
+        <span class="sec-num">04</span>
+        <h3 class="sec-title">instanceof vs Array.isArray</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          The <span class="bold-term">instanceof</span> operator tests whether the prototype property of a constructor function appears anywhere in the prototype chain of an object.
+        </p>
+      </div>
+
+      <pre><span class="keyword">class</span> Animal {}
+<span class="keyword">class</span> Dog <span class="keyword">extends</span> Animal {}
+
+<span class="keyword">const</span> myDog = <span class="keyword">new</span> Dog();
+
+console.log(myDog <span class="keyword">instanceof</span> Dog);    <span class="comment">// true</span>
+console.log(myDog <span class="keyword">instanceof</span> Animal); <span class="comment">// true (walks up prototype chain)</span>
+console.log(myDog <span class="keyword">instanceof</span> Object); <span class="comment">// true</span></pre>
+
+      <div class="info-box hood">
+        <div class="box-header">Under the Hood: Prototype Chain Walk Algorithm</div>
+        <div class="box-body">
+          When checking <code>x instanceof Constructor</code>:
+          <ol style="margin-left: 20px; margin-top: 8px;">
+            <li>First, check if <code>x</code> is an Object. If it's a Primitive (like a string literal <code>"hello"</code>), return <code>false</code>.</li>
+            <li>Get the prototype of <code>x</code>: <code>let proto = Object.getPrototypeOf(x)</code> (internally <code>x.__proto__</code>).</li>
+            <li>Loop:
+              <ul style="margin-left: 20px;">
+                <li>If <code>proto === null</code>, return <code>false</code>.</li>
+                <li>If <code>proto === Constructor.prototype</code>, return <code>true</code>.</li>
+                <li>Set <code>proto = Object.getPrototypeOf(proto)</code> and repeat.</li>
+              </ul>
+            </li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="desc">
+        <h4 style="margin-bottom: 8px;">Why <code>Array.isArray()</code> is superior to <code>instanceof Array</code></h4>
+        <p>
+          In web browsers, when working with <b>iframes</b>, each iframe has its own separate execution environment (Execution Realm), meaning it has its own Array constructor.
+          If you pass an array from an iframe to the main page and check <code>arr instanceof Array</code>, it will return <code>false</code> because the array's prototype belongs to the iframe's Array constructor, not the parent window's Array constructor.
+          <br>This is why <code>Array.isArray()</code> is superior: it checks the internal structure of the object and accurately identifies it as an array regardless of which realm it originated from.
+        </p>
+      </div>
+
+      <div class="info-box trap">
+        <div class="box-header">Interview Trap & Common Mistakes</div>
+        <div class="box-body">
+          <p>
+            <b>Trap:</b> Writing <code>"hello" instanceof String</code>.
+            <br>The result is ❌ <b>false!</b>
+            This occurs because <code>"hello"</code> is a primitive string, not an object created via the <code>new String()</code> constructor. The <code>instanceof</code> operator always returns <code>false</code> for primitives.
+          </p>
+        </div>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">💡 Mini Quiz</div>
+        <div class="quiz-question">What does the following print?
+          <pre>const s = new String("hello");
+console.log(s instanceof String);
+console.log("hello" instanceof String);</pre>
+        </div>
+        <button class="quiz-btn" id="quiz-instanceof-btn" onclick="toggleQuiz('quiz-instanceof')">Show Answer</button>
+        <div class="quiz-answer" id="quiz-instanceof">
+          <b>Output:</b>
+          <br><code>true</code>
+          <br><code>false</code>
+          <br><br>
+          <b>Explanation:</b>
+          <br>The first evaluates to <code>true</code> because <code>s</code> is an object explicitly instantiated from the <code>String</code> constructor.
+          <br>The second is <code>false</code> because primitive strings are not instances of constructors in the prototype chain check.
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. OPERATORS -->
+    <section id="operators">
+      <div class="sec-header">
+        <span class="sec-num">05</span>
+        <h3 class="sec-title">Operators Overview</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          <span class="bold-term">Operators</span> form the core syntax of JavaScript. Here is a brief structured overview:
+        </p>
+        <ul style="margin-left: 24px;">
+          <li><span class="bold-term">Arithmetic</span>: Operations like addition, subtraction, division, modulus, and exponentiation (<code>+ - * / % **</code>).</li>
+          <li><span class="bold-term">Comparison</span>: Standard checks and equality comparisons (<code>&gt; &lt; &gt;= &lt;= == === != !==</code>).</li>
+          <li><span class="bold-term">Logical</span>: Boolean combination operators (<code>&& || !</code>).</li>
+          <li><span class="bold-term">Unary</span>: Operators acting on a single operand (<code>+ - typeof delete void !</code>).</li>
+          <li><span class="bold-term">Assignment</span>: Storing values with arithmetic shorthands (<code>= += -= *= /= %=</code>).</li>
+          <li><span class="bold-term">Bitwise</span>: Performing binary bit-level operations (<code>& | ^ ~ &lt;&lt; &gt;&gt; &gt;&gt;&gt;</code>).</li>
+        </ul>
+      </div>
+
+      <pre><span class="comment">// Unary + is a quick way to convert a string to number</span>
+console.log(+<span class="string">"42"</span>); <span class="comment">// 42 (Number)</span>
+
+<span class="comment">// Arithmetic Exponentiation</span>
+console.log(<span class="number">2</span> ** <span class="number">3</span>); <span class="comment">// 8 (2 cubed)</span></pre>
+    </section>
+
+    <!-- 6. OPERATOR PRECEDENCE -->
+    <section id="precedence">
+      <div class="sec-header">
+        <span class="sec-num">06</span>
+        <h3 class="sec-title">Operator Precedence</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          <span class="bold-term">Operator Precedence</span> dictates the order in which operators are evaluated when they appear in a single expression without explicit parentheses.
+        </p>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Precedence Table (Most Important for Interviews)</div>
+        <div class="box-body">
+          Listed from highest priority (19) to lowest priority (2):
+          <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13.5px;">
+            <thead>
+              <tr style="border-bottom: 2px solid var(--border); text-align: left;">
+                <th style="padding: 8px;">Precedence</th>
+                <th style="padding: 8px;">Operator Category</th>
+                <th style="padding: 8px;">Associativity</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 8px; font-family: var(--mono);">19</td>
+                <td style="padding: 8px;"><code>( )</code> (Parentheses)</td>
+                <td style="padding: 8px;">n/a</td>
+              </tr>
+              <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 8px; font-family: var(--mono);">18</td>
+                <td style="padding: 8px;"><code>.</code> <code>[ ]</code> <code>new</code> (Member Access)</td>
+                <td style="padding: 8px;">Left-to-Right</td>
+              </tr>
+              <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 8px; font-family: var(--mono);">15</td>
+                <td style="padding: 8px;"><code>!</code> <code>typeof</code> unary <code>+ -</code> (Unary)</td>
+                <td style="padding: 8px;">Right-to-Left</td>
+              </tr>
+              <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 8px; font-family: var(--mono);">14</td>
+                <td style="padding: 8px;"><code>**</code> (Exponentiation)</td>
+                <td style="padding: 8px;">Right-to-Left</td>
+              </tr>
+              <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 8px; font-family: var(--mono);">13</td>
+                <td style="padding: 8px;"><code>*</code> <code>/</code> <code>%</code> (Multiplication)</td>
+                <td style="padding: 8px;">Left-to-Right</td>
+              </tr>
+              <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 8px; font-family: var(--mono);">12</td>
+                <td style="padding: 8px;"><code>+</code> <code>-</code> (Addition)</td>
+                <td style="padding: 8px;">Left-to-Right</td>
+              </tr>
+              <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 8px; font-family: var(--mono);">9</td>
+                <td style="padding: 8px;"><code>==</code> <code>===</code> (Equality)</td>
+                <td style="padding: 8px;">Left-to-Right</td>
+              </tr>
+              <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 8px; font-family: var(--mono);">5</td>
+                <td style="padding: 8px;"><code>&&</code> (Logical AND)</td>
+                <td style="padding: 8px;">Left-to-Right</td>
+              </tr>
+              <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 8px; font-family: var(--mono);">4</td>
+                <td style="padding: 8px;"><code>||</code> <code>??</code> (Logical OR / Nullish)</td>
+                <td style="padding: 8px;">Left-to-Right</td>
+              </tr>
+              <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 8px; font-family: var(--mono);">2</td>
+                <td style="padding: 8px;"><code>=</code> <code>+=</code> <code>-=</code> (Assignment)</td>
+                <td style="padding: 8px;">Right-to-Left</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="desc">
+        <h4 style="margin-bottom: 8px;">Associativity</h4>
+        <p>
+          When two operators share the same precedence level, their evaluation order is determined by their associativity.
+          <br><b>Right-to-Left Associativity:</b> Seen in assignment operators like <code>a = b = c</code> (evaluates <code>b = c</code> first, then assigns to <code>a</code>) and exponentiation <code>2 ** 3 ** 2</code> (which acts as <code>2 ** (3 ** 2)</code> yielding 512, rather than <code>(2 ** 3) ** 2</code> yielding 64).
+        </p>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">💡 Mini Quiz</div>
+        <div class="quiz-question">Evaluate this expression step by step:
+          <pre>let x = 1;
+let y = typeof x + "2";
+console.log(y);</pre>
+        </div>
+        <button class="quiz-btn" id="quiz-precedence-btn" onclick="toggleQuiz('quiz-precedence')">Show Answer</button>
+        <div class="quiz-answer" id="quiz-precedence">
+          <b>Answer:</b> <code>"number2"</code>
+          <br><br>
+          <b>Explanation:</b>
+          <br>According to precedence, <code>typeof</code> (priority 15) is higher than addition/concatenation <code>+</code> (priority 12).
+          <br>So <code>typeof x</code> evaluates first to the string <code>"number"</code>.
+          <br>Then <code>"number" + "2"</code> evaluates to <code>"number2"</code>.
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. LOGICAL OPERATORS -->
+    <section id="logical">
+      <div class="sec-header">
+        <span class="sec-num">07</span>
+        <h3 class="sec-title">Logical Operators & Short-circuiting</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          Logical operators like <span class="bold-term">&&</span>, <span class="bold-term">||</span>, and <span class="bold-term">!</span> leverage an optimization pattern called <span class="bold-term">Short-circuit evaluation</span>.
+        </p>
+        <p>
+          The engine stops evaluating the expression as soon as the final result can be determined:
+          <br>• <code>&&</code> stops at the <b>first falsy value</b> it encounters and returns it. If none are falsy, it returns the last value.
+          <br>• <code>||</code> stops at the <b>first truthy value</b> it encounters and returns it. If all are falsy, it returns the last value.
+        </p>
+      </div>
+
+      <pre><span class="comment">// && Short-circuiting</span>
+console.log(<span class="keyword">false</span> && sideEffect()); <span class="comment">// false (sideEffect never runs)</span>
+console.log(<span class="string">"hello"</span> && <span class="number">42</span>);         <span class="comment">// 42 (returns last value)</span>
+
+<span class="comment">// || Short-circuiting</span>
+console.log(<span class="string">"hello"</span> || <span class="keyword">false</span>);      <span class="comment">// "hello" (stops at first truthy)</span></pre>
+
+      <div class="info-box hood">
+        <div class="box-header">Under the Hood: Side Effects & Guard Clauses</div>
+        <div class="box-body">
+          Because JavaScript short-circuits, developers use it to implement <b>Guard Clauses</b> to prevent runtime errors:
+          <br><code>user && user.logout();</code>
+          <br>If <code>user</code> is null/undefined, the expression evaluates to null/undefined and stops. If it didn't short-circuit, the engine would evaluate <code>user.logout()</code> and crash with a TypeError.
+        </div>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">💡 Mini Quiz</div>
+        <div class="quiz-question">What is the output of the following checks?
+          <pre>console.log(0 && "hello");
+console.log("hello" || "world");
+console.log(null || 0 || "react" && "next");</pre>
+        </div>
+        <button class="quiz-btn" id="quiz-logical-btn" onclick="toggleQuiz('quiz-logical')">Show Answer</button>
+        <div class="quiz-answer" id="quiz-logical">
+          <b>Output:</b>
+          <br><code>0</code>
+          <br><code>"hello"</code>
+          <br><code>"next"</code>
+          <br><br>
+          <b>Explanation:</b>
+          <br>1. <code>0</code> is falsy, so <code>&&</code> stops immediately and returns <code>0</code>.
+          <br>2. <code>"hello"</code> is truthy, so <code>||</code> stops immediately and returns <code>"hello"</code>.
+          <br>3. <code>"react" && "next"</code> evaluates first due to higher precedence of <code>&&</code> over <code>||</code>. Since "react" is truthy, it returns <code>"next"</code>. The expression becomes: <code>null || 0 || "next"</code>.
+          <br><code>null</code> is falsy (continue), <code>0</code> is falsy (continue), <code>"next"</code> is truthy, so it returns <code>"next"</code>.
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. NULLISH COALESCING -->
+    <section id="nullish">
+      <div class="sec-header">
+        <span class="sec-num">08</span>
+        <h3 class="sec-title">Nullish Coalescing (??)</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          The <span class="bold-term">Nullish Coalescing (??)</span> operator was introduced in ES2020 to resolve a major design limitation of <code>||</code>.
+          <br>While <code>||</code> falls back on any falsy value, <code>??</code> only falls back <b>when the left-hand side is strictly null or undefined</b>.
+        </p>
+      </div>
+
+      <pre><span class="comment">// Difference between || and ??</span>
+<span class="keyword">const</span> userRetries = <span class="number">0</span>;
+
+console.log(userRetries || <span class="number">3</span>); <span class="comment">// 3 (0 is falsy, falls back)</span>
+console.log(userRetries ?? <span class="number">3</span>); <span class="comment">// 0 (0 is not nullish, keeps 0)</span></pre>
+
+      <div class="info-box trap">
+        <div class="box-header">Interview Trap: Mixing ?? with && / || without Parentheses</div>
+        <div class="box-body">
+          <p>
+            <b>Trap:</b> Writing <code>const x = a || b ?? c;</code> will immediately throw a ❌ <b>SyntaxError!</b>
+            <br>The language specifications explicitly prohibit chaining <code>??</code> with <code>&&</code> or <code>||</code> without parentheses. This prevents ambiguity regarding which operator should take precedence, keeping the code predictable.
+          </p>
+          <pre>const x = (a || b) ?? c; // Correct ✅</pre>
+        </div>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">💡 Mini Quiz</div>
+        <div class="quiz-question">What is the output of: <code>console.log(false ?? true)</code>?</div>
+        <button class="quiz-btn" id="quiz-nullish-btn" onclick="toggleQuiz('quiz-nullish')">Show Answer</button>
+        <div class="quiz-answer" id="quiz-nullish">
+          <b>Answer:</b> <code>false</code>
+          <br><br>
+          <b>Explanation:</b>
+          <br>Since <code>false</code> is not <code>null</code> or <code>undefined</code>, the nullish coalescing operator immediately evaluates to the left-hand side, keeping <code>false</code>.
+        </div>
+      </div>
+    </section>
+
+    <!-- 9. REAL BUGS -->
+    <section id="bugs">
+      <div class="sec-header">
+        <span class="sec-num">09</span>
+        <h3 class="sec-title">Real-World Bugs: || vs ??</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          In production applications, relying on <code>||</code> to configure default values is a very common source of silent, logical bugs.
+        </p>
+      </div>
+
+      <div class="info-box trap" style="border-color: #ff9800;">
+        <div class="box-header" style="background: rgba(255, 152, 0, 0.08); color: #ff9800; border-bottom-color: rgba(255, 152, 0, 0.15)">Real Bug Scenario 1: Volume Slider</div>
+        <div class="box-body">
+          Suppose you build a game or video player setting volume. A volume of <code>0</code> is a valid user action (mute).
+          <pre>const userVolume = 0;
+const finalVolume = userVolume || 0.5;</pre>
+          <p>
+            ❌ <b>Bug:</b> The player will automatically apply 0.5 because <code>0</code> is falsy! The user will never be able to mute the player.
+            <br>✅ <b>Solution:</b> Use <code>userVolume ?? 0.5;</code>
+          </p>
+        </div>
+      </div>
+
+      <div class="info-box trap" style="border-color: #ff9800;">
+        <div class="box-header" style="background: rgba(255, 152, 0, 0.08); color: #ff9800; border-bottom-color: rgba(255, 152, 0, 0.15)">Real Bug Scenario 2: Dark Mode Switch</div>
+        <div class="box-body">
+          A user explicitly turns OFF dark mode (sets preference to <code>false</code>).
+          <pre>const preferences = { darkMode: false };
+const useDarkMode = preferences.darkMode || true;</pre>
+          <p>
+            ❌ <b>Bug:</b> The website will remain in dark mode forever because <code>false</code> is falsy!
+            <br>✅ <b>Solution:</b> Use <code>preferences.darkMode ?? true;</code>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10. INTERVIEW QUESTIONS -->
+    <section id="interview-qa">
+      <div class="sec-header">
+        <span class="sec-num">10</span>
+        <h3 class="sec-title">Interview Questions & Answers</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          Here is a compilation of critical, deep-dive interview questions regarding these fundamental concepts:
+        </p>
+      </div>
+
+      <!-- Q1 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q1: Why does <code>typeof null</code> return <code>"object"</code> and how can we check if a value is strictly null?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> It is a historical bug from 1995 caused by the binary type tag allocation for objects (000) matching null's binary pointer (all zeros). To check if a value is strictly null, we should use strict equality: <code>value === null</code>.
+        </p>
+      </div>
+
+      <!-- Q2 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q2: Why does <code>NaN === NaN</code> evaluate to false, and what standard governs this behavior?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> This behavior is governed by the <b>IEEE 754</b> standard for floating-point numbers. Any comparison with NaN is defined to be false because NaN represents an undefined or unrepresentable numerical result, and two distinct invalid calculations are not mathematically identical.
+        </p>
+      </div>
+
+      <!-- Q3 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q3: Explain step-by-step why <code>[] == ![]</code> returns true.</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> 
+          First, <code>![]</code> evaluates to <code>false</code>. 
+          Then, <code>[] == false</code> coerces the boolean to a number, yielding <code>[] == 0</code>. 
+          Next, <code>ToPrimitive([])</code> runs, calling <code>[].toString()</code> which results in <code>"" == 0</code>. 
+          Finally, the empty string is coerced to a number: <code>Number("") == 0</code> which is <code>0 == 0</code>, yielding <code>true</code>.
+        </p>
+      </div>
+
+      <!-- Q4 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q4: What is the difference between <code>typeof</code> and <code>instanceof</code>?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> <code>typeof</code> is a unary operator that returns a string representing the primitive type of the operand. <code>instanceof</code> checks the prototype chain of an object to verify if the prototype property of a constructor function exists anywhere in it. It returns a boolean and does not work on primitive values.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Toggle answers
+    function toggleQuiz(id) {
+      const el = document.getElementById(id);
+      const btn = document.getElementById(id + '-btn');
+      if (el.classList.contains('open')) {
+        el.classList.remove('open');
+        btn.textContent = "Show Answer & Explanation";
+      } else {
+        el.classList.add('open');
+        btn.textContent = "Hide Answer";
+      }
+    }
+
+    // Scroll active item highlight
+    window.addEventListener('DOMContentLoaded', () => {
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          const id = entry.target.getAttribute('id');
+          const navItem = document.getElementById(`nav-${id}`);
+          if (entry.intersectionRatio > 0.3) {
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            if (navItem) navItem.classList.add('active');
+          }
+        });
+      }, { threshold: [0.1, 0.3, 0.5], rootMargin: "0px 0px -40% 0px" });
+
+      document.querySelectorAll('section').forEach(section => {
+        observer.observe(section);
+      });
+    });
+  </script>
+</body>
+</html>
