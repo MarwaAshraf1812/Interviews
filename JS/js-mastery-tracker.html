@@ -33,20 +33,17 @@
       color: var(--text);
       font-family: var(--sans);
       display: flex;
+      flex-direction: column;
       min-height: 100vh;
     }
 
     /* ---------- Sidebar ---------- */
     #sidebar {
-      width: 300px;
-      min-width: 300px;
+      width: 100%;
       background: var(--panel);
-      border-right: 1px solid var(--border);
-      padding: 24px 0;
-      overflow-y: auto;
-      max-height: 100vh;
-      position: sticky;
-      top: 0;
+      border-bottom: 1px solid var(--border);
+      padding: 20px 0;
+      position: relative;
     }
 
     .brand {
@@ -176,8 +173,33 @@
     /* ---------- Main ---------- */
     #main {
       flex: 1;
-      padding: 40px 56px;
-      max-width: 880px;
+      padding: 24px 16px;
+      width: 100%;
+      max-width: 100%;
+    }
+
+    /* ---------- Responsive Desktop Layout ---------- */
+    @media (min-width: 768px) {
+      body {
+        flex-direction: row;
+      }
+
+      #sidebar {
+        width: 300px;
+        min-width: 300px;
+        max-height: 100vh;
+        position: sticky;
+        top: 0;
+        overflow-y: auto;
+        border-right: 1px solid var(--border);
+        border-bottom: none;
+        padding: 24px 0;
+      }
+
+      #main {
+        padding: 40px 56px;
+        max-width: 880px;
+      }
     }
 
     .eyebrow {
