@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JS Mastery Handbook — Chapter 3: Advanced Functional JS</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="handbook.css">
+  
+  <style>
+    /* Custom style enhancements for diagrams and SVGs */
+    .diagram-container {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin: 24px 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow-x: auto;
+    }
+    
+    .svg-diagram {
+      width: 100%;
+      max-width: 680px;
+      height: auto;
+      display: block;
+    }
+    
+    /* Interactive node styling inside SVG */
+    .svg-node {
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: default;
+    }
+    
+    .svg-node:hover {
+      transform: translateY(-2px);
+      filter: drop-shadow(0 6px 12px rgba(94, 230, 208, 0.15));
+    }
+    
+    .svg-node-error:hover {
+      filter: drop-shadow(0 6px 12px rgba(255, 122, 122, 0.15));
+    }
+    
+    .svg-node-yellow:hover {
+      filter: drop-shadow(0 6px 12px rgba(247, 223, 30, 0.15));
+    }
+
+    .svg-link {
+      stroke-dasharray: 4;
+      animation: dash 15s linear infinite;
+    }
+
+    @keyframes dash {
+      to {
+        stroke-dashoffset: -100;
+      }
+    }
+    
+    .nested-list {
+      margin-left: 24px;
+      margin-bottom: 12px;
+      line-height: 1.6;
+    }
+    
+    .nested-list li {
+      margin-bottom: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Sidebar -->
+  <aside>
+    <div class="brand">
+      <div class="tag">// handbook.javascript</div>
+      <h1>Interview Bible</h1>
+      <div class="sub">Chapter 3: Advanced Functional JS</div>
+    </div>
+    <ul class="nav-list">
+      <li class="nav-item active" id="nav-closures-iife"><a href="#closures-iife"><span class="num">01.</span> Closures & IIFE Parser</a></li>
+      <li class="nav-item" id="nav-currying"><a href="#currying"><span class="num">02.</span> Currying (Topic 11)</a></li>
+      <li class="nav-item" id="nav-hof"><a href="#hof"><span class="num">03.</span> Higher-Order Functions (Topic 12)</a></li>
+      <li class="nav-item" id="nav-composition"><a href="#composition"><span class="num">04.</span> Composition & Pipe (Topic 13)</a></li>
+      <li class="nav-item" id="nav-memoization"><a href="#memoization"><span class="num">05.</span> Memoization (Topic 14)</a></li>
+      <li class="nav-item" id="nav-interview-qa"><a href="#interview-qa"><span class="num">06.</span> Interview Q&A</a></li>
+    </ul>
+  </aside>
+
+  <!-- Main Content -->
+  <main>
+    <div style="display: flex; gap: 16px; margin-bottom: 30px;">
+      <a href="index.html" class="top-nav-link" id="handbook-home-link" style="margin-bottom: 0;">← Handbook Home</a>
+      <span style="color: var(--text-faint);">|</span>
+      <a href="../../index.html" class="top-nav-link" id="hub-link" style="margin-bottom: 0;">← Hub Dashboard</a>
+    </div>
+    
+    <div class="intro-header">
+      <h2>Chapter 3: Advanced Functional JavaScript</h2>
+      <p>
+        Master the parsing architecture and functional paradigms: explore IIFE AST syntax rules, curry scope chains, higher-order function boundaries, right-to-left composition pipelines, and closure-based memoization caching strategies.
+      </p>
+    </div>
+
+    <!-- 1. CLOSURES & IIFE PARSER -->
+    <section id="closures-iife">
+      <div class="sec-header">
+        <span class="sec-num">01</span>
+        <h3 class="sec-title">Closures Recap & The IIFE Parser Mechanics</h3>
+      </div>
+      
+      <div class="desc">
+        <p>
+          Before moving into functional patterns, let's solidify our understanding of how JavaScript parses function declarations versus expressions, and recap the core closure mechanics.
+        </p>
+        <p>
+          <b>Core Recap:</b> A closure is formed when an inner function keeps access to variables from its outer function's scope, even after the outer function has finished running. It does not copy the value — it holds a <b>live reference</b>. This is why <code>let</code> (block-scoped, creating a new lexical binding per loop iteration) resolves the classic <code>var</code> + <code>setTimeout</code> loop bug, whereas <code>var</code> (function-scoped, sharing a single binding across all iterations) does not.
+        </p>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Under the Hood: The Parser's Ambiguity Trap</div>
+        <div class="box-body">
+          <p>
+            Consider this classic parser failure:
+          </p>
+          <pre style="margin: 10px 0; padding: 12px; font-size: 13px;">function() {}(); // SyntaxError: Function statements require a function name</pre>
+          <p>
+            Why does this occur? When the JavaScript parser encounters the <code>function</code> keyword at the very start of a statement, it interprets it strictly as a <b>Function Declaration</b>.
+          </p>
+          <ul class="nested-list">
+            <li><b>Function Declaration Rule:</b> A function declaration MUST have an identifier (a name). Since the name is missing here, the parser aborts immediately with a <code>SyntaxError</code>.</li>
+            <li><b>The Trailing Parentheses:</b> The parser never actually reaches the trailing <code>()</code>. The code fails validation during syntax analysis before any execution context is built.</li>
+          </ul>
+          <p>
+            To fix this, we wrap the function in parentheses:
+          </p>
+          <pre style="margin: 10px 0; padding: 12px; font-size: 13px;">(function() {})(); // Evaluates successfully!</pre>
+          <p>
+            The leading parenthesis <code>(</code> signals to the parser that it is entering a <b>Parenthesized Expression</b>. Since statements cannot reside inside expressions, the parser is forced to evaluate the internal code as a <b>Function Expression</b> (which is permitted to be anonymous). Once parsed, the expression returns a function reference, which is then immediately invoked by the trailing <code>()</code>.
+          </p>
+        </div>
+      </div>
+
+      <!-- Diagram 1: IIFE Parser Decision Tree -->
+      <div class="diagram-container">
+        <svg class="svg-diagram" viewBox="0 0 700 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Background Grid (Optional Detail) -->
+          <rect width="700" height="280" rx="16" fill="#101622" stroke="var(--border)" stroke-width="1"/>
+          
+          <!-- Marker Definition for Arrows -->
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--text-muted)"/>
+            </marker>
+            <marker id="arrow-teal" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--neon-teal)"/>
+            </marker>
+            <marker id="arrow-coral" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--neon-coral)"/>
+            </marker>
+          </defs>
+
+          <!-- Title -->
+          <text x="30" y="35" fill="var(--text)" font-family="var(--sans)" font-size="14" font-weight="700">PARSER ABSTRACT SYNTAX TREE (AST) DECISION TREE</text>
+
+          <!-- Input Code -->
+          <g class="svg-node" transform="translate(30, 110)">
+            <rect width="130" height="50" rx="8" fill="#151d2a" stroke="var(--border)" stroke-width="1.5"/>
+            <text x="65" y="24" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="12" font-weight="bold">Parser Input</text>
+            <text x="65" y="40" text-anchor="middle" fill="var(--text-muted)" font-family="var(--mono)" font-size="10">First Token Read</text>
+          </g>
+
+          <!-- Flow Arrow 1 -->
+          <line x1="160" y1="120" x2="210" y2="85" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#arrow)"/>
+          <text x="175" y="95" fill="var(--text-muted)" font-family="var(--mono)" font-size="10">"function"</text>
+
+          <!-- Flow Arrow 2 -->
+          <line x1="160" y1="150" x2="210" y2="185" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#arrow)"/>
+          <text x="185" y="180" fill="var(--text-muted)" font-family="var(--mono)" font-size="10">"("</text>
+
+          <!-- Path A: Function Declaration -->
+          <g class="svg-node" transform="translate(220, 50)">
+            <rect width="180" height="60" rx="8" fill="#1a1c23" stroke="var(--border)" stroke-width="1.5"/>
+            <text x="90" y="22" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="11" font-weight="bold">Statement Position</text>
+            <text x="90" y="38" text-anchor="middle" fill="var(--text-muted)" font-family="var(--sans)" font-size="10">Expects FunctionDeclaration</text>
+            <text x="90" y="50" text-anchor="middle" fill="var(--text-muted)" font-family="var(--sans)" font-size="9">(Requires Name/Identifier)</text>
+          </g>
+
+          <!-- Path B: Expression Statement -->
+          <g class="svg-node" transform="translate(220, 160)">
+            <rect width="180" height="60" rx="8" fill="#132427" stroke="var(--border)" stroke-width="1.5"/>
+            <text x="90" y="22" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="11" font-weight="bold">Expression Position</text>
+            <text x="90" y="38" text-anchor="middle" fill="var(--text-muted)" font-family="var(--sans)" font-size="10">Expects ExpressionStatement</text>
+            <text x="90" y="50" text-anchor="middle" fill="var(--text-muted)" font-family="var(--sans)" font-size="9">(Allows Anonymous Fn)</text>
+          </g>
+
+          <!-- Flow Arrow Path A -->
+          <line x1="400" y1="80" x2="460" y2="80" stroke="var(--neon-coral)" stroke-width="1.5" stroke-dasharray="4" marker-end="url(#arrow-coral)"/>
+          <text x="430" y="73" text-anchor="middle" fill="var(--neon-coral)" font-family="var(--mono)" font-size="9" font-weight="bold">No Name</text>
+
+          <!-- Flow Arrow Path B -->
+          <line x1="400" y1="190" x2="460" y2="190" stroke="var(--neon-teal)" stroke-width="1.5" marker-end="url(#arrow-teal)"/>
+          <text x="430" y="183" text-anchor="middle" fill="var(--neon-teal)" font-family="var(--mono)" font-size="9" font-weight="bold">Valid</text>
+
+          <!-- Result A: Syntax Error -->
+          <g class="svg-node svg-node-error" transform="translate(470, 50)">
+            <rect width="200" height="60" rx="8" fill="#2a1818" stroke="var(--neon-coral)" stroke-width="1.5"/>
+            <text x="100" y="24" text-anchor="middle" fill="var(--neon-coral)" font-family="var(--mono)" font-size="11" font-weight="bold">❌ SyntaxError</text>
+            <text x="100" y="40" text-anchor="middle" fill="var(--text-muted)" font-family="var(--sans)" font-size="9">"Function statements require</text>
+            <text x="100" y="51" text-anchor="middle" fill="var(--text-muted)" font-family="var(--sans)" font-size="9">a function name"</text>
+          </g>
+
+          <!-- Result B: Successful Parsing -->
+          <g class="svg-node" transform="translate(470, 160)">
+            <rect width="200" height="60" rx="8" fill="#132427" stroke="var(--neon-teal)" stroke-width="1.5"/>
+            <text x="100" y="24" text-anchor="middle" fill="var(--neon-teal)" font-family="var(--mono)" font-size="11" font-weight="bold">✔ Expression Evaluated</text>
+            <text x="100" y="40" text-anchor="middle" fill="var(--text-muted)" font-family="var(--sans)" font-size="9">Returns function reference.</text>
+            <text x="100" y="51" text-anchor="middle" fill="var(--text-muted)" font-family="var(--sans)" font-size="9">Trailing () invokes immediately.</text>
+          </g>
+        </svg>
+      </div>
+
+      <div class="info-box answer">
+        <div class="box-header">Interview-Ready Formulation</div>
+        <div class="box-body">
+          "When the JavaScript engine parses code and encounters the <code>function</code> keyword at the start of a statement, it interprets it as a function declaration. Declarations require a name; therefore, writing <code>function(){...}</code> alone triggers a <code>SyntaxError</code> immediately before execution. Wrapping the function in parentheses forces the parser to treat it as an expression context where anonymous functions are completely valid, allowing the trailing parentheses to execute it immediately as an IIFE."
+        </div>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">💡 Mini Quiz & Concept Check</div>
+        <div class="quiz-question">
+          Without running it: what does this code log, and why?
+          <pre>function createFunctions() {
+  const funcs = [];
+  for (let i = 0; i &lt; 3; i++) {
+    funcs.push(() => console.log(i));
+  }
+  return funcs;
+}
+
+const fns = createFunctions();
+fns.forEach(fn => fn());</pre>
+        </div>
+        <button class="quiz-btn" id="quiz-create-funcs-btn" onclick="toggleQuiz('quiz-create-funcs')">Show Answer & Explanation</button>
+        <div class="quiz-answer" id="quiz-create-funcs">
+          <b>Answer:</b> Logs <code>0</code>, <code>1</code>, and <code>2</code>.
+          <br><br>
+          <b>Explanation:</b>
+          Because <code>i</code> is declared with <code>let</code>, it is block-scoped. In JavaScript, each iteration of the loop creates a <b>new, separate lexical binding</b> for <code>i</code> in memory. Each arrow function pushed into the array forms a closure that captures the specific, unique binding of <code>i</code> corresponding to its loop iteration. When they are executed later, they log their respective captured values (0, 1, and 2).
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. CURRYING -->
+    <section id="currying">
+      <div class="sec-header">
+        <span class="sec-num">02</span>
+        <h3 class="sec-title">Currying & Partial Application</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          <b>The Vending Machine Analogy:</b> Imagine a vending machine that requires three coins. Instead of accepting all three simultaneously, it takes them one at a time. Inserting the first coin returns a slot for the second, inserting the second returns a slot for the third, and only when the final coin is inserted does the machine dispense your snack.
+        </p>
+        <p>
+          <b>Currying</b> is the process of transforming a function that takes multiple arguments into a sequence of functions that each take a <b>single argument</b>.
+        </p>
+        <p>
+          <b>Why it exists:</b> It enables <b>Partial Application</b> — locking in some arguments now, and passing the remaining arguments later. This permits developers to build specialized, reusable functions from more generic utilities without duplicate code, composing cleanly with pipelines.
+        </p>
+      </div>
+
+      <pre><span class="comment">// Normal function — takes all arguments at once</span>
+<span class="keyword">function</span> add(a, b, c) {
+  <span class="keyword">return</span> a + b + c;
+}
+add(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>); <span class="comment">// 6</span>
+
+<span class="comment">// Curried function — takes ONE argument at a time</span>
+<span class="keyword">function</span> curriedAdd(a) {
+  <span class="keyword">return</span> <span class="keyword">function</span>(b) {
+    <span class="keyword">return</span> <span class="keyword">function</span>(c) {
+      <span class="keyword">return</span> a + b + c;
+    };
+  };
+}
+curriedAdd(<span class="number">1</span>)(<span class="number">2</span>)(<span class="number">3</span>); <span class="comment">// 6</span>
+
+<span class="comment">// Clean Arrow Syntax</span>
+<span class="keyword">const</span> curriedAddArrow = a =&gt; b =&gt; c =&gt; a + b + c;
+curriedAddArrow(<span class="number">1</span>)(<span class="number">2</span>)(<span class="number">3</span>); <span class="comment">// 6</span></pre>
+
+      <div class="info-box hood">
+        <div class="box-header">Under the Hood: Chained Closures Stack Walkthrough</div>
+        <div class="box-body">
+          <p>
+            When <code>curriedAdd(1)(2)(3)</code> is executed, the runtime performs the following sequence:
+          </p>
+          <ol style="margin-left: 20px; line-height: 1.8;">
+            <li><code>curriedAdd(1)</code> executes, binding parameter <code>a</code> to <code>1</code>. It returns the function <code>b =&gt; c =&gt; a + b + c</code>.</li>
+            <li>This returned function is a <b>closure</b>. It retains a live reference to its outer scope where <code>a = 1</code>.</li>
+            <li>Invoking this with <code>(2)</code> binds <code>b</code> to <code>2</code>. It returns the inner function <code>c =&gt; a + b + c</code>. This function is also a closure, retaining references to both <code>a = 1</code> and <code>b = 2</code>.</li>
+            <li>Finally, invoking this with <code>(3)</code> binds <code>c</code> to <code>3</code>. It evaluates <code>a + b + c</code> using the values preserved in the scope chain, returning <code>6</code>.</li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- Diagram 2: Currying Scope Chain -->
+      <div class="diagram-container">
+        <svg class="svg-diagram" viewBox="0 0 700 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="700" height="240" rx="16" fill="#101622" stroke="var(--border)" stroke-width="1"/>
+          
+          <text x="30" y="35" fill="var(--text)" font-family="var(--sans)" font-size="14" font-weight="700">CURRIED EVALUATION & ACCUMULATED SCOPE CHAIN</text>
+
+          <!-- Outer Scope -->
+          <g class="svg-node" transform="translate(30, 60)">
+            <rect width="640" height="150" rx="12" fill="#132427" stroke="var(--neon-teal)" stroke-dasharray="4" stroke-width="1.5"/>
+            <text x="20" y="25" fill="var(--neon-teal)" font-family="var(--mono)" font-size="11" font-weight="bold">curriedAdd(1) Scope Context [a = 1]</text>
+          </g>
+
+          <!-- Middle Scope -->
+          <g class="svg-node" transform="translate(180, 95)">
+            <rect width="470" height="100" rx="10" fill="#1a1c23" stroke="var(--border)" stroke-dasharray="4" stroke-width="1.5"/>
+            <text x="20" y="25" fill="var(--text-muted)" font-family="var(--mono)" font-size="11" font-weight="bold">Returned fn2 Scope Context [b = 2]</text>
+          </g>
+
+          <!-- Inner Scope -->
+          <g class="svg-node" transform="translate(330, 130)">
+            <rect width="300" height="50" rx="8" fill="#151d2a" stroke="var(--js-yellow)" stroke-width="1.5"/>
+            <text x="15" y="20" fill="var(--js-yellow)" font-family="var(--mono)" font-size="11" font-weight="bold">Returned fn3 Scope Context [c = 3]</text>
+            <text x="15" y="38" fill="var(--text)" font-family="var(--mono)" font-size="10">Computes: a (1) + b (2) + c (3) = 6</text>
+          </g>
+
+          <!-- Text Labels -->
+          <text x="50" y="110" fill="var(--text-muted)" font-family="var(--sans)" font-size="10">Locks: a = 1</text>
+          <text x="200" y="145" fill="var(--text-muted)" font-family="var(--sans)" font-size="10">Locks: b = 2</text>
+        </svg>
+      </div>
+
+      <div class="desc">
+        <h4 style="margin-bottom: 8px;">Practical Senior Interview Implementation: Generic Curry Helper</h4>
+        <p>
+          In technical interviews, you may be asked to write a function that automatically curries any standard function, supporting both single-arguments and partial groupings.
+        </p>
+      </div>
+
+      <pre><span class="keyword">function</span> curry(fn) {
+  <span class="keyword">return</span> <span class="keyword">function</span> curried(...args) {
+    <span class="comment">// If we have received enough arguments, execute the original function</span>
+    <span class="keyword">if</span> (args.length &gt;= fn.length) {
+      <span class="keyword">return</span> fn.apply(<span class="keyword">this</span>, args);
+    }
+    <span class="comment">// Otherwise, return a new function that gathers more arguments</span>
+    <span class="keyword">return</span> (...moreArgs) =&gt; curried(...args, ...moreArgs);
+  };
+}
+
+<span class="comment">// Usage</span>
+<span class="keyword">const</span> sum = (a, b, c) =&gt; a + b + c;
+<span class="keyword">const</span> curriedSum = curry(sum);
+
+console.log(curriedSum(<span class="number">1</span>)(<span class="number">2</span>)(<span class="number">3</span>)); <span class="comment">// 6</span>
+console.log(curriedSum(<span class="number">1</span>, <span class="number">2</span>)(<span class="number">3</span>)); <span class="comment">// 6</span>
+console.log(curriedSum(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>)); <span class="comment">// 6 (fully uncurried invocation)</span></pre>
+
+      <div class="info-box trap">
+        <div class="box-header">Trap: Confusing Currying with Partial Application</div>
+        <div class="box-body">
+          <p>
+            An interviewer might ask: "Are Currying and Partial Application the same thing?".
+            <br><b>No.</b> They are mathematically related but distinct:
+          </p>
+          <ul class="nested-list">
+            <li><b>Currying:</b> Transforms a function into a chain of functions that accept exactly <b>one argument each</b> (unary functions).</li>
+            <li><b>Partial Application:</b> Pre-fills some arguments of a function, returning a new function that accepts the <b>remaining arguments</b> (which can be of any quantity).</li>
+          </ul>
+          <pre style="margin: 10px 0; padding: 8px; font-size: 12px; background: rgba(0,0,0,0.2);">
+// Currying: f(a,b,c) -> f(a)(b)(c)
+// Partial Application: f(a,b,c) -> f_applied(b,c) [pre-binding 'a']</pre>
+        </div>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Relevance to Modern Web Stack</div>
+        <div class="box-body">
+          <ul class="nested-list">
+            <li><b>Redux:</b> The classic <code>connect</code> function is curried: <code>connect(mapStateToProps)(MyComponent)</code>.</li>
+            <li><b>Express / Redux Middleware:</b> Middlewares use a curried signature to receive parameters sequentially: <code>logger(options)(store)(next)(action)</code>.</li>
+            <li><b>API Services:</b> Configuring a base URL or auth token once, returning specialized fetching methods: <code>fetchFromAPI(token)(endpoint)(params)</code>.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">🎯 Interview Walkthrough Quiz</div>
+        <div class="quiz-question">
+          Given <code>const curriedAdd = a => b => c => a + b + c;</code>, walk through what <code>curriedAdd(1)</code> returns step by step, and explain why it still has access to <code>a</code> when eventually called with <code>(2)(3)</code>.
+        </div>
+        <button class="quiz-btn" id="quiz-curried-btn" onclick="toggleQuiz('quiz-curried')">Show Interview-Ready Explanation</button>
+        <div class="quiz-answer" id="quiz-curried">
+          <b>Step-by-step Walkthrough:</b>
+          <ol style="margin-left: 20px; margin-top: 8px; line-height: 1.6;">
+            <li>Calling <code>curriedAdd(1)</code> executes the outermost arrow function with <code>a = 1</code>.</li>
+            <li>Its body <code>b => c => a + b + c</code> is returned immediately without being executed.</li>
+            <li>The returned function is a <b>closure</b>. It was defined inside the scope of <code>curriedAdd</code>, so its scope chain preserves a live reference to <code>a = 1</code> even after <code>curriedAdd</code> has returned.</li>
+            <li>Calling it with <code>(2)</code> binds <code>b = 2</code> and returns the innermost closure <code>c => a + b + c</code>, which retains access to both <code>a = 1</code> and <code>b = 2</code>.</li>
+            <li>Calling that with <code>(3)</code> binds <code>c = 3</code>, completes the chain, and evaluates the sum to <code>6</code>.</li>
+          </ol>
+          <br>
+          <b>Interview-ready Summary:</b>
+          <br><span style="color: var(--neon-teal); font-family: var(--mono); font-size: 13.5px;">"Each call returns the next function in the chain. Because of closures, every returned function retains a live reference to all variables captured in its outer scope, allowing variables to be accumulated across separate function calls."</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. HIGHER-ORDER FUNCTIONS -->
+    <section id="hof">
+      <div class="sec-header">
+        <span class="sec-num">03</span>
+        <h3 class="sec-title">Higher-Order Functions (HOFs)</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          <b>The Manager Analogy:</b> Think of a general manager who delegates work. Instead of performing the specialized tasks themselves, they hire specialists (callback functions) and hand off materials to them. The manager controls the overall schedule and workflow, but the specialist determines how the specific task is executed.
+        </p>
+        <p>
+          A <b>Higher-Order Function</b> is a function that does at least one of the following:
+          <br>• Accepts one or more functions as <b>arguments</b>.
+          <br>• Returns a function as its <b>result</b>.
+        </p>
+        <p>
+          <b>Why they exist:</b> They permit developers to abstract away structure (the loop mechanics, error handling, etc.) from the specific details (the logic applied). This is the foundation of declarative JavaScript.
+        </p>
+      </div>
+
+      <pre><span class="comment">// HOF: Accepts a function as an argument</span>
+<span class="keyword">function</span> repeat(n, action) {
+  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; n; i++) {
+    action(i);
+  }
+}
+repeat(<span class="number">3</span>, i =&gt; console.log(<span class="string">`Iteration ${i}`</span>));
+
+<span class="comment">// HOF: Returns a function</span>
+<span class="keyword">function</span> multiplier(factor) {
+  <span class="keyword">return</span> num =&gt; num * factor;
+}
+<span class="keyword">const</span> double = multiplier(<span class="number">2</span>);
+console.log(double(<span class="number">5</span>)); <span class="comment">// 10</span></pre>
+
+      <div class="info-box hood">
+        <div class="box-header">Under the Hood: Deconstructing Array.prototype.map</div>
+        <div class="box-body">
+          <p>
+            To understand why HOFs are so powerful, let's write a simplified polyfill of the native <code>map</code> function:
+          </p>
+          <pre style="margin: 10px 0; padding: 12px; font-size: 13px;">Array.prototype.myMap = function(callback) {
+  const result = [];
+  for (let i = 0; i &lt; this.length; i++) {
+    // The HOF (myMap) manages loop state and array access.
+    // The callback determines the specific transformation.
+    result.push(callback(this[i], i, this));
+  }
+  return result;
+};</pre>
+          <p>
+            By delegating the transformation logic to the callback, <code>myMap</code> doesn't need to know what data type it is transforming. This separation of concerns creates highly reusable abstractions.
+          </p>
+        </div>
+      </div>
+
+      <!-- Diagram 3: Higher-Order Functions Data Flow -->
+      <div class="diagram-container">
+        <svg class="svg-diagram" viewBox="0 0 700 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="700" height="240" rx="16" fill="#101622" stroke="var(--border)" stroke-width="1"/>
+          
+          <text x="30" y="35" fill="var(--text)" font-family="var(--sans)" font-size="14" font-weight="700">DATA FLOW THROUGH HIGHER-ORDER FUNCTIONS (map)</text>
+
+          <!-- Input Array -->
+          <g class="svg-node" transform="translate(30, 95)">
+            <rect width="130" height="50" rx="8" fill="#151d2a" stroke="var(--border)" stroke-width="1.5"/>
+            <text x="65" y="24" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="11" font-weight="bold">Input Array</text>
+            <text x="65" y="40" text-anchor="middle" fill="var(--text-muted)" font-family="var(--mono)" font-size="10">[1, 2, 3]</text>
+          </g>
+
+          <!-- Flow Arrow 1 -->
+          <line x1="160" y1="120" x2="220" y2="120" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+          <!-- HOF Container -->
+          <g class="svg-node" transform="translate(230, 60)">
+            <rect width="240" height="120" rx="12" fill="#132427" stroke="var(--neon-teal)" stroke-width="1.5"/>
+            <text x="120" y="25" text-anchor="middle" fill="var(--neon-teal)" font-family="var(--mono)" font-size="12" font-weight="bold">myMap (Higher-Order Function)</text>
+            
+            <!-- Nested Callback -->
+            <g transform="translate(20, 45)">
+              <rect width="200" height="55" rx="6" fill="#151d2a" stroke="var(--border)" stroke-dasharray="3" stroke-width="1"/>
+              <text x="100" y="22" text-anchor="middle" fill="var(--js-yellow)" font-family="var(--mono)" font-size="10">Callback: n => n * 2</text>
+              <text x="100" y="38" text-anchor="middle" fill="var(--text-muted)" font-family="var(--sans)" font-size="9">(Plain Function Delegate)</text>
+            </g>
+          </g>
+
+          <!-- Flow Arrow 2 -->
+          <line x1="470" y1="120" x2="530" y2="120" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+          <!-- Output Array -->
+          <g class="svg-node" transform="translate(540, 95)">
+            <rect width="130" height="50" rx="8" fill="#132427" stroke="var(--neon-teal)" stroke-width="1.5"/>
+            <text x="65" y="24" text-anchor="middle" fill="var(--neon-teal)" font-family="var(--mono)" font-size="11" font-weight="bold">Output Array</text>
+            <text x="65" y="40" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="10">[2, 4, 6]</text>
+          </g>
+        </svg>
+      </div>
+
+      <div class="info-box trap">
+        <div class="box-header">Trap: Forgetting HOF Immutability</div>
+        <div class="box-body">
+          <p>
+            A common bug when working with built-in HOFs (like <code>map</code>, <code>filter</code>, or <code>reduce</code>) is expecting them to mutate the original array.
+          </p>
+          <pre style="margin: 10px 0; padding: 12px; font-size: 13px;"><span class="keyword">const</span> nums = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>];
+nums.map(n =&gt; n * <span class="number">2</span>); 
+console.log(nums); // [1, 2, 3] -- Unchanged!</pre>
+          <p>
+            Always capture the returned new array: <code>const doubled = nums.map(n =&gt; n * 2);</code>
+          </p>
+        </div>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">💡 Mini Quiz & Vocabulary Check</div>
+        <div class="quiz-question">
+          Is <code>Array.prototype.map()</code> itself considered a higher-order function, or is the callback you pass into it the higher-order function? Explain the distinction.
+        </div>
+        <button class="quiz-btn" id="quiz-hof-check-btn" onclick="toggleQuiz('quiz-hof-check')">Show Answer</button>
+        <div class="quiz-answer" id="quiz-hof-check">
+          <b>Answer:</b> <code>map</code> is the Higher-Order Function. The callback is a plain function (unless it also takes or returns another function).
+          <br><br>
+          <b>Explanation:</b>
+          By definition, a Higher-Order Function is a function that accepts another function as an argument, or returns a function. Because <code>map</code> takes the callback function as an argument, <code>map</code> fits the definition of a HOF. 
+          The callback (e.g. <code>n => n * 2</code>) simply takes a number and returns a number—since its signature does not accept or return another function, it is just a standard function.
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. FUNCTION COMPOSITION -->
+    <section id="composition">
+      <div class="sec-header">
+        <span class="sec-num">04</span>
+        <h3 class="sec-title">Function Composition & Pipe</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          <b>The Assembly Line Analogy:</b> Imagine a manufacturing assembly line. Raw materials go into Station A, which shapes them. The shaped output feeds directly into Station B, which paints them. The painted output feeds into Station C, which packages them. 
+        </p>
+        <p>
+          <b>Function Composition</b> is the process of chaining multiple functions together, such that the output of one function becomes the input of the next. This allows complex operations to be constructed out of small, single-purpose, highly testable functions.
+        </p>
+      </div>
+
+      <pre><span class="keyword">const</span> double = x =&gt; x * <span class="number">2</span>;
+<span class="keyword">const</span> increment = x =&gt; x + <span class="number">1</span>;
+<span class="keyword">const</span> square = x =&gt; x * x;
+
+<span class="comment">// Manual Composition</span>
+<span class="keyword">const</span> result = square(increment(double(<span class="number">5</span>))); // 121
+<span class="comment">// double(5) = 10 -> increment(10) = 11 -> square(11) = 121</span></pre>
+
+      <div class="info-box hood">
+        <div class="box-header">Under the Hood: compose (Right-to-Left) vs pipe (Left-to-Right)</div>
+        <div class="box-body">
+          <p>
+            To avoid nested parentheses, functional libraries utilize helper functions to automate composition:
+          </p>
+          <pre style="margin: 10px 0; padding: 12px; font-size: 13px;"><span class="comment">// compose applies functions from RIGHT to LEFT (matching mathematical notation: f(g(x)))</span>
+<span class="keyword">function</span> compose(...fns) {
+  <span class="keyword">return</span> <span class="keyword">function</span>(initialValue) {
+    <span class="keyword">return</span> fns.reduceRight((acc, fn) =&gt; fn(acc), initialValue);
+  };
+}
+
+<span class="comment">// pipe applies functions from LEFT to RIGHT (matching normal reading order)</span>
+<span class="keyword">function</span> pipe(...fns) {
+  <span class="keyword">return</span> <span class="keyword">function</span>(initialValue) {
+    <span class="keyword">return</span> fns.reduce((acc, fn) =&gt; fn(acc), initialValue);
+  };
+}</pre>
+          <p>
+            Both helpers use array reduction (a higher-order function!) to chain the functions together. The accumulator (<code>acc</code>) acts as the passing value between each stage.
+          </p>
+        </div>
+      </div>
+
+      <!-- Diagram 4: Composition vs Pipe -->
+      <div class="diagram-container">
+        <svg class="svg-diagram" viewBox="0 0 700 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="700" height="240" rx="16" fill="#101622" stroke="var(--border)" stroke-width="1"/>
+          
+          <text x="30" y="30" fill="var(--text)" font-family="var(--sans)" font-size="14" font-weight="700">COMPOSITION VS PIPE EXECUTION FLOW</text>
+
+          <!-- Compose section -->
+          <text x="30" y="65" fill="var(--js-yellow)" font-family="var(--mono)" font-size="12" font-weight="bold">compose(square, increment, double)(5)</text>
+          
+          <g transform="translate(30, 80)">
+            <!-- Boxes -->
+            <rect x="0" y="0" width="80" height="35" rx="6" fill="#151d2a" stroke="var(--border)"/>
+            <text x="40" y="21" text-anchor="middle" fill="var(--text-muted)" font-family="var(--mono)" font-size="10">Input: 5</text>
+
+            <path d="M 90 17 L 110 17" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#arrow)"/>
+            <text x="100" y="12" text-anchor="middle" fill="var(--text-faint)" font-family="var(--sans)" font-size="8">R-to-L</text>
+
+            <rect x="120" y="0" width="100" height="35" rx="6" fill="#132427" stroke="var(--neon-teal)"/>
+            <text x="170" y="21" text-anchor="middle" fill="var(--neon-teal)" font-family="var(--mono)" font-size="10">double (10)</text>
+
+            <path d="M 230 17 L 250 17" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+            <rect x="260" y="0" width="100" height="35" rx="6" fill="#151d2a" stroke="var(--border)"/>
+            <text x="310" y="21" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="10">increment (11)</text>
+
+            <path d="M 370 17 L 390 17" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+            <rect x="400" y="0" width="100" height="35" rx="6" fill="#151d2a" stroke="var(--border)"/>
+            <text x="450" y="21" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="10">square (121)</text>
+
+            <path d="M 510 17 L 530 17" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+            <rect x="540" y="0" width="100" height="35" rx="6" fill="#132427" stroke="var(--neon-teal)"/>
+            <text x="590" y="21" text-anchor="middle" fill="var(--neon-teal)" font-family="var(--mono)" font-size="10">Output: 121</text>
+          </g>
+
+          <!-- Pipe section -->
+          <text x="30" y="155" fill="var(--neon-teal)" font-family="var(--mono)" font-size="12" font-weight="bold">pipe(double, increment, square)(5)</text>
+          
+          <g transform="translate(30, 170)">
+            <!-- Boxes -->
+            <rect x="0" y="0" width="80" height="35" rx="6" fill="#151d2a" stroke="var(--border)"/>
+            <text x="40" y="21" text-anchor="middle" fill="var(--text-muted)" font-family="var(--mono)" font-size="10">Input: 5</text>
+
+            <path d="M 90 17 L 110 17" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#arrow)"/>
+            <text x="100" y="12" text-anchor="middle" fill="var(--text-faint)" font-family="var(--sans)" font-size="8">L-to-R</text>
+
+            <rect x="120" y="0" width="100" height="35" rx="6" fill="#151d2a" stroke="var(--border)"/>
+            <text x="170" y="21" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="10">double (10)</text>
+
+            <path d="M 230 17 L 250 17" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+            <rect x="260" y="0" width="100" height="35" rx="6" fill="#151d2a" stroke="var(--border)"/>
+            <text x="310" y="21" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="10">increment (11)</text>
+
+            <path d="M 370 17 L 390 17" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+            <rect x="400" y="0" width="100" height="35" rx="6" fill="#151d2a" stroke="var(--border)"/>
+            <text x="450" y="21" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="10">square (121)</text>
+
+            <path d="M 510 17 L 530 17" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+            <rect x="540" y="0" width="100" height="35" rx="6" fill="#132427" stroke="var(--neon-teal)"/>
+            <text x="590" y="21" text-anchor="middle" fill="var(--neon-teal)" font-family="var(--mono)" font-size="10">Output: 121</text>
+          </g>
+        </svg>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">💡 Mini Quiz</div>
+        <div class="quiz-question">
+          Using the <code>compose</code> helper, if I call <code>compose(a, b, c)(x)</code>, which function executes first, and why?
+        </div>
+        <button class="quiz-btn" id="quiz-comp-btn" onclick="toggleQuiz('quiz-comp')">Show Answer & Explanation</button>
+        <div class="quiz-answer" id="quiz-comp">
+          <b>Answer:</b> <code>c</code> runs first, then <code>b</code>, then <code>a</code>.
+          <br><br>
+          <b>Explanation:</b>
+          The helper uses <code>reduceRight</code>, which iterates over the array of functions from right to left (from the last element to the first). Thus, <code>c</code> is executed first on the argument <code>x</code>, its return value is passed into <code>b</code>, and <code>b</code>'s return value is finally passed into <code>a</code>. This mirrors mathematical function nesting: <code>a(b(c(x)))</code>, which is evaluated from the inside out.
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. MEMOIZATION -->
+    <section id="memoization">
+      <div class="sec-header">
+        <span class="sec-num">05</span>
+        <h3 class="sec-title">Memoization</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          <b>The Chef Analogy:</b> Imagine a chef cooking complex recipes. If a customer orders a complex dish, the chef prepares it from scratch, which takes 30 minutes. However, the chef also keeps a refrigerator. When a dish is finished, the chef stores a portion. If another customer orders the exact same dish, the chef retrieves it instantly from the refrigerator instead of cooking it again.
+        </p>
+        <p>
+          <b>Memoization</b> is an optimization technique that speeds up applications by caching the results of expensive function calls and returning the cached result when the same inputs occur again.
+        </p>
+      </div>
+
+      <pre><span class="keyword">function</span> memoize(fn) {
+  <span class="keyword">const</span> cache = <span class="keyword">new</span> Map(); <span class="comment">// Closed-over private cache storage</span>
+  
+  <span class="keyword">return</span> <span class="keyword">function</span>(...args) {
+    <span class="keyword">const</span> key = JSON.stringify(args); <span class="comment">// Serialize arguments to use as Map key</span>
+    
+    <span class="keyword">if</span> (cache.has(key)) {
+      console.log(<span class="string">"Cache Hit!"</span>);
+      <span class="keyword">return</span> cache.get(key);
+    }
+    
+    console.log(<span class="string">"Cache Miss! Computing..."</span>);
+    <span class="keyword">const</span> result = fn.apply(<span class="keyword">this</span>, args);
+    cache.set(key, result);
+    <span class="keyword">return</span> result;
+  };
+}</pre>
+
+      <div class="info-box hood">
+        <div class="box-header">Under the Hood: Memory Complexity & Fibonacci Comparison</div>
+        <div class="box-body">
+          <p>
+            Memoization trades <b>Memory Space</b> to save <b>Time Complexity</b>. The classic demonstration of this trade-off is the Fibonacci sequence:
+          </p>
+          <pre style="margin: 10px 0; padding: 12px; font-size: 13px;"><span class="comment">// Naive recursion: Time Complexity = O(2^N) [exponential]</span>
+<span class="keyword">function</span> fib(n) {
+  <span class="keyword">if</span> (n &lt;= <span class="number">1</span>) <span class="keyword">return</span> n;
+  <span class="keyword">return</span> fib(n - <span class="number">1</span>) + fib(n - <span class="number">2</span>);
+}
+
+<span class="comment">// Memoized recursion: Time Complexity = O(N) [linear]</span>
+<span class="keyword">const</span> memoizedFib = memoize(<span class="keyword">function</span>(n) {
+  <span class="keyword">if</span> (n &lt;= <span class="number">1</span>) <span class="keyword">return</span> n;
+  <span class="keyword">return</span> memoizedFib(n - <span class="number">1</span>) + memoizedFib(n - <span class="number">2</span>);
+});</pre>
+          <p>
+            Evaluating <code>fib(40)</code> performs over <b>1 trillion</b> duplicate function calls, freezing the main thread. <code>memoizedFib(40)</code> performs exactly <b>40</b> calls, executing in less than a millisecond.
+          </p>
+        </div>
+      </div>
+
+      <!-- Diagram 5: Memoization Cache Flow -->
+      <div class="diagram-container">
+        <svg class="svg-diagram" viewBox="0 0 700 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="700" height="240" rx="16" fill="#101622" stroke="var(--border)" stroke-width="1"/>
+          
+          <text x="30" y="35" fill="var(--text)" font-family="var(--sans)" font-size="14" font-weight="700">MEMOIZATION CACHE HIT / MISS WORKFLOW</text>
+
+          <!-- Caller -->
+          <g class="svg-node" transform="translate(30, 95)">
+            <rect width="120" height="50" rx="8" fill="#151d2a" stroke="var(--border)" stroke-width="1.5"/>
+            <text x="60" y="24" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="11" font-weight="bold">Call: f(5)</text>
+            <text x="60" y="40" text-anchor="middle" fill="var(--text-muted)" font-family="var(--mono)" font-size="10">Args: [5]</text>
+          </g>
+
+          <!-- Arrow -->
+          <line x1="150" y1="120" x2="200" y2="120" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+          <!-- Cache Check -->
+          <g class="svg-node" transform="translate(210, 80)">
+            <rect width="160" height="80" rx="10" fill="#132427" stroke="var(--neon-teal)" stroke-width="1.5"/>
+            <text x="80" y="30" text-anchor="middle" fill="var(--neon-teal)" font-family="var(--mono)" font-size="11" font-weight="bold">Cache Lookup</text>
+            <text x="80" y="48" text-anchor="middle" fill="var(--text-muted)" font-family="var(--sans)" font-size="9">Does Map contain</text>
+            <text x="80" y="60" text-anchor="middle" fill="var(--text-muted)" font-family="var(--sans)" font-size="9">key "[5]"?</text>
+          </g>
+
+          <!-- Hit Arrow -->
+          <path d="M 370 100 L 530 65" stroke="var(--neon-green)" stroke-width="1.5" marker-end="url(#arrow-teal)"/>
+          <text x="440" y="75" fill="var(--neon-green)" font-family="var(--sans)" font-size="9" font-weight="bold">YES (Hit)</text>
+
+          <!-- Miss Arrow -->
+          <path d="M 370 140 L 530 175" stroke="var(--neon-coral)" stroke-width="1.5" marker-end="url(#arrow-coral)"/>
+          <text x="440" y="170" fill="var(--neon-coral)" font-family="var(--sans)" font-size="9" font-weight="bold">NO (Miss)</text>
+
+          <!-- Fast Path Box -->
+          <g class="svg-node" transform="translate(540, 40)">
+            <rect width="130" height="50" rx="8" fill="#132427" stroke="var(--neon-green)" stroke-width="1.5"/>
+            <text x="65" y="24" text-anchor="middle" fill="var(--neon-green)" font-family="var(--mono)" font-size="11" font-weight="bold">Return Cached</text>
+            <text x="65" y="40" text-anchor="middle" fill="var(--text-muted)" font-family="var(--mono)" font-size="10">Result: 25</text>
+          </g>
+
+          <!-- Slow Path Box -->
+          <g class="svg-node" transform="translate(540, 150)">
+            <rect width="130" height="50" rx="8" fill="#2a1818" stroke="var(--neon-coral)" stroke-width="1.5"/>
+            <text x="65" y="24" text-anchor="middle" fill="var(--neon-coral)" font-family="var(--mono)" font-size="11" font-weight="bold">Compute & Cache</text>
+            <text x="65" y="40" text-anchor="middle" fill="var(--text-muted)" font-family="var(--sans)" font-size="9">Updates Map key</text>
+          </g>
+        </svg>
+      </div>
+
+      <div class="info-box trap">
+        <div class="box-header">Trap: Memoizing Impure Functions & Unbounded Cache Leaks</div>
+        <div class="box-body">
+          <ul class="nested-list">
+            <li><b>Impurity Risk:</b> Memoization relies on the assumption that a function is <b>pure</b> (always returns the identical output for a given input). If a function references external mutable states, relies on random variables (e.g. <code>Math.random()</code>), or performs async API fetching, memoization will hide updates and cause stale bugs.</li>
+            <li><b>Memory Leaks:</b> Unbounded caches store all arguments and results in memory indefinitely. In long-running node services, this can trigger <code>Out Of Memory (OOM)</code> crashes. Production systems should use cache sizing limits or eviction algorithms like <b>Least Recently Used (LRU)</b>.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">💡 Mini Quiz</div>
+        <div class="quiz-question">
+          What happens to the closure-scoped `cache` Map if the returned memoized function is completely garbage collected?
+        </div>
+        <button class="quiz-btn" id="quiz-mem-btn" onclick="toggleQuiz('quiz-mem')">Show Answer</button>
+        <div class="quiz-answer" id="quiz-mem">
+          <b>Answer:</b> The <code>cache</code> Map will also be garbage collected and freed from memory.
+          <br><br>
+          <b>Explanation:</b>
+          The private <code>cache</code> Map is held in memory because the returned inner wrapper function holds a live reference to it via its <code>[[Scope]]</code> property. If the wrapper function itself is garbage collected (because there are no active references pointing to it in the application), the link to the closure scope is broken. The Garbage Collector will recognize that the `cache` Map is no longer reachable, and it will reclaim that memory.
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. INTERVIEW QA -->
+    <section id="interview-qa">
+      <div class="sec-header">
+        <span class="sec-num">06</span>
+        <h3 class="sec-title">Interview Questions & Answers</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          Prepare for senior-level technical interviews with these consolidated conceptual questions:
+        </p>
+      </div>
+
+      <!-- Q1 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q1: Why does <code>function() {}()</code> raise a SyntaxError, and how does the browser's parser decide to throw it?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> When the parser encounters the <code>function</code> keyword at the start of a statement, it interprets it as a Function Declaration. In JavaScript, function declarations require a name. Since it is missing, the parser throws a <code>SyntaxError</code> immediately during the lexical parsing phase. Wrapping the code in parentheses <code>(function() {})()</code> changes the statement context to an expression context, where anonymous function expressions are allowed, making invocation valid.
+        </p>
+      </div>
+
+      <!-- Q2 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q2: What is the mechanical difference between Currying and Partial Application?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> Currying is the process of transforming a function of arity $N$ into a chain of $N$ unary functions (each accepting exactly one argument). Partial application takes a function of arity $N$ and binds some of its arguments, returning a new function of lower arity (which accepts all remaining arguments in subsequent calls).
+        </p>
+      </div>
+
+      <!-- Q3 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q3: How does React's <code>useMemo</code> hook relate to JavaScript memoization?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> React's <code>useMemo</code> hook is a built-in implementation of memoization. It caches the returned value of a calculation. However, unlike a standard memoize helper which maintains a persistent Map of all historical inputs and outputs, <code>useMemo</code> only stores the <b>immediately previous</b> result and argument array. When a re-render occurs, it checks if the dependencies are strictly equal (using <code>Object.is</code>) to the previous render's dependencies, skipping computation only if they match.
+        </p>
+      </div>
+
+      <!-- Q4 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q4: In function composition, how do <code>compose</code> and <code>pipe</code> differ structurally?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> Structurally, they differ only in their execution order. <code>compose</code> evaluates from right to left (innermost function first, matching algebraic notation $f(g(x))$), and is built using <code>reduceRight</code>. <code>pipe</code> evaluates from left to right (matching natural reading order), and is built using <code>reduce</code>.
+        </p>
+      </div>
+    </section>
+
+    <!-- Footer Navigation -->
+    <div style="margin-top: 80px; padding-top: 30px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+      <a href="chapter2-js-functions-closures.html" style="color: var(--js-yellow); text-decoration: none; font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 8px;">
+        ← Chapter 2: Functions & Closures
+      </a>
+      <span style="color: var(--text-faint); font-size: 13px;">Chapter 3: Advanced Functional JS</span>
+    </div>
+  </main>
+
+  <script>
+    // Toggle answers
+    function toggleQuiz(id) {
+      const el = document.getElementById(id);
+      const btn = document.getElementById(id + '-btn');
+      if (el.classList.contains('open')) {
+        el.classList.remove('open');
+        btn.textContent = "Show Answer";
+      } else {
+        el.classList.add('open');
+        btn.textContent = "Hide Answer";
+      }
+    }
+
+    // Scroll active item highlight
+    window.addEventListener('DOMContentLoaded', () => {
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          const id = entry.target.getAttribute('id');
+          const navItem = document.getElementById(`nav-${id}`);
+          if (entry.intersectionRatio > 0.3) {
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            if (navItem) navItem.classList.add('active');
+          }
+        });
+      }, { threshold: [0.1, 0.3, 0.5], rootMargin: "0px 0px -40% 0px" });
+
+      document.querySelectorAll('section').forEach(section => {
+        observer.observe(section);
+      });
+    });
+  </script>
+</body>
+</html>
