@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HTML Handbook — Module 1: Semantic HTML & Accessibility</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="handbook.css">
+  
+  <style>
+    .diagram-container {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin: 24px 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow-x: auto;
+    }
+    
+    .svg-diagram {
+      width: 100%;
+      max-width: 680px;
+      height: auto;
+      display: block;
+    }
+
+    .nested-list {
+      margin-left: 24px;
+      margin-bottom: 16px;
+      line-height: 1.7;
+      color: var(--text-muted);
+    }
+
+    .nested-list li {
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Sidebar -->
+  <aside>
+    <div class="brand">
+      <div class="tag">// handbook.html-css</div>
+      <h1>HTML & CSS Bible</h1>
+      <div class="sub">Module 1: Semantics & A11y</div>
+    </div>
+    <ul class="nav-list">
+      <li class="nav-item active" id="nav-semantic-outlining"><a href="#semantic-outlining"><span class="num">01.</span> Semantic Outlining</a></li>
+      <li class="nav-item" id="nav-navigation-action"><a href="#navigation-action"><span class="num">02.</span> Anchor vs Button</a></li>
+      <li class="nav-item" id="nav-accessibility-tree"><a href="#accessibility-tree"><span class="num">03.</span> Accessibility Tree</a></li>
+      <li class="nav-item" id="nav-keyboard-focus"><a href="#keyboard-focus"><span class="num">04.</span> Keyboard Focus</a></li>
+      <li class="nav-item" id="nav-interview-qa"><a href="#interview-qa"><span class="num">05.</span> Interview Q&A</a></li>
+      <li class="nav-item" id="nav-semantic-traps"><a href="#semantic-traps"><span class="num">06.</span> Traps & Questions</a></li>
+    </ul>
+  </aside>
+
+  <!-- Main Content -->
+  <main>
+    <div style="display: flex; gap: 16px; margin-bottom: 30px;">
+      <a href="index.html" class="top-nav-link" id="handbook-home-link" style="margin-bottom: 0;">← Handbook Home</a>
+      <span style="color: var(--text-faint);">|</span>
+      <a href="../../index.html" class="top-nav-link" id="hub-link" style="margin-bottom: 0;">← Hub Dashboard</a>
+    </div>
+    
+    <div class="intro-header">
+      <h2>Module 1: Semantic HTML & Accessibility</h2>
+      <p>
+        Learn to write structure with intent: understand document layouts, the accessibility tree (AOM) translation layer, keyboard focus properties, and anchor-vs-button semantics.
+      </p>
+    </div>
+
+    <!-- 1. SEMANTIC OUTLINING -->
+    <section id="semantic-outlining">
+      <div class="sec-header">
+        <span class="sec-num">01</span>
+        <h3 class="sec-title">Semantic Outlining (&lt;article&gt; vs &lt;section&gt; vs &lt;div&gt;)</h3>
+      </div>
+      
+      <div class="desc">
+        <p>
+          Semantic HTML is about writing markup that describes the **meaning and purpose** of the content, not just its visual appearance. In senior interviews, a classic trap tests your choice of containers for a product card listing.
+        </p>
+        <p>
+          The correct semantic container for an individual product card is an <code>&lt;article&gt;</code>. Here is why:
+        </p>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">The Semantic Grid Hierarchy</div>
+        <div class="box-body">
+          <ul class="nested-list" style="margin-bottom:0;">
+            <li><b>&lt;article&gt;:</b> Represents a self-contained, independent composition. If you extract this card and place it in a search result page, a wishlist, or an RSS feed, it remains fully logical and understandable on its own.</li>
+            <li><b>&lt;section&gt;:</b> Groups related contents under a single heading. A section should not be used as a styling container; it represents a thematic region of the page and typically starts with a header tag (e.g. <code>&lt;h2&gt;</code>).</li>
+            <li><b>&lt;div&gt;:</b> A non-semantic container. It holds zero structural meaning and should be used strictly for layout styling (like Flexbox and Grid wrappers) or JavaScript bindings.</li>
+          </ul>
+        </div>
+      </div>
+
+      <pre><span class="comment">&lt;!-- Perfect Semantic Structure for a Catalog Section --&gt;</span>
+<span class="keyword">&lt;section</span> <span class="string">class="featured-products"</span><span class="keyword">&gt;</span>
+  <span class="keyword">&lt;h2&gt;</span>Featured Products<span class="keyword">&lt;/h2&gt;</span>
+
+  <span class="keyword">&lt;div</span> <span class="string">class="products-grid"</span><span class="keyword">&gt;</span> <span class="comment">&lt;!-- div handles only CSS Grid Layout --&gt;</span>
+    
+    <span class="keyword">&lt;article</span> <span class="string">class="product-card"</span><span class="keyword">&gt;</span>
+      <span class="keyword">&lt;img</span> <span class="string">src="iphone.jpg"</span> <span class="string">alt="iPhone 15 Pro Max"</span><span class="keyword">&gt;</span>
+      <span class="keyword">&lt;h3&gt;</span>iPhone 15 Pro Max<span class="keyword">&lt;/h3&gt;</span>
+      <span class="keyword">&lt;p&gt;</span>$1,199.99<span class="keyword">&lt;/p&gt;</span>
+      <span class="keyword">&lt;button</span> <span class="string">type="button"</span><span class="keyword">&gt;</span>Add to Cart<span class="keyword">&lt;/button&gt;</span>
+    <span class="keyword">&lt;/article&gt;</span>
+
+  <span class="keyword">&lt;/div&gt;</span>
+<span class="keyword">&lt;/section&gt;</span></pre>
+
+      <div class="info-box trap">
+        <div class="box-header">Under the Hood: Who Determines Heading Sizes?</div>
+        <div class="box-body">
+          <p>
+            Does HTML natively specify that <code>&lt;h1&gt;</code> is 32px? **No.**
+          </p>
+          <p>
+            HTML only describes structural semantics. Every browser includes a built-in default CSS file called the <b>User Agent Stylesheet</b>. The browser uses this internally to apply standard styles (like <code>h1 { font-size: 2em; font-weight: bold; }</code>). If you delete all custom CSS, this stylesheet remains active. If you disable it completely, elements render as plain, unstyled, inline blocks of text.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. ANCHOR VS BUTTON -->
+    <section id="navigation-action">
+      <div class="sec-header">
+        <span class="sec-num">02</span>
+        <h3 class="sec-title">Interactive Intent: Anchor (&lt;a&gt;) vs Button (&lt;button&gt;)</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          Selecting between <code>&lt;a&gt;</code> and <code>&lt;button&gt;</code> is based on **intent and behavior**, never on visual presentation.
+        </p>
+        <p>
+          <b>The Rule of Thumb:</b>
+          <br>• Use <code>&lt;a&gt;</code> (Anchor) for **navigation**: taking the user to a new URL, hash, or trigger a resource download.
+          <br>• Use <code>&lt;button&gt;</code> for **actions**: executing operations that alter state, open modals, or submit forms.
+        </p>
+      </div>
+
+      <!-- Diagram 1: Anchor vs Button Decision Tree -->
+      <div class="diagram-container">
+        <svg class="svg-diagram" viewBox="0 0 700 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="700" height="280" rx="16" fill="#101622" stroke="var(--border)" stroke-width="1"/>
+          
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--text-muted)"/>
+            </marker>
+            <marker id="arrow-teal" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--neon-teal)"/>
+            </marker>
+            <marker id="arrow-orange" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--html-orange)"/>
+            </marker>
+          </defs>
+
+          <text x="30" y="35" fill="var(--text)" font-family="var(--sans)" font-size="14" font-weight="700">INTERACTIVE ELEMENT SELECTION DECISION TREE</text>
+
+          <!-- Start Node -->
+          <g transform="translate(30, 110)">
+            <rect width="130" height="50" rx="8" fill="#151d2a" stroke="var(--border)" stroke-width="1.5"/>
+            <text x="65" y="24" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="12" font-weight="bold">User Clicks</text>
+            <text x="65" y="40" text-anchor="middle" fill="var(--text-muted)" font-family="var(--sans)" font-size="10">Determine Intent</text>
+          </g>
+
+          <line x1="160" y1="135" x2="220" y2="135" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+          <!-- Decision Node -->
+          <g transform="translate(230, 95)">
+            <rect width="180" height="80" rx="8" fill="#132427" stroke="var(--neon-teal)" stroke-width="1.5"/>
+            <text x="90" y="30" text-anchor="middle" fill="var(--neon-teal)" font-family="var(--mono)" font-size="11" font-weight="bold">Does it change URL /</text>
+            <text x="90" y="45" text-anchor="middle" fill="var(--neon-teal)" font-family="var(--mono)" font-size="11" font-weight="bold">navigate location?</text>
+            <text x="90" y="65" text-anchor="middle" fill="var(--text-muted)" font-family="var(--sans)" font-size="9">(Includes download/anchors)</text>
+          </g>
+
+          <!-- Yes path -->
+          <path d="M 320 95 L 320 60 L 460 60" fill="none" stroke="var(--neon-teal)" stroke-width="1.5" marker-end="url(#arrow-teal)"/>
+          <text x="350" y="52" fill="var(--neon-teal)" font-family="var(--mono)" font-size="10" font-weight="bold">YES</text>
+
+          <!-- No path -->
+          <path d="M 320 175 L 320 210 L 460 210" fill="none" stroke="var(--html-orange)" stroke-width="1.5" marker-end="url(#arrow-orange)"/>
+          <text x="355" y="202" fill="var(--html-orange)" font-family="var(--mono)" font-size="10" font-weight="bold">NO</text>
+
+          <!-- Anchor result -->
+          <g transform="translate(470, 30)">
+            <rect width="190" height="60" rx="8" fill="#132427" stroke="var(--neon-teal)" stroke-width="1.5"/>
+            <text x="95" y="24" text-anchor="middle" fill="var(--neon-teal)" font-family="var(--mono)" font-size="12" font-weight="bold">&lt;a href="..."&gt;</text>
+            <text x="95" y="42" text-anchor="middle" fill="var(--text-muted)" font-family="var(--sans)" font-size="10">Anchor (Navigation)</text>
+          </g>
+
+          <!-- Button result -->
+          <g transform="translate(470, 180)">
+            <rect width="190" height="60" rx="8" fill="#2d1c18" stroke="var(--html-orange)" stroke-width="1.5"/>
+            <text x="95" y="24" text-anchor="middle" fill="var(--html-orange)" font-family="var(--mono)" font-size="12" font-weight="bold">&lt;button&gt;</text>
+            <text x="95" y="42" text-anchor="middle" fill="var(--text-muted)" font-family="var(--sans)" font-size="10">Button Control (Action)</text>
+          </g>
+        </svg>
+      </div>
+
+      <div class="info-box trap">
+        <div class="box-header">Trap: Destructive Actions inside Anchors</div>
+        <div class="box-body">
+          <p>
+            An interviewer might show you this code and ask for feedback:
+          </p>
+          <pre style="margin: 10px 0; padding: 10px; font-size: 12.5px;">&lt;a href="/delete-account"&gt;Delete Account&lt;/a&gt;</pre>
+          <p>
+            <b>Why is this dangerous?</b>
+            <br>1. **Crawlers & Prefetching:** Browsers and search engine indexing bots prefetch anchor links to improve speed. If a bot crawls the page, it will follow the link and accidentally trigger the account deletion!
+            <br>2. **HTTP Semantics:** GET requests must be safe and idempotent. Actions that change database state (like deletions or additions to carts) should be triggered via POST/DELETE requests using a <code>&lt;button&gt;</code> nested inside a form, or handled via script-bound event handlers.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. ACCESSIBILITY TREE -->
+    <section id="accessibility-tree">
+      <div class="sec-header">
+        <span class="sec-num">03</span>
+        <h3 class="sec-title">The Accessibility Tree (AOM)</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          Screen readers and other assistive tools do not parse the DOM tree directly. Instead, the browser translates the DOM tree into an **Accessibility Tree** using native OS accessibility APIs.
+        </p>
+        <p>
+          When you use semantic markup, the browser automatically maps elements to their corresponding roles, states, and names in the tree. When you use generic <code>&lt;div&gt;</code> elements, they are completely omitted or announced as un-interactive groups.
+        </p>
+      </div>
+
+      <!-- Diagram 2: DOM vs Accessibility Tree -->
+      <div class="diagram-container">
+        <svg class="svg-diagram" viewBox="0 0 700 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="700" height="240" rx="16" fill="#101622" stroke="var(--border)" stroke-width="1"/>
+          
+          <text x="30" y="30" fill="var(--text)" font-family="var(--sans)" font-size="14" font-weight="700">DOM TREE VS ACCESSIBILITY TREE TRANSLATION</text>
+
+          <!-- Left Side: DOM Structure -->
+          <text x="30" y="65" fill="var(--html-orange)" font-family="var(--mono)" font-size="12" font-weight="bold">Parsed DOM Tree</text>
+          <g transform="translate(30, 80)">
+            <rect width="280" height="130" rx="8" fill="#151d2a" stroke="var(--border)" stroke-width="1"/>
+            <text x="20" y="25" fill="var(--text)" font-family="var(--mono)" font-size="11">&lt;article&gt;</text>
+            <text x="40" y="55" fill="var(--text-muted)" font-family="var(--mono)" font-size="11">├── &lt;h2&gt;Apple&lt;/h2&gt;</text>
+            <text x="40" y="85" fill="var(--text-muted)" font-family="var(--mono)" font-size="11">├── &lt;p&gt;$1,500&lt;/p&gt;</text>
+            <text x="40" y="115" fill="var(--text-muted)" font-family="var(--mono)" font-size="11">└── &lt;button&gt;Buy&lt;/button&gt;</text>
+          </g>
+
+          <!-- Middle Arrow -->
+          <line x1="330" y1="145" x2="370" y2="145" stroke="var(--neon-teal)" stroke-width="1.5" stroke-dasharray="4" marker-end="url(#arrow-teal)"/>
+          <text x="350" y="125" text-anchor="middle" fill="var(--neon-teal)" font-family="var(--sans)" font-size="10">Translates</text>
+
+          <!-- Right Side: Accessibility Tree -->
+          <text x="390" y="65" fill="var(--neon-teal)" font-family="var(--mono)" font-size="12" font-weight="bold">Accessibility Tree (APIs)</text>
+          <g transform="translate(390, 80)">
+            <rect width="280" height="130" rx="8" fill="#132427" stroke="var(--neon-teal)" stroke-width="1"/>
+            <text x="20" y="25" fill="var(--text)" font-family="var(--sans)" font-size="11">Role: article</text>
+            <text x="40" y="55" fill="var(--neon-teal)" font-family="var(--sans)" font-size="11">├── Role: heading, Name: "Apple"</text>
+            <text x="40" y="85" fill="var(--text-muted)" font-family="var(--sans)" font-size="11">├── Role: text, Name: "$1,500"</text>
+            <text x="40" y="115" fill="var(--neon-green)" font-family="var(--sans)" font-size="11">└── Role: button, Name: "Buy" [Focusable]</text>
+          </g>
+        </svg>
+      </div>
+
+      <div class="info-box answer">
+        <div class="box-header">Interview formulation: Why not use divs for everything?</div>
+        <div class="box-body">
+          "Using only divs strips away all semantics. Screen readers rely on the browser's accessibility tree. When we use <code>&lt;button&gt;</code>, the browser announces its role ('button'), name, and state ('enabled/disabled') automatically. With a div, the user only hears the static text content, losing all context that the element is an interactive control."
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. KEYBOARD FOCUS -->
+    <section id="keyboard-focus">
+      <div class="sec-header">
+        <span class="sec-num">04</span>
+        <h3 class="sec-title">Keyboard focus & tabindex mechanics</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          Another major difference between semantic interactive elements and custom containers (like <code>&lt;div&gt;</code> or <code>&lt;span&gt;</code>) is **Keyboard Accessibility**.
+        </p>
+        <p>
+          Standard buttons and links are focusable by default. Users navigating with a keyboard can use the <code>Tab</code> key to jump directly to them, and trigger their action using <code>Enter</code> or <code>Space</code>.
+        </p>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">The Cost of Recreating Behaviors with Divs</div>
+        <div class="box-body">
+          <p>
+            If you implement a click handler on a div:
+          </p>
+          <pre style="margin: 10px 0; padding: 10px; font-size: 13px;">&lt;div onclick="buy()"&gt;Buy Now&lt;/div&gt;</pre>
+          <p>
+            It is completely broken for keyboard users. To make it work as a button, you would have to write:
+          </p>
+          <pre style="margin: 10px 0; padding: 10px; font-size: 13px;">&lt;div onclick="buy()" tabindex="0" role="button" onkeydown="handleKey(event)"&gt;Buy Now&lt;/div&gt;</pre>
+          <p>
+            Where <code>tabindex="0"</code> adds the element to the sequential tab order, <code>role="button"</code> sets the accessibility role, and <code>handleKey</code> intercepts <code>Enter</code> and <code>Space</code> keys to invoke the action. Native buttons give you all of this automatically without writing a single line of JavaScript.
+          </p>
+        </div>
+      </div>
+
+      <div class="info-box trap">
+        <div class="box-header">tabindex Values Gotcha</div>
+        <div class="box-body">
+          <ul class="nested-list" style="margin-bottom:0;">
+            <li><code>tabindex="0"</code>: Places the element in the normal keyboard tab order based on DOM layout sequence. Use this to make custom elements focusable.</li>
+            <li><code>tabindex="-1"</code>: Removes the element from the keyboard tab sequence but allows it to be focused programmatically via JavaScript (e.g. <code>element.focus()</code>).</li>
+            <li><code>tabindex="> 0"</code>: **Avoid this.** It forces a custom tab order, breaking the natural sequential flow and disrupting the experience for keyboard-only users.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. INTERVIEW QA -->
+    <section id="interview-qa">
+      <div class="sec-header">
+        <span class="sec-num">05</span>
+        <h3 class="sec-title">Interview Questions & Answers</h3>
+      </div>
+
+      <!-- Q1 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q1: Why doesn't HTML need built-in variables or loops?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> HTML's primary responsibility is to describe structural metadata and content representation. It is a markup language, not a programming language. Generating data sequences or performing logical evaluations is the responsibility of programming languages (JavaScript, Server scripts, or UI frameworks). Keeping HTML markup logic-free ensures clean separation of concerns.
+        </p>
+      </div>
+
+      <!-- Q2 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q2: What happens if CSS is completely disabled in a browser?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> The page elements will still render and function (text block layout, input typing, button submissions, links redirecting) based on the browser's internal default User Agent Stylesheet, but all visual presentation (position grids, responsive adjustments, color tokens, animations) will disappear.
+        </p>
+      </div>
+
+      <!-- Q3 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q3: Why is a &lt;button&gt; still the correct element to trigger a "POST /cart/items" request instead of an anchor?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> Clicking "Add to Cart" is an action that modifies server state. In web architecture, anchor tags correspond to GET requests, which must remain safe and idempotent (devoid of side effects). Allowing bots or browsers to prefetch links that modify state causes unintended behaviors. Using a button reflects an action, manages focus, and prevents search engine crawlers from auto-triggering actions.
+        </p>
+      </div>
+
+      <!-- Q4 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q4: How does a button behave differently inside a form element compared to a div?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> Inside a <code>&lt;form&gt;</code>, a standard <code>&lt;button&gt;</code> defaults to <code>type="submit"</code>. Pressing the <code>Enter</code> key inside any text input in that form triggers the button's click handler and submits the form data automatically. A <code>&lt;div&gt;</code> holds no association with form submission sequences and will not respond to inputs unless manually wired.
+        </p>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">💡 Mini Quiz & Concept Check</div>
+        <div class="quiz-question">
+          If you have a clickable product card title that redirects users to the product details page, would you wrap the title in a &lt;button&gt; or an &lt;a&gt; tag? Why?
+        </div>
+        <button class="quiz-btn" id="quiz-title-click-btn" onclick="toggleQuiz('quiz-title-click')">Show Answer & Explanation</button>
+        <div class="quiz-answer" id="quiz-title-click">
+          <b>Answer:</b> An anchor <code>&lt;a href="/product/details"&gt;</code>.
+          <br><br>
+          <b>Explanation:</b>
+          Clicking the title navigates the user to a different URL (a new resource path). This represents navigation, which is the primary semantic purpose of an anchor tag. Even though we can style a button to look like a text link using CSS, using a button would break standard anchor navigation features, such as the ability to right-click to open in a new tab, search index bookmarking, and keyboard history redirection.
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. SEMANTIC TRAPS & TRICKY QUESTIONS -->
+    <section id="semantic-traps">
+      <div class="sec-header">
+        <span class="sec-num">06</span>
+        <h3 class="sec-title">HTML Semantic Sections — Interview Traps & Tricky Questions</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          This section analyzes common interview pitfalls, senior-level traps, and strategic questions regarding semantic elements.
+        </p>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">The Core Decision Framework (Say this out loud in interviews)</div>
+        <div class="box-body">
+          <pre style="margin: 0; background: transparent; border: none; padding: 0; font-size: 13px; color: var(--neon-teal);">
+Could it stand alone, independent of the page?  →  &lt;article&gt;
+Is it a themed chunk that's part of a larger whole?   →  &lt;section&gt;
+Pure layout/styling hook, no semantic meaning?      →  &lt;div&gt;</pre>
+        </div>
+      </div>
+
+      <h4 style="margin: 32px 0 16px 0; color: var(--html-orange); font-size: 18px;">Common Traps & Pitfalls</h4>
+
+      <!-- Traps List -->
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+        
+        <div class="info-box trap" style="margin: 0;">
+          <div class="box-header">Trap 1 — &lt;section&gt; without a heading</div>
+          <div class="box-body">
+            A <code>&lt;section&gt;</code> represents a thematic group and is expected to contain a heading (<code>h1</code>–<code>h6</code>). A section with no heading is a layout element; use a <code>&lt;div&gt;</code> instead.
+            <pre style="margin-top: 10px; font-size: 12px;"><span class="comment">&lt;!-- Wrong: pure layout wrapper --&gt;</span>
+&lt;section class="flex-wrapper"&gt;
+  &lt;button&gt;Save&lt;/button&gt;
+&lt;/section&gt;
+
+<span class="comment">&lt;!-- Right --&gt;</span>
+&lt;div class="flex-wrapper"&gt;
+  &lt;button&gt;Save&lt;/button&gt;
+&lt;/div&gt;</pre>
+          </div>
+        </div>
+
+        <div class="info-box trap" style="margin: 0;">
+          <div class="box-header">Trap 2 — Using &lt;section&gt; as a generic styling container</div>
+          <div class="box-body">
+            Do not use <code>&lt;section&gt;</code> for flexbox/grid containers or wrappers just because it "sounds more semantic than div." Reach for <code>&lt;section&gt;</code> only when there's thematic relevance.
+          </div>
+        </div>
+
+        <div class="info-box trap" style="margin: 0;">
+          <div class="box-header">Trap 3 — &lt;article&gt; vs &lt;section&gt; for repeatable cards</div>
+          <div class="box-body">
+            If listing items that could stand alone (e.g. comments, forum posts, product cards), wrap each item in an <code>&lt;article&gt;</code>, and the group itself in a <code>&lt;section&gt;</code>.
+            <pre style="margin-top: 10px; font-size: 12px;">&lt;section aria-label="Comments"&gt;
+  &lt;h2&gt;Comments (42)&lt;/h2&gt;
+  &lt;article class="comment"&gt;
+    &lt;h3&gt;Ahmed&lt;/h3&gt;
+    &lt;p&gt;Great article!&lt;/p&gt;
+  &lt;/article&gt;
+&lt;/section&gt;</pre>
+          </div>
+        </div>
+
+        <div class="info-box trap" style="margin: 0;">
+          <div class="box-header">Trap 4 — More than one &lt;main&gt;</div>
+          <div class="box-body">
+            There must be **exactly one** visible <code>&lt;main&gt;</code> tag per page. It must never be nested inside <code>&lt;article&gt;</code>, <code>&lt;aside&gt;</code>, <code>&lt;header&gt;</code>, <code>&lt;footer&gt;</code>, or <code>&lt;nav&gt;</code>.
+          </div>
+        </div>
+
+        <div class="info-box trap" style="margin: 0;">
+          <div class="box-header">Trap 5 — Skipping heading levels</div>
+          <div class="box-body">
+            Jumping from <code>&lt;h1&gt;</code> to <code>&lt;h3&gt;</code> breaks document layout structures for screen readers. Heading hierarchy determines accessibility navigation, not styling. Use CSS for font sizing.
+          </div>
+        </div>
+
+        <div class="info-box trap" style="margin: 0;">
+          <div class="box-header">Trap 6 — &lt;nav&gt; for every list of links</div>
+          <div class="box-body">
+            Reserve <code>&lt;nav&gt;</code> only for major navigation blocks (primary, pagination, breadcrumbs). A minor group of related links inside a post footer should just use standard unordered lists.
+          </div>
+        </div>
+
+        <div class="info-box trap" style="margin: 0;">
+          <div class="box-header">Trap 7 — &lt;header&gt; and &lt;footer&gt; are NOT page-only</div>
+          <div class="box-body">
+            Each <code>&lt;article&gt;</code> or <code>&lt;section&gt;</code> can contain its own scoping <code>&lt;header&gt;</code> and <code>&lt;footer&gt;</code> tags.
+            <pre style="margin-top: 10px; font-size: 12px;">&lt;article&gt;
+  &lt;header&gt;
+    &lt;h2&gt;Blog Title&lt;/h2&gt;
+  &lt;/header&gt;
+  &lt;p&gt;Content...&lt;/p&gt;
+  &lt;footer&gt;Tags: HTML&lt;/footer&gt;
+&lt;/article&gt;</pre>
+          </div>
+        </div>
+
+        <div class="info-box trap" style="margin: 0;">
+          <div class="box-header">Trap 8 — &lt;aside&gt; doesn't just mean "sidebar"</div>
+          <div class="box-body">
+            <code>&lt;aside&gt;</code> represents content tangentially related to the surrounding page. It can render visually anywhere (e.g. pull-quotes, inline glossary tags), not just side columns.
+          </div>
+        </div>
+
+        <div class="info-box trap" style="margin: 0;">
+          <div class="box-header">Trap 9 — Over-semantic layouts</div>
+          <div class="box-body">
+            Avoid wrapping layout tags in articles/sections unnecessarily. <code>&lt;div&gt;</code> remains the correct choice for structural containers with no semantic value.
+          </div>
+        </div>
+
+        <div class="info-box trap" style="margin: 0;">
+          <div class="box-header">Trap 10 — The HTML5 outline algorithm is dead</div>
+          <div class="box-body">
+            Browsers and assistive tools never implemented heading outlines reset inside sections. Always maintain explicit manual heading progression (<code>h1</code> → <code>h2</code> → <code>h3</code>).
+          </div>
+        </div>
+
+      </div>
+
+      <h4 style="margin: 40px 0 16px 0; color: var(--html-orange); font-size: 18px;">Interview Questions by Level</h4>
+      
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <div>
+          <b style="color: var(--neon-teal);">Beginner:</b>
+          <ul class="nested-list">
+            <li>What's the difference between &lt;div&gt; and &lt;section&gt;?</li>
+            <li>Why do we use semantic tags instead of just &lt;div&gt; everywhere?</li>
+            <li>Can a page have more than one &lt;h1&gt;?</li>
+            <li>What does the &lt;main&gt; tag do, and how many can a page have?</li>
+          </ul>
+        </div>
+
+        <div>
+          <b style="color: var(--html-orange);">Intermediate:</b>
+          <ul class="nested-list">
+            <li>Mapping structures: News page with hero card, previews grid, and trending topics. Assign semantic tags.</li>
+            <li>Why should &lt;label for="..."&gt; link to inputs if CSS styling is custom?</li>
+            <li>Is it valid to place &lt;header&gt; inside &lt;article&gt;? Explain.</li>
+            <li>What is wrong with wrapping every layout element in &lt;section&gt;?</li>
+          </ul>
+        </div>
+
+        <div>
+          <b style="color: var(--neon-coral);">Senior:</b>
+          <ul class="nested-list">
+            <li>How does a screen reader user navigate landmark elements vs. div soup? What shortcuts are lost?</li>
+            <li>Explain why the HTML5 outline algorithm was dropped and what heading layout pattern must be used.</li>
+            <li>A junior on your team wrapped modals and toasts in &lt;article&gt;. Review this PR layout.</li>
+            <li>When is &lt;div role="button"&gt; correct, and what focus / keyboard accessibility requirements are required?</li>
+          </ul>
+        </div>
+      </div>
+
+      <h4 style="margin: 40px 0 16px 0; color: var(--html-orange); font-size: 18px;">Rapid-Fire Cheat Sheet</h4>
+      
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px; font-size: 14px;">
+        <thead>
+          <tr style="border-bottom: 2px solid var(--border); text-align: left;">
+            <th style="padding: 10px; color: var(--text);">Situation</th>
+            <th style="padding: 10px; color: var(--text);">Correct Tag</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px; color: var(--text-muted);">Product card, blog post, comment, tweet</td>
+            <td style="padding: 10px; font-family: var(--mono); color: var(--neon-teal);">&lt;article&gt;</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px; color: var(--text-muted);">Themed group with a heading</td>
+            <td style="padding: 10px; font-family: var(--mono); color: var(--neon-teal);">&lt;section&gt;</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px; color: var(--text-muted);">Pure layout wrapper, no meaning</td>
+            <td style="padding: 10px; font-family: var(--mono); color: var(--neon-coral);">&lt;div&gt;</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px; color: var(--text-muted);">Primary / footer / breadcrumb navigation</td>
+            <td style="padding: 10px; font-family: var(--mono); color: var(--neon-teal);">&lt;nav&gt;</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px; color: var(--text-muted);">Related-but-separate content (sidebar, callout)</td>
+            <td style="padding: 10px; font-family: var(--mono); color: var(--neon-teal);">&lt;aside&gt;</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px; color: var(--text-muted);">Page's single primary content block</td>
+            <td style="padding: 10px; font-family: var(--mono); color: var(--neon-teal);">&lt;main&gt;</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px; color: var(--text-muted);">Intro / Outro block for page or article</td>
+            <td style="padding: 10px; font-family: var(--mono); color: var(--neon-teal);">&lt;header&gt; / &lt;footer&gt;</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Footer Navigation -->
+    <div style="margin-top: 80px; padding-top: 30px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+      <a href="index.html" style="color: var(--html-orange); text-decoration: none; font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 8px;">
+        ← Directory Overview
+      </a>
+      <span style="color: var(--text-faint); font-size: 13px;">Module 1: Semantic HTML</span>
+    </div>
+  </main>
+
+  <script>
+    // Toggle answers
+    function toggleQuiz(id) {
+      const el = document.getElementById(id);
+      const btn = document.getElementById(id + '-btn');
+      if (el.classList.contains('open')) {
+        el.classList.remove('open');
+        btn.textContent = "Show Answer";
+      } else {
+        el.classList.add('open');
+        btn.textContent = "Hide Answer";
+      }
+    }
+
+    // Scroll active item highlight
+    window.addEventListener('DOMContentLoaded', () => {
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          const id = entry.target.getAttribute('id');
+          const navItem = document.getElementById(`nav-${id}`);
+          if (entry.intersectionRatio > 0.3) {
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            if (navItem) navItem.classList.add('active');
+          }
+        });
+      }, { threshold: [0.1, 0.3, 0.5], rootMargin: "0px 0px -40% 0px" });
+
+      document.querySelectorAll('section').forEach(section => {
+        observer.observe(section);
+      });
+    });
+  </script>
+</body>
+</html>

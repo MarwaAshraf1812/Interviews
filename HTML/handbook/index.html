@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HTML & CSS Mastery Handbook Directory</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="handbook.css">
+  
+  <style>
+    /* Custom styles for directory catalog */
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+      gap: 24px;
+      margin-top: 32px;
+    }
+
+    .chapter-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .chapter-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--html-orange);
+      box-shadow: 0 12px 30px rgba(255, 87, 34, 0.05);
+    }
+
+    .card-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .chapter-badge {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--html-orange);
+      background: rgba(255, 87, 34, 0.08);
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 87, 34, 0.15);
+    }
+
+    .read-time {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .chapter-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      line-height: 1.4;
+      color: var(--text);
+    }
+
+    .chapter-desc {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 24px;
+      flex-grow: 1;
+    }
+
+    .topics-list {
+      list-style: none;
+      margin-bottom: 28px;
+      border-top: 1px dashed var(--border);
+      padding-top: 16px;
+    }
+
+    .topic-item {
+      font-size: 13px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .topic-item::before {
+      content: "•";
+      color: var(--html-orange);
+      font-weight: bold;
+    }
+
+    .card-action-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--sans);
+      font-weight: 600;
+      font-size: 14px;
+      padding: 12px;
+      border-radius: 10px;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .chapter-card:hover .card-action-btn {
+      background: var(--html-orange);
+      color: var(--bg);
+      border-color: var(--html-orange);
+    }
+
+    /* Locked state */
+    .chapter-card.locked {
+      opacity: 0.6;
+    }
+
+    .chapter-card.locked:hover {
+      transform: none;
+      border-color: var(--border);
+      box-shadow: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside>
+    <div class="brand">
+      <div class="tag">// handbook.html-css</div>
+      <h1>HTML & CSS Bible</h1>
+      <div class="sub">Catalog Directory</div>
+    </div>
+    <ul class="nav-list">
+      <li class="nav-item active"><a href="#"><span class="num">00.</span> Overview</a></li>
+      <li class="nav-item"><a href="module1-fundamentals.html"><span class="num">01.</span> Mod 1: HTML Fundamentals</a></li>
+      <li class="nav-item"><a href="module1-semantic-html.html#semantic-outlining"><span class="num">02.</span> Mod 2: Semantic HTML</a></li>
+      <li class="nav-item"><a href="module1-semantic-html.html#accessibility-tree"><span class="num">04.</span> Mod 4: Accessibility</a></li>
+    </ul>
+  </aside>
+
+  <!-- Main Content -->
+  <main>
+    <a href="../html-mastery-tracker.html" class="top-nav-link" id="hub-link">← Study Tracker</a>
+
+    <div class="intro-header">
+      <h2>HTML & CSS Interview Handbook</h2>
+      <p>
+        A curated suite of semantic structure analyses, DOM rendering pipelines, accessibility tree layouts, and micro-quizzes.
+      </p>
+    </div>
+
+    <!-- Chapter Grid -->
+    <div class="grid-container">
+      
+      <!-- MODULE 1 (ACTIVE) -->
+      <article class="chapter-card">
+        <div>
+          <div class="card-meta">
+            <span class="chapter-badge">MODULE 01</span>
+            <span class="read-time">⏱ 12 min read</span>
+          </div>
+          <h3 class="chapter-title">HTML Fundamentals</h3>
+          <p class="chapter-desc">
+            Document compilation flow, HTML parsing stages, DOCTYPE quirks mode, and structural tree setup.
+          </p>
+          <ul class="topics-list">
+            <li class="topic-item">HTML Parser & tokenization</li>
+            <li class="topic-item">DOCTYPE quirks validation</li>
+            <li class="topic-item">DOM vs HTML document trees</li>
+          </ul>
+        </div>
+        <a href="module1-fundamentals.html" class="card-action-btn">
+          Start Reading <span class="arrow">→</span>
+        </a>
+      </article>
+
+      <!-- MODULE 2 (ACTIVE) -->
+      <article class="chapter-card">
+        <div>
+          <div class="card-meta">
+            <span class="chapter-badge">MODULE 02</span>
+            <span class="read-time">⏱ 15 min read</span>
+          </div>
+          <h3 class="chapter-title">Semantic HTML</h3>
+          <p class="chapter-desc">
+            Outlining rules, block vs inline structure, contextual formatting tags, and content grouping semantics.
+          </p>
+          <ul class="topics-list">
+            <li class="topic-item">Outlining structure (&lt;article&gt; vs &lt;section&gt;)</li>
+            <li class="topic-item">Contextual tags (&lt;figure&gt;, &lt;time&gt;)</li>
+            <li class="topic-item">Inline vs Block grouping semantics</li>
+          </ul>
+        </div>
+        <a href="module1-semantic-html.html#semantic-outlining" class="card-action-btn">
+          Start Reading <span class="arrow">→</span>
+        </a>
+      </article>
+
+      <!-- MODULE 3 (QUEUED) -->
+      <article class="chapter-card locked">
+        <div>
+          <div class="card-meta">
+            <span class="chapter-badge" style="color: var(--text-muted); background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08);">MODULE 03</span>
+            <span class="read-time">⏱ Queued</span>
+          </div>
+          <h3 class="chapter-title" style="color: var(--text-muted);">Forms & Validations</h3>
+          <p class="chapter-desc">
+            Submission lifecycles, standard input controls, FormData constructor, and client validation constraints.
+          </p>
+          <ul class="topics-list" style="border-top-color: rgba(255,255,255,0.04);">
+            <li class="topic-item" style="color: var(--text-faint);">Form submission & POST actions</li>
+            <li class="topic-item" style="color: var(--text-faint);">Constraint Validation API</li>
+            <li class="topic-item" style="color: var(--text-faint);">Placeholder vs label elements</li>
+          </ul>
+        </div>
+        <div class="card-action-btn" style="background: rgba(255,255,255,0.02); color: var(--text-faint); cursor: not-allowed;">
+          Locked
+        </div>
+      </article>
+
+      <!-- MODULE 4 (ACTIVE) -->
+      <article class="chapter-card">
+        <div>
+          <div class="card-meta">
+            <span class="chapter-badge">MODULE 04</span>
+            <span class="read-time">⏱ 15 min read</span>
+          </div>
+          <h3 class="chapter-title">Accessibility (A11y)</h3>
+          <p class="chapter-desc">
+            Assistive tree (AOM) translation mapping, keyboard navigation structures, focus selectors, and ARIA bindings.
+          </p>
+          <ul class="topics-list">
+            <li class="topic-item">Accessibility Tree (AOM) translation</li>
+            <li class="topic-item">Keyboard Focus & tabindex parameters</li>
+            <li class="topic-item">Native screen reader support</li>
+          </ul>
+        </div>
+        <a href="module1-semantic-html.html#accessibility-tree" class="card-action-btn">
+          Start Reading <span class="arrow">→</span>
+        </a>
+      </article>
+
+      <!-- MODULE 5 (QUEUED) -->
+      <article class="chapter-card locked">
+        <div>
+          <div class="card-meta">
+            <span class="chapter-badge" style="color: var(--text-muted); background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08);">MODULE 05</span>
+            <span class="read-time">⏱ Queued</span>
+          </div>
+          <h3 class="chapter-title" style="color: var(--text-muted);">SEO Best Practices</h3>
+          <p class="chapter-desc">
+            Content discoverability, metadata tags, canonical indexing, robots directives, and header trees.
+          </p>
+          <ul class="topics-list" style="border-top-color: rgba(255,255,255,0.04);">
+            <li class="topic-item" style="color: var(--text-faint);">Crawl mapping (robots & canonicals)</li>
+            <li class="topic-item" style="color: var(--text-faint);">Meta descriptions & title tags</li>
+            <li class="topic-item" style="color: var(--text-faint);">Heading structure priorities</li>
+          </ul>
+        </div>
+        <div class="card-action-btn" style="background: rgba(255,255,255,0.02); color: var(--text-faint); cursor: not-allowed;">
+          Locked
+        </div>
+      </article>
+
+      <!-- MODULE 6 (QUEUED) -->
+      <article class="chapter-card locked">
+        <div>
+          <div class="card-meta">
+            <span class="chapter-badge" style="color: var(--text-muted); background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08);">MODULE 06</span>
+            <span class="read-time">⏱ Queued</span>
+          </div>
+          <h3 class="chapter-title" style="color: var(--text-muted);">Media Elements</h3>
+          <p class="chapter-desc">
+            Multimedia players, responsive image selectors, layout rules, and frames security sandboxing.
+          </p>
+          <ul class="topics-list" style="border-top-color: rgba(255,255,255,0.04);">
+            <li class="topic-item" style="color: var(--text-faint);">Responsive layouts (srcset & sizes)</li>
+            <li class="topic-item" style="color: var(--text-faint);">Audio & Video native players</li>
+            <li class="topic-item" style="color: var(--text-faint);">iframe sandbox security rules</li>
+          </ul>
+        </div>
+        <div class="card-action-btn" style="background: rgba(255,255,255,0.02); color: var(--text-faint); cursor: not-allowed;">
+          Locked
+        </div>
+      </article>
+
+      <!-- MODULE 7 (QUEUED) -->
+      <article class="chapter-card locked">
+        <div>
+          <div class="card-meta">
+            <span class="chapter-badge" style="color: var(--text-muted); background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08);">MODULE 07</span>
+            <span class="read-time">⏱ Queued</span>
+          </div>
+          <h3 class="chapter-title" style="color: var(--text-muted);">Table Structures</h3>
+          <p class="chapter-desc">
+            Layout data rendering, header-data relationships, and semantic accessibility mapping.
+          </p>
+          <ul class="topics-list" style="border-top-color: rgba(255,255,255,0.04);">
+            <li class="topic-item" style="color: var(--text-faint);">Structure (thead, tbody, tfoot)</li>
+            <li class="topic-item" style="color: var(--text-faint);">Accessibility in tables (scope)</li>
+            <li class="topic-item" style="color: var(--text-faint);">Complex data table layouts</li>
+          </ul>
+        </div>
+        <div class="card-action-btn" style="background: rgba(255,255,255,0.02); color: var(--text-faint); cursor: not-allowed;">
+          Locked
+        </div>
+      </article>
+
+      <!-- MODULE 8 (QUEUED) -->
+      <article class="chapter-card locked">
+        <div>
+          <div class="card-meta">
+            <span class="chapter-badge" style="color: var(--text-muted); background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08);">MODULE 08</span>
+            <span class="read-time">⏱ Queued</span>
+          </div>
+          <h3 class="chapter-title" style="color: var(--text-muted);">Performance</h3>
+          <p class="chapter-desc">
+            Critical rendering path optimization, loading priorities, and script execution control.
+          </p>
+          <ul class="topics-list" style="border-top-color: rgba(255,255,255,0.04);">
+            <li class="topic-item" style="color: var(--text-faint);">Script load triggers (async & defer)</li>
+            <li class="topic-item" style="color: var(--text-faint);">Asset resource hints (preload)</li>
+            <li class="topic-item" style="color: var(--text-faint);">Native lazy loading (loading='lazy')</li>
+          </ul>
+        </div>
+        <div class="card-action-btn" style="background: rgba(255,255,255,0.02); color: var(--text-faint); cursor: not-allowed;">
+          Locked
+        </div>
+      </article>
+
+      <!-- MODULE 9 (QUEUED) -->
+      <article class="chapter-card locked">
+        <div>
+          <div class="card-meta">
+            <span class="chapter-badge" style="color: var(--text-muted); background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08);">MODULE 09</span>
+            <span class="read-time">⏱ Queued</span>
+          </div>
+          <h3 class="chapter-title" style="color: var(--text-muted);">Browser & Rendering</h3>
+          <p class="chapter-desc">
+            Document tokenization, DOM/CSSOM creation, and rendering pipeline triggers.
+          </p>
+          <ul class="topics-list" style="border-top-color: rgba(255,255,255,0.04);">
+            <li class="topic-item" style="color: var(--text-faint);">DOM vs BOM scopes</li>
+            <li class="topic-item" style="color: var(--text-faint);">Layout triggers (reflow & repaint)</li>
+            <li class="topic-item" style="color: var(--text-faint);">Critical Rendering Path stages</li>
+          </ul>
+        </div>
+        <div class="card-action-btn" style="background: rgba(255,255,255,0.02); color: var(--text-faint); cursor: not-allowed;">
+          Locked
+        </div>
+      </article>
+
+      <!-- MODULE 10 (QUEUED) -->
+      <article class="chapter-card locked">
+        <div>
+          <div class="card-meta">
+            <span class="chapter-badge" style="color: var(--text-muted); background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08);">MODULE 10</span>
+            <span class="read-time">⏱ Queued</span>
+          </div>
+          <h3 class="chapter-title" style="color: var(--text-muted);">HTML APIs</h3>
+          <p class="chapter-desc">
+            Native browser services, offline data storage solutions, and interface bindings.
+          </p>
+          <ul class="topics-list" style="border-top-color: rgba(255,255,255,0.04);">
+            <li class="topic-item" style="color: var(--text-faint);">Local Storage vs Session Storage</li>
+            <li class="topic-item" style="color: var(--text-faint);">Native Drag and Drop APIs</li>
+            <li class="topic-item" style="color: var(--text-faint);">Canvas & Geolocation capabilities</li>
+          </ul>
+        </div>
+        <div class="card-action-btn" style="background: rgba(255,255,255,0.02); color: var(--text-faint); cursor: not-allowed;">
+          Locked
+        </div>
+      </article>
+
+      <!-- MODULE 11 (QUEUED) -->
+      <article class="chapter-card locked">
+        <div>
+          <div class="card-meta">
+            <span class="chapter-badge" style="color: var(--text-muted); background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08);">MODULE 11</span>
+            <span class="read-time">⏱ Queued</span>
+          </div>
+          <h3 class="chapter-title" style="color: var(--text-muted);">Advanced HTML</h3>
+          <p class="chapter-desc">
+            Custom element templates, native disclosure panels, dialog controllers, and data variables.
+          </p>
+          <ul class="topics-list" style="border-top-color: rgba(255,255,255,0.04);">
+            <li class="topic-item" style="color: var(--text-faint);">Web Components (template & slot)</li>
+            <li class="topic-item" style="color: var(--text-faint);">dialog & details layout hooks</li>
+            <li class="topic-item" style="color: var(--text-faint);">HTML5 custom data attributes</li>
+          </ul>
+        </div>
+        <div class="card-action-btn" style="background: rgba(255,255,255,0.02); color: var(--text-faint); cursor: not-allowed;">
+          Locked
+        </div>
+      </article>
+
+      <!-- MODULE 12 (QUEUED) -->
+      <article class="chapter-card locked">
+        <div>
+          <div class="card-meta">
+            <span class="chapter-badge" style="color: var(--text-muted); background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08);">MODULE 12</span>
+            <span class="read-time">⏱ Queued</span>
+          </div>
+          <h3 class="chapter-title" style="color: var(--text-muted);">Tricky Interview Questions</h3>
+          <p class="chapter-desc">
+            Technical anomalies, parser quirks, semantic guidelines, and element exceptions.
+          </p>
+          <ul class="topics-list" style="border-top-color: rgba(255,255,255,0.04);">
+            <li class="topic-item" style="color: var(--text-faint);">Inline vs block nesting behavior</li>
+            <li class="topic-item" style="color: var(--text-faint);">Nesting details (main & articles)</li>
+            <li class="topic-item" style="color: var(--text-faint);">Button vs div onClick access specs</li>
+          </ul>
+        </div>
+        <div class="card-action-btn" style="background: rgba(255,255,255,0.02); color: var(--text-faint); cursor: not-allowed;">
+          Locked
+        </div>
+      </article>
+
+      <!-- MODULE 13 (QUEUED) -->
+      <article class="chapter-card locked">
+        <div>
+          <div class="card-meta">
+            <span class="chapter-badge" style="color: var(--text-muted); background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08);">MODULE 13</span>
+            <span class="read-time">⏱ Queued</span>
+          </div>
+          <h3 class="chapter-title" style="color: var(--text-muted);">Real Projects Analysis</h3>
+          <p class="chapter-desc">
+            Building semantic wireframes, performance improvements, and accessibility checks.
+          </p>
+          <ul class="topics-list" style="border-top-color: rgba(255,255,255,0.04);">
+            <li class="topic-item" style="color: var(--text-faint);">E-commerce and Landing layout blueprints</li>
+            <li class="topic-item" style="color: var(--text-faint);">Dashboards & admin layouts</li>
+            <li class="topic-item" style="color: var(--text-faint);">Auditing frameworks (Lighthouse/Wave)</li>
+          </ul>
+        </div>
+        <div class="card-action-btn" style="background: rgba(255,255,255,0.02); color: var(--text-faint); cursor: not-allowed;">
+          Locked
+        </div>
+      </article>
+
+    </div>
+  </main>
+
+
+</body>
+</html>

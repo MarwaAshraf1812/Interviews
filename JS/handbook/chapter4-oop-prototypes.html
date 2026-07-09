@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JS Mastery Handbook — Chapter 4: OOP & Prototypes</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="handbook.css">
+  
+  <style>
+    /* Custom style enhancements for diagrams and SVGs */
+    .diagram-container {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin: 24px 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow-x: auto;
+    }
+    
+    .svg-diagram {
+      width: 100%;
+      max-width: 680px;
+      height: auto;
+      display: block;
+    }
+    
+    /* Interactive node styling inside SVG */
+    .svg-node {
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: default;
+    }
+    
+    .svg-node:hover {
+      transform: translateY(-2px);
+      filter: drop-shadow(0 6px 12px rgba(94, 230, 208, 0.15));
+    }
+    
+    .svg-node-error:hover {
+      filter: drop-shadow(0 6px 12px rgba(255, 122, 122, 0.15));
+    }
+    
+    .svg-node-yellow:hover {
+      filter: drop-shadow(0 6px 12px rgba(247, 223, 30, 0.15));
+    }
+
+    .svg-link {
+      stroke-dasharray: 4;
+      animation: dash 15s linear infinite;
+    }
+
+    @keyframes dash {
+      to {
+        stroke-dashoffset: -100;
+      }
+    }
+    
+    .nested-list {
+      margin-left: 24px;
+      margin-bottom: 12px;
+      line-height: 1.6;
+    }
+    
+    .nested-list li {
+      margin-bottom: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Sidebar -->
+  <aside>
+    <div class="brand">
+      <div class="tag">// handbook.javascript</div>
+      <h1>Interview Bible</h1>
+      <div class="sub">Chapter 4: OOP & Prototypes</div>
+    </div>
+    <ul class="nav-list">
+      <li class="nav-item active" id="nav-proto-chain"><a href="#proto-chain"><span class="num">01.</span> Prototype Chain</a></li>
+      <li class="nav-item" id="nav-proto-vs-prototype"><a href="#proto-vs-prototype"><span class="num">02.</span> __proto__ vs .prototype</a></li>
+      <li class="nav-item" id="nav-object-create"><a href="#object-create"><span class="num">03.</span> Object.create & assign</a></li>
+      <li class="nav-item" id="nav-class-syntax"><a href="#class-syntax"><span class="num">04.</span> ES6 class (Desugared)</a></li>
+      <li class="nav-item" id="nav-inheritance"><a href="#inheritance"><span class="num">05.</span> Inheritance (extends/super)</a></li>
+      <li class="nav-item" id="nav-freeze-seal"><a href="#freeze-seal"><span class="num">06.</span> Freeze, Seal & Descriptors</a></li>
+      <li class="nav-item" id="nav-static-members"><a href="#static-members"><span class="num">07.</span> Static Members</a></li>
+      <li class="nav-item" id="nav-getters-setters"><a href="#getters-setters"><span class="num">08.</span> Getters & Setters</a></li>
+      <li class="nav-item" id="nav-private-fields"><a href="#private-fields"><span class="num">09.</span> Private Fields (#)</a></li>
+      <li class="nav-item" id="nav-polymorphism"><a href="#polymorphism"><span class="num">10.</span> Polymorphism</a></li>
+      <li class="nav-item" id="nav-composition-inheritance"><a href="#composition-inheritance"><span class="num">11.</span> Composition vs Inheritance</a></li>
+      <li class="nav-item" id="nav-interview-qa"><a href="#interview-qa"><span class="num">12.</span> Interview Q&A</a></li>
+    </ul>
+  </aside>
+
+  <!-- Main Content -->
+  <main>
+    <div style="display: flex; gap: 16px; margin-bottom: 30px;">
+      <a href="index.html" class="top-nav-link" id="handbook-home-link" style="margin-bottom: 0;">← Handbook Home</a>
+      <span style="color: var(--text-faint);">|</span>
+      <a href="../../index.html" class="top-nav-link" id="hub-link" style="margin-bottom: 0;">← Hub Dashboard</a>
+    </div>
+    
+    <div class="intro-header">
+      <h2>Chapter 4: Object-Oriented Programming & Prototypes</h2>
+      <p>
+        Deconstruct JavaScript's unique prototypal inheritance mechanics: master the prototype chain lookup walk, analyze constructor function blueprints, demystify the ES6 class syntactic sugar, verify compilation behaviors, and explore runtime state protection techniques like seal and freeze.
+      </p>
+    </div>
+
+    <!-- 1. PROTOTYPE CHAIN -->
+    <section id="proto-chain">
+      <div class="sec-header">
+        <span class="sec-num">01</span>
+        <h3 class="sec-title">The Prototype Chain & Lookup Walk</h3>
+      </div>
+      
+      <div class="desc">
+        <p>
+          <b>The Family Tree Analogy:</b> Think of inheriting traits from your family tree. You might not personally "have" your grandmother's eye color coded into your own DNA copy — but if someone asks "what's your eye color?" and you don't have an answer yourself, JavaScript (like a genealogist) walks up your family tree until it finds an ancestor who does. That's the prototype chain — objects don't duplicate properties, they look them up through a chain of linked ancestors.
+        </p>
+        <p>
+          <b>Why it exists:</b> JavaScript needed a way for objects to share behavior (methods) without copying that behavior into every single instance. Copying methods to every instance wastes memory and makes updates painful (change one method, and you'd have to update every single object). The prototype chain lets many objects share one set of methods by linking to a common ancestor object.
+        </p>
+        <p>
+          <b>Technically:</b> Every object in JavaScript has an internal, hidden link to another object called its prototype (conceptually known as <code>[[Prototype]]</code>). When you access a property on an object, JS first checks the object itself. If not found, it walks up the prototype chain, checking each linked object in turn, until it finds the property or reaches <code>null</code> (the end of the chain).
+        </p>
+      </div>
+
+      <pre><span class="keyword">const</span> animal = {
+  eats: <span class="keyword">true</span>,
+  walk() { console.log(<span class="string">"Animal walks"</span>); }
+};
+
+<span class="keyword">const</span> rabbit = {
+  jumps: <span class="keyword">true</span>,
+  __proto__: animal <span class="comment">// rabbit's prototype is animal</span>
+};
+
+console.log(rabbit.eats);  <span class="comment">// true — not on rabbit itself, found via prototype chain</span>
+rabbit.walk();             <span class="comment">// "Animal walks" — method found on animal, not rabbit</span>
+console.log(rabbit.jumps); <span class="comment">// true — found directly on rabbit</span></pre>
+
+      <div class="info-box hood">
+        <div class="box-header">Under the Hood: The Lookup Walk</div>
+        <div class="box-body">
+          Every object eventually chains up to <code>Object.prototype</code>, which is why every object — no matter how it was created — has access to utility methods like <code>.toString()</code>, <code>.hasOwnProperty()</code>, and <code>.valueOf()</code>.
+          <pre style="margin: 10px 0; padding: 12px; font-size: 13px;">console.log(rabbit.hasOwnProperty('jumps')); // true — own property
+console.log(rabbit.hasOwnProperty('eats'));  // false — inherited, not own</pre>
+        </div>
+      </div>
+
+      <!-- Diagram 1: Prototype Lookup Walk -->
+      <div class="diagram-container">
+        <svg class="svg-diagram" viewBox="0 0 700 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="700" height="320" rx="16" fill="#101622" stroke="var(--border)" stroke-width="1"/>
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--text-muted)"/>
+            </marker>
+          </defs>
+          
+          <text x="30" y="35" fill="var(--text)" font-family="var(--sans)" font-size="14" font-weight="700">PROTOTYPE CHAIN LOOKUP WALK: rabbit.walk()</text>
+          
+          <!-- rabbit Node -->
+          <g class="svg-node" transform="translate(30, 60)">
+            <rect width="220" height="50" rx="8" fill="#151d2a" stroke="var(--border)" stroke-width="1.5"/>
+            <text x="15" y="22" fill="var(--text)" font-family="var(--mono)" font-size="12" font-weight="bold">rabbit</text>
+            <text x="15" y="40" fill="var(--text-muted)" font-family="var(--mono)" font-size="10">jumps: true (no 'walk')</text>
+          </g>
+          
+          <!-- Arrow from rabbit to animal -->
+          <path d="M 140 110 L 140 140" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#arrow)"/>
+          <text x="150" y="130" fill="var(--text-faint)" font-family="var(--mono)" font-size="9">__proto__</text>
+          
+          <!-- animal Node -->
+          <g class="svg-node" transform="translate(30, 140)">
+            <rect width="220" height="55" rx="8" fill="#132427" stroke="var(--neon-teal)" stroke-width="1.5"/>
+            <text x="15" y="22" fill="var(--neon-teal)" font-family="var(--mono)" font-size="12" font-weight="bold">animal (prototype)</text>
+            <text x="15" y="42" fill="var(--text)" font-family="var(--mono)" font-size="10">eats: true, walk: fn()</text>
+          </g>
+          
+          <!-- Arrow from animal to Object.prototype -->
+          <path d="M 140 195 L 140 220" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#arrow)"/>
+          <text x="150" y="212" fill="var(--text-faint)" font-family="var(--mono)" font-size="9">__proto__</text>
+          
+          <!-- Object.prototype Node -->
+          <g class="svg-node" transform="translate(30, 220)">
+            <rect width="220" height="50" rx="8" fill="#151d2a" stroke="var(--border)" stroke-width="1.5"/>
+            <text x="15" y="22" fill="var(--text)" font-family="var(--mono)" font-size="12" font-weight="bold">Object.prototype</text>
+            <text x="15" y="40" fill="var(--text-muted)" font-family="var(--mono)" font-size="10">toString, hasOwnProperty...</text>
+          </g>
+          
+          <!-- Arrow to null -->
+          <path d="M 140 270 L 140 288" stroke="var(--text-muted)" stroke-width="1.5" stroke-dasharray="2" marker-end="url(#arrow)"/>
+          <text x="140" y="305" text-anchor="middle" fill="var(--text-muted)" font-family="var(--mono)" font-size="10">null</text>
+          
+          <!-- Steps panel on the right -->
+          <g transform="translate(300, 60)">
+            <rect width="370" height="210" rx="12" fill="#121824" stroke="var(--border)" stroke-width="1"/>
+            <text x="20" y="28" fill="var(--js-yellow)" font-family="var(--sans)" font-size="12" font-weight="bold">LOOKUP SEQUENCE DETAILED:</text>
+            
+            <text x="20" y="60" fill="var(--text)" font-family="var(--sans)" font-size="11.5" font-weight="600">1. Check 'rabbit' itself</text>
+            <text x="35" y="76" fill="var(--text-muted)" font-family="var(--sans)" font-size="11">Engine checks rabbit's own keys. 'walk' is not found.</text>
+            
+            <text x="20" y="105" fill="var(--text)" font-family="var(--sans)" font-size="11.5" font-weight="600">2. Traverse rabbit.__proto__ (animal)</text>
+            <text x="35" y="121" fill="var(--text-muted)" font-family="var(--sans)" font-size="11">Walks up to parent animal. 'walk' is found here!</text>
+            
+            <text x="20" y="150" fill="var(--neon-teal)" font-family="var(--sans)" font-size="11.5" font-weight="600">3. Execute & Bind 'this'</text>
+            <text x="35" y="166" fill="var(--text-muted)" font-family="var(--sans)" font-size="11">Lookup STOPS. animal.walk runs with 'this' bound to rabbit.</text>
+            
+            <text x="20" y="195" fill="var(--neon-coral)" font-family="var(--sans)" font-size="10.5" font-weight="600">Note: If not found on Object.prototype, lookup returns undefined.</text>
+          </g>
+        </svg>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Under the Hood: Constructor Functions & The "new" Keyword</div>
+        <div class="box-body">
+          <p>
+            When a function is called with the <code>new</code> operator, it serves as a constructor to create instances:
+          </p>
+          <pre style="margin: 10px 0; padding: 12px; font-size: 13.0px;">function Animal(name) {
+  this.name = name;
+}
+Animal.prototype.walk = function () {
+  console.log(`${this.name} walks`);
+};
+
+const dog = new Animal("Rex");
+dog.walk(); // "Rex walks"</pre>
+          <p><b>What <code>new</code> actually does under the hood (Step-by-step):</b></p>
+          <ol style="margin-left: 20px; line-height: 1.8;">
+            <li>Creates a brand new empty object: <code>{}</code></li>
+            <li>Links this new object's internal <code>[[Prototype]]</code> to the constructor's <code>prototype</code> object (e.g. <code>Animal.prototype</code>).</li>
+            <li>Invokes the constructor function with <code>this</code> bound to the newly created object.</li>
+            <li>Returns the new object (unless the constructor function explicitly returns another non-primitive object).</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">💡 Mini Quiz: Prototype 'this' Context</div>
+        <div class="quiz-question">
+          If <code>rabbit.walk</code> is called, and <code>walk</code> is found on <code>animal</code> (rabbit's prototype), what does <code>this</code> refer to inside <code>walk()</code> — <code>rabbit</code> or <code>animal</code>? Why?
+        </div>
+        <button class="quiz-btn" id="quiz-proto-this-btn" onclick="toggleQuiz('quiz-proto-this')">Show Answer & Explanation</button>
+        <div class="quiz-answer" id="quiz-proto-this">
+          <b>Answer:</b> <code>this</code> refers to <code>rabbit</code>.
+          <br><br>
+          <b>Explanation:</b>
+          In JavaScript, <code>this</code> is determined strictly at the call-site by how the function was invoked. Even though <code>walk()</code> is found on the prototype object (<code>animal</code>) and not on <code>rabbit</code> itself, the function is invoked as <code>rabbit.walk()</code>. According to the implicit binding rule, the object to the left of the dot (the receiver) becomes <code>this</code>. Walking up the prototype chain only resolves the method reference; it does not change the execution context's <code>this</code> binding.
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. __PROTO__ VS PROTOTYPE -->
+    <section id="proto-vs-prototype">
+      <div class="sec-header">
+        <span class="sec-num">02</span>
+        <h3 class="sec-title">__proto__ vs. .prototype</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          One of the absolute classic interview traps is confusing an object's internal prototype (usually referenced via the non-standard <code>__proto__</code> accessor) with the <code>.prototype</code> property found on functions.
+        </p>
+        <ul style="margin-left: 24px; margin-bottom: 20px; line-height: 1.8;">
+          <li><b><code>__proto__</code>:</b> This is an accessor property (a getter/setter on <code>Object.prototype</code>) that exposes the internal <code>[[Prototype]]</code> of an <b>instance object</b>. It represents the actual active link in the chain that JavaScript walks during property lookup. Every object in JavaScript has a <code>__proto__</code> link.</li>
+          <li><b><code>.prototype</code>:</b> This is a <b>normal property</b> present <b>only on functions</b> (specifically constructors and classes). It does not represent the prototype of the function itself (which is <code>Function.prototype</code>). Instead, it is the object blueprint that will be assigned as the <code>__proto__</code> of any instances created when calling that function with <code>new</code>.</li>
+        </ul>
+      </div>
+
+      <pre><span class="keyword">function</span> Dog() {}
+
+<span class="comment">// .prototype exists on the constructor function</span>
+console.log(Dog.prototype); <span class="comment">// { constructor: Dog }</span>
+
+<span class="keyword">const</span> rex = <span class="keyword">new</span> Dog();
+
+<span class="comment">// Instances have __proto__, which points to the constructor's prototype blueprint</span>
+console.log(rex.__proto__ === Dog.prototype); <span class="comment">// true</span>
+
+<span class="comment">// Constructor function is itself an object, so it also has __proto__ (pointing to Function.prototype)</span>
+console.log(Dog.__proto__ === Function.prototype); <span class="comment">// true</span></pre>
+
+      <!-- Diagram 2: __proto__ vs .prototype -->
+      <div class="diagram-container">
+        <svg class="svg-diagram" viewBox="0 0 700 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="700" height="240" rx="16" fill="#101622" stroke="var(--border)" stroke-width="1"/>
+          <defs>
+            <marker id="arrow-teal" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--neon-teal)"/>
+            </marker>
+            <marker id="arrow-yellow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--js-yellow)"/>
+            </marker>
+          </defs>
+          
+          <text x="30" y="35" fill="var(--text)" font-family="var(--sans)" font-size="14" font-weight="700">__proto__ VS .prototype BLUEPRINT RELATIONSHIP</text>
+          
+          <!-- Constructor Node -->
+          <g class="svg-node" transform="translate(40, 60)">
+            <rect width="200" height="60" rx="8" fill="#151d2a" stroke="var(--border)" stroke-width="1.5"/>
+            <text x="100" y="24" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="11" font-weight="bold">Dog (Constructor)</text>
+            <text x="100" y="42" text-anchor="middle" fill="var(--js-yellow)" font-family="var(--mono)" font-size="10">.prototype property ──▶</text>
+          </g>
+          
+          <!-- Prototype Node -->
+          <g class="svg-node" transform="translate(440, 60)">
+            <rect width="220" height="60" rx="8" fill="#132427" stroke="var(--neon-teal)" stroke-width="1.5"/>
+            <text x="110" y="24" text-anchor="middle" fill="var(--neon-teal)" font-family="var(--mono)" font-size="11" font-weight="bold">Dog.prototype</text>
+            <text x="110" y="42" text-anchor="middle" fill="var(--text-muted)" font-family="var(--mono)" font-size="10">constructor: Dog, bark: fn</text>
+          </g>
+          
+          <!-- Link: prototype property -->
+          <path d="M 240 90 L 430 90" stroke="var(--js-yellow)" stroke-width="1.5" marker-end="url(#arrow-yellow)"/>
+          <text x="335" y="80" text-anchor="middle" fill="var(--js-yellow)" font-family="var(--sans)" font-size="9" font-weight="bold">Blueprint Reference</text>
+          
+          <!-- instance -->
+          <g class="svg-node" transform="translate(240, 160)">
+            <rect width="200" height="50" rx="8" fill="#151d2a" stroke="var(--border)" stroke-width="1.5"/>
+            <text x="100" y="22" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="11" font-weight="bold">rex (instance)</text>
+            <text x="100" y="38" text-anchor="middle" fill="var(--text-muted)" font-family="var(--sans)" font-size="9">Created via: new Dog()</text>
+          </g>
+          
+          <!-- Link: rex.__proto__ to Dog.prototype -->
+          <path d="M 340 160 L 340 140 L 550 140 L 550 130" fill="none" stroke="var(--neon-teal)" stroke-dasharray="3" stroke-width="1.5" marker-end="url(#arrow-teal)"/>
+          <text x="445" y="152" text-anchor="middle" fill="var(--neon-teal)" font-family="var(--mono)" font-size="10" font-weight="bold">rex.__proto__</text>
+        </svg>
+      </div>
+
+      <div class="info-box trap">
+        <div class="box-header">Trap: Confusing Reference Equality on Shared Methods</div>
+        <div class="box-body">
+          In prototype-based systems, methods declared on prototypes are shared by reference, not copied to each individual object.
+          <pre style="margin: 10px 0; padding: 12px; font-size: 13px;">const a = {};
+const b = {};
+console.log(a.toString === b.toString); // true — exact same function reference</pre>
+          They point to the single implementation residing on <code>Object.prototype.toString</code>, saving major memory space.
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. OBJECT.CREATE VS ASSIGN -->
+    <section id="object-create">
+      <div class="sec-header">
+        <span class="sec-num">03</span>
+        <h3 class="sec-title">Object.create vs. Object.assign</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          In modern JavaScript development, we frequently create new objects derived from existing ones. However, the mechanism under the hood changes drastically between <code>Object.create</code> and <code>Object.assign</code>.
+        </p>
+        <ul style="margin-left: 24px; margin-bottom: 20px; line-height: 1.8;">
+          <li><b><code>Object.create(proto)</code>:</b> Creates a brand new empty object, and sets its internal prototype link (<code>__proto__</code>) directly to the passed <code>proto</code> object. This is a <b>live link</b>. No properties are copied.</li>
+          <li><b><code>Object.assign(target, ...sources)</code>:</b> Copies all enumerable <i>own properties</i> from one or more source objects into the target object. It returns the target object. This creates a one-time <b>shallow copy snapshot</b>. The two objects are completely disconnected afterward.</li>
+        </ul>
+      </div>
+
+      <pre><span class="keyword">const</span> animal = { eats: <span class="keyword">true</span> };
+
+<span class="comment">// 1. Object.create (Prototypal Link)</span>
+<span class="keyword">const</span> rabbit = Object.create(animal);
+console.log(rabbit.hasOwnProperty(<span class="string">'eats'</span>)); // false (inherited)
+console.log(rabbit.eats);                  // true
+
+<span class="comment">// 2. Object.assign (Shallow Copy Snapshot)</span>
+<span class="keyword">const</span> cat = Object.assign({}, animal);
+console.log(cat.hasOwnProperty(<span class="string">'eats'</span>));    // true (copied as own property)
+console.log(cat.eats);                      // true</pre>
+
+      <div class="info-box answer">
+        <div class="box-header">Interview-Ready Formulation: The Mutation Difference</div>
+        <div class="box-body">
+          "Object.create(animal) sets animal as the new object's prototype — it's a live link, not a copy. So if you add or change a property on animal after creation, the new object sees that change immediately, because property lookups walk the prototype chain at access time. Object.assign({}, animal) copies animal's own properties as a one-time snapshot onto a new plain object — the two objects are completely disconnected afterward, so later changes to animal have zero effect on the copy."
+        </div>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">💡 Mini Quiz: Live Lookup vs. Snapshot Copy</div>
+        <div class="quiz-question">
+          Given the following code, what does <code>rabbit.legs</code> and <code>cat.legs</code> output, and why?
+          <pre>const animal = { eats: true };
+const rabbit = Object.create(animal);
+const cat = Object.assign({}, animal);
+
+animal.legs = 4; // Add property to original animal</pre>
+        </div>
+        <button class="quiz-btn" id="quiz-create-assign-btn" onclick="toggleQuiz('quiz-create-assign')">Show Answer</button>
+        <div class="quiz-answer" id="quiz-create-assign">
+          <b>Output:</b>
+          <br>• <code>rabbit.legs</code> &rarr; <code>4</code>
+          <br>• <code>cat.legs</code> &rarr; <code>undefined</code>
+          <br><br>
+          <b>Explanation:</b>
+          Since <code>rabbit</code> was created via <code>Object.create(animal)</code>, it holds a live prototype link to <code>animal</code>. When we query <code>rabbit.legs</code>, the engine looks at <code>rabbit</code>, fails to find <code>legs</code>, walks the prototype chain to <code>animal</code>, and reads <code>4</code>.
+          <br>
+          Since <code>cat</code> was created via <code>Object.assign({}, animal)</code>, it only received a snapshot copy of the properties existing on <code>animal</code> at creation time (which was only <code>{ eats: true }</code>). Later changes to <code>animal</code> have no impact on <code>cat</code>.
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. ES6 CLASS SYNTAX -->
+    <section id="class-syntax">
+      <div class="sec-header">
+        <span class="sec-num">04</span>
+        <h3 class="sec-title">ES6 class Syntax (What It Really Is)</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          <b>The Dashboard Analogy:</b> Think of ES6 class syntax as a nicer dashboard on top of the same engine — the car (prototype-based inheritance) hasn't changed at all under the hood. You've just been given cleaner controls so you don't have to manually wire everything with <code>Object.create</code> and <code>.prototype</code> assignments yourself.
+        </p>
+        <p>
+          <b>Why it was created:</b> Before ES6, setting up inheritance required verbose, error-prone boilerplate. Developers coming from traditional class-based languages (Java, C++) found this model confusing. ES6 classes are <b>syntactic sugar</b> — they look like classical object-oriented programming, but compile down to the exact same prototype chain machinery.
+        </p>
+      </div>
+
+      <pre><span class="keyword">class</span> Animal {
+  constructor(name) {
+    <span class="keyword">this</span>.name = name;
+  }
+  walk() {
+    console.log(<span class="string">`${this.name} walks`</span>);
+  }
+}
+
+console.log(<span class="keyword">typeof</span> Animal); <span class="comment">// "function" — classes ARE functions!</span></pre>
+
+      <div class="info-box hood">
+        <div class="box-header">Under the Hood: Conceptual Desugaring</div>
+        <div class="box-body">
+          <p>
+            The engine compiles the above class syntax down to the following equivalent prototype constructor pattern:
+          </p>
+          <pre style="margin: 10px 0; padding: 12px; font-size: 13px;">function Animal(name) {
+  this.name = name;
+}
+Animal.prototype.walk = function () {
+  console.log(`${this.name} walks`);
+};</pre>
+        </div>
+      </div>
+
+      <div class="info-box trap">
+        <div class="box-header">Key Engine-Level Differences (Not Just Cosmetic)</div>
+        <div class="box-body">
+          <ul class="nested-list">
+            <li>
+              <b>Classes are NOT hoisted like functions:</b> While function declarations are fully hoisted and usable before their line of definition, classes behave like <code>let</code>/<code>const</code> and reside in the Temporal Dead Zone (TDZ) until the definition is reached.
+              <pre style="margin: 6px 0; padding: 8px; font-size: 12.5px; background: rgba(0,0,0,0.2);">const x = new Animal(); // ReferenceError: Cannot access 'Animal' before initialization
+class Animal {}</pre>
+            </li>
+            <li><b>Class bodies always execute in strict mode:</b> Writing class definitions forces strict mode semantics internally. As a result, silent failures (like editing a frozen object) immediately crash with loud <code>TypeError</code> notifications.</li>
+            <li>
+              <b>Classes cannot be called without <code>new</code>:</b> Standard constructor functions can accidentally be invoked as plain functions, setting properties on the global object or crashing. Classes prevent this by carrying an internal <code>[[IsClassConstructor]]</code> flag that triggers a hard exception.
+              <pre style="margin: 6px 0; padding: 8px; font-size: 12.5px; background: rgba(0,0,0,0.2);">function OldAnimal() {}
+OldAnimal(); // No error (but produces a bug by setting 'this' incorrectly)
+
+class NewAnimal {}
+NewAnimal(); // TypeError: Class constructor NewAnimal cannot be invoked without 'new'</pre>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. INHERITANCE (EXTENDS/SUPER) -->
+    <section id="inheritance">
+      <div class="sec-header">
+        <span class="sec-num">05</span>
+        <h3 class="sec-title">Inheritance (extends & super)</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          <b>The Workshop Analogy:</b> Think of <code>extends</code> like a child inheriting a family trade and a family workshop. They get all the tools their parent had, but they can also add their own specialized tools, or override how they use an inherited one. <code>super</code> is literally the phone line back to the parent — used to call the parent's version of something before (or instead of) doing your own thing.
+        </p>
+        <p>
+          Sharing behavior across related object types (e.g., a <code>Dog</code> and a <code>Cat</code> both being an <code>Animal</code>) without duplicating code is one of the most fundamental problems in OOP. <code>extends</code> sets up the prototype chain link automatically; <code>super</code> gives you controlled access to the parent's constructor and methods.
+        </p>
+      </div>
+
+      <pre><span class="keyword">class</span> Animal {
+  constructor(name) {
+    <span class="keyword">this</span>.name = name;
+  }
+  walk() {
+    console.log(<span class="string">`${this.name} walks`</span>);
+  }
+}
+
+<span class="keyword">class</span> Dog <span class="keyword">extends</span> Animal {
+  constructor(name, breed) {
+    <span class="keyword">super</span>(name); <span class="comment">// MUST call super() before using 'this'!</span>
+    <span class="keyword">this</span>.breed = breed;
+  }
+  bark() {
+    console.log(<span class="string">`${this.name} barks`</span>);
+  }
+  walk() {
+    <span class="keyword">super</span>.walk(); <span class="comment">// Calls the parent Animal's walk method</span>
+    console.log(<span class="string">`${this.name} wags tail while walking`</span>);
+  }
+}</pre>
+
+      <div class="info-box hood">
+        <div class="box-header">Under the Hood: Subclass Constructor Order</div>
+        <div class="box-body">
+          <p>
+            In derived classes, why must <code>super()</code> be called before accessing <code>this</code>?
+          </p>
+          <p>
+            In a base class or old-style constructor function, <code>this</code> is created automatically by the <code>new</code> operator before any code runs. But in a derived class (one using <code>extends</code>), that automatic object-creation step does not happen in the subclass constructor.
+          </p>
+          <p>
+            Instead, <code>this</code> in the subclass constructor starts in an <b>uninitialized</b> state (similar to the Temporal Dead Zone). It does not exist yet. Only when <code>super()</code> runs does it invoke the parent constructor, which actually creates and initializes the object and returns it to the subclass. Trying to access <code>this</code> before <code>super()</code> throws a <code>ReferenceError</code>.
+          </p>
+        </div>
+      </div>
+
+      <div class="info-box trap">
+        <div class="box-header">Trap: Missing Parent Arguments on super()</div>
+        <div class="box-body">
+          When overriding constructor methods in subclasses, ensure you forward all expected arguments to the parent constructor via <code>super(...)</code>. If you forget to pass parameters that the parent relies on, parent-defined properties will end up <code>undefined</code>.
+        </div>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">💡 Mini Quiz: super() Mechanics</div>
+        <div class="quiz-question">
+          What happens if you define a subclass constructor but omit the call to <code>super()</code> entirely?
+        </div>
+        <button class="quiz-btn" id="quiz-super-omit-btn" onclick="toggleQuiz('quiz-super-omit')">Show Answer</button>
+        <div class="quiz-answer" id="quiz-super-omit">
+          <b>Answer:</b> The JS engine will throw a <code>ReferenceError</code> when trying to instantiate the class.
+          <br><br>
+          <b>Explanation:</b>
+          Because the derived class constructor specifies that it extends a parent class, the engine assumes the parent is responsible for allocating the initial <code>this</code> binding. Without calling <code>super()</code>, <code>this</code> is never initialized. Even if you don't write any code referencing <code>this</code> in your constructor, JavaScript requires a derived class constructor to either call <code>super()</code> or return an object explicitly. If you omit it entirely, it crashes with a <code>ReferenceError</code>.
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. OBJECT.FREEZE/SEAL & PROPERTY DESCRIPTORS -->
+    <section id="freeze-seal">
+      <div class="sec-header">
+        <span class="sec-num">06</span>
+        <h3 class="sec-title">Object.freeze, Object.seal & Property Descriptors</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          <b>The Filing Cabinet Analogy:</b> Think of an object as a filing cabinet. <code>Object.seal</code> locks the cabinet so you can't add or remove drawers (properties) — but you can still edit what's written inside existing drawers. <code>Object.freeze</code> goes further: it locks the cabinet and glues the paper inside every drawer down — nothing can be added, removed, or edited.
+        </p>
+        <p>
+          JavaScript objects are mutable by default. Anyone holding a reference can add, delete, or change properties. To protect the integrity of configuration objects or API states, JavaScript provides control mechanisms that alter <b>Property Descriptors</b>.
+        </p>
+      </div>
+
+      <pre><span class="comment">// Every property in JS is controlled by a hidden descriptor object</span>
+<span class="keyword">const</span> obj = { x: <span class="number">1</span> };
+console.log(Object.getOwnPropertyDescriptor(obj, <span class="string">'x'</span>));
+<span class="comment">// { value: 1, writable: true, enumerable: true, configurable: true }</span></pre>
+
+      <div class="info-box hood">
+        <div class="box-header">The Three Descriptor Flags</div>
+        <div class="box-body">
+          <ul style="margin-left: 20px; line-height: 1.8;">
+            <li><b>writable:</b> Can the property's value be reassigned?</li>
+            <li><b>configurable:</b> Can the property be deleted from the object, or can its descriptor configuration be changed later?</li>
+            <li><b>enumerable:</b> Does the property show up when listing keys (e.g. <code>Object.keys()</code> or <code>for...in</code>)?</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Compare: Seal vs. Freeze</div>
+        <div class="box-body">
+          <table style="width: 100%; border-collapse: collapse; background: rgba(0,0,0,0.15); border: 1px solid var(--border); border-radius: 8px; overflow: hidden;">
+            <thead>
+              <tr style="background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--border);">
+                <th style="padding: 10px 14px; text-align: left; font-size: 12.5px; font-family: var(--mono); color: var(--js-yellow);">Operation</th>
+                <th style="padding: 10px 14px; text-align: left; font-size: 12.5px; font-family: var(--mono); color: var(--js-yellow);">Add / Delete Props?</th>
+                <th style="padding: 10px 14px; text-align: left; font-size: 12.5px; font-family: var(--mono); color: var(--js-yellow);">Edit Values?</th>
+                <th style="padding: 10px 14px; text-align: left; font-size: 12.5px; font-family: var(--mono); color: var(--js-yellow);">Descriptor Impact</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 10px 14px; font-size: 13.5px; font-family: var(--mono); font-weight: bold;">Object.seal()</td>
+                <td style="padding: 10px 14px; font-size: 13.5px; color: var(--neon-coral);">❌ No</td>
+                <td style="padding: 10px 14px; font-size: 13.5px; color: var(--neon-green);">✔ Yes</td>
+                <td style="padding: 10px 14px; font-size: 13.5px; color: var(--text-muted);">Sets <code>configurable: false</code> on all own properties.</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px 14px; font-size: 13.5px; font-family: var(--mono); font-weight: bold;">Object.freeze()</td>
+                <td style="padding: 10px 14px; font-size: 13.5px; color: var(--neon-coral);">❌ No</td>
+                <td style="padding: 10px 14px; font-size: 13.5px; color: var(--neon-coral);">❌ No</td>
+                <td style="padding: 10px 14px; font-size: 13.5px; color: var(--text-muted);">Sets both <code>writable: false</code> AND <code>configurable: false</code>.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <pre><span class="comment">// Example of Object.freeze shallow limitation</span>
+<span class="keyword">const</span> user = Object.freeze({
+  name: <span class="string">"Marwa"</span>,
+  address: { city: <span class="string">"Giza"</span> }
+});
+
+user.name = <span class="string">"Changed"</span>;        <span class="comment">// Fails silently (throws in strict mode)</span>
+console.log(user.name);        <span class="comment">// "Marwa" (unchanged!)</span>
+
+user.address.city = <span class="string">"Cairo"</span>;   <span class="comment">// WORKS! Nested objects are NOT protected</span>
+console.log(user.address.city); <span class="comment">// "Cairo" (mutated!)</span></pre>
+
+      <div class="info-box trap">
+        <div class="box-header">Trap: Freeze is Shallow & Silent Failures</div>
+        <div class="box-body">
+          <p>
+            <b>Why did user.address.city change?</b>
+            <br>
+            <code>Object.freeze</code> only sets property descriptors on the object's own direct keys. The key <code>address</code> is simply a pointer/reference. Freezing <code>user</code> prevents reassigning <code>user.address = somethingElse</code>, but the object that pointer reference references remains completely unfrozen.
+          </p>
+          <p>
+            <b>The Solution (Deep Freeze Helper):</b>
+            To fully freeze nested objects recursively, you must write a custom deep freeze utility:
+          </p>
+          <pre style="margin: 6px 0; padding: 12px; font-size: 13px;">function deepFreeze(obj) {
+  Object.values(obj).forEach(val => {
+    if (typeof val === 'object' && val !== null) {
+      deepFreeze(val);
+    }
+  });
+  return Object.freeze(obj);
+}</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. STATIC METHODS & PROPERTIES -->
+    <section id="static-members">
+      <div class="sec-header">
+        <span class="sec-num">07</span>
+        <h3 class="sec-title">Static Methods & Properties</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          <b>The Factory Floor Analogy:</b> Think of a class as a factory building. Instance methods are tools each worker (instance) carries around individually. Static methods are tools bolted to the factory floor itself — you don't need to hire a worker to use them; you just walk up to the building and use them directly.
+        </p>
+        <p>
+          <b>Why they exist:</b> Some functionality logically belongs to the class as a concept, not to any individual instance. This includes utility functions, factory methods, counters tracking all instances, and configuration constants. Static members let you attach that behavior directly to the class itself.
+        </p>
+      </div>
+
+      <pre><span class="keyword">class</span> Animal {
+  <span class="keyword">static</span> count = <span class="number">0</span>; <span class="comment">// static property — belongs to the class, not instances</span>
+
+  constructor(name) {
+    <span class="keyword">this</span>.name = name;
+    Animal.count++;  <span class="comment">// accessed via the class, not `this`</span>
+  }
+
+  <span class="keyword">static</span> createFeral() { <span class="comment">// static method — a factory method</span>
+    <span class="keyword">return new</span> Animal(<span class="string">"Feral Animal"</span>);
+  }
+}
+
+<span class="keyword">const</span> a = <span class="keyword">new</span> Animal(<span class="string">"Rex"</span>);
+<span class="keyword">const</span> b = <span class="keyword">new</span> Animal(<span class="string">"Milo"</span>);
+console.log(Animal.count); // 2 — tracked at the class level
+
+const feral = Animal.createFeral();
+console.log(feral.name);   // "Feral Animal"
+
+// Critical: static members are NOT accessible on instances
+console.log(a.count);       // undefined
+console.log(a.createFeral); // undefined</pre>
+
+      <div class="info-box hood">
+        <div class="box-header">Under the Hood: Attachment to Constructor Object</div>
+        <div class="box-body">
+          <p>
+            Static members are attached directly to the constructor function object itself, not to <code>.prototype</code>. That's the whole distinction:
+          </p>
+          <pre style="margin: 10px 0; padding: 12px; font-size: 13px;">console.log(typeof Animal.createFeral);   // "function" — lives directly on Animal
+console.log(Animal.prototype.createFeral); // undefined — NOT on prototype, so instances can't inherit it</pre>
+          <p>
+            Because instance property lookup only walks the prototype chain (<code>instance.__proto__</code> &rarr; <code>Constructor.prototype</code> &rarr; <code>Object.prototype</code>), it never looks at properties sitting on the constructor function itself.
+          </p>
+        </div>
+      </div>
+
+      <!-- Custom SVG diagram for Static Members -->
+      <div class="diagram-container">
+        <svg class="svg-diagram" viewBox="0 0 700 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="700" height="240" rx="16" fill="#101622" stroke="var(--border)" stroke-width="1"/>
+          <defs>
+            <marker id="arrow-diag" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--text-muted)"/>
+            </marker>
+          </defs>
+          <text x="30" y="35" fill="var(--text)" font-family="var(--sans)" font-size="14" font-weight="700">STATIC MEMBERS VS INSTANCE PROTOTYPES</text>
+          
+          <!-- Animal Constructor Object -->
+          <g class="svg-node-yellow" transform="translate(40, 60)">
+            <rect width="250" height="110" rx="8" fill="#201c10" stroke="var(--js-yellow)" stroke-width="1.5"/>
+            <text x="15" y="24" fill="var(--js-yellow)" font-family="var(--mono)" font-size="12" font-weight="bold">Animal (Constructor Function)</text>
+            <text x="15" y="48" fill="var(--text)" font-family="var(--mono)" font-size="11">count: 3</text>
+            <text x="15" y="68" fill="var(--text)" font-family="var(--mono)" font-size="11">createFeral()</text>
+            <text x="15" y="95" fill="var(--text-faint)" font-family="var(--mono)" font-size="9.5">properties attached directly here (Static)</text>
+          </g>
+          
+          <!-- Animal Prototype Object -->
+          <g class="svg-node" transform="translate(420, 60)">
+            <rect width="240" height="70" rx="8" fill="#151d2a" stroke="var(--border)" stroke-width="1.5"/>
+            <text x="15" y="24" fill="var(--text)" font-family="var(--mono)" font-size="12" font-weight="bold">Animal.prototype</text>
+            <text x="15" y="48" fill="var(--text-muted)" font-family="var(--mono)" font-size="11">walk()</text>
+          </g>
+          
+          <!-- instance -->
+          <g class="svg-node" transform="translate(420, 160)">
+            <rect width="240" height="50" rx="8" fill="#132427" stroke="var(--neon-teal)" stroke-width="1.5"/>
+            <text x="15" y="22" fill="var(--neon-teal)" font-family="var(--mono)" font-size="11" font-weight="bold">a (instance of Animal)</text>
+            <text x="15" y="38" fill="var(--text-muted)" font-family="var(--sans)" font-size="9">name: "Rex"</text>
+          </g>
+          
+          <!-- Link from instance to prototype -->
+          <path d="M 540 160 L 540 135" stroke="var(--neon-teal)" stroke-width="1.5" marker-end="url(#arrow-diag)"/>
+          <text x="550" y="150" fill="var(--neon-teal)" font-family="var(--mono)" font-size="9">__proto__</text>
+          
+          <!-- Attempted link from instance to static -->
+          <path d="M 420 185 L 165 185 L 165 175" fill="none" stroke="var(--trap)" stroke-dasharray="3" stroke-width="1.5" marker-end="url(#arrow-diag)"/>
+          <text x="210" y="198" fill="var(--trap)" font-family="var(--sans)" font-size="9.5" font-weight="bold">❌ NO LOOKUP PATH TO CONSTRUCTOR</text>
+        </svg>
+      </div>
+
+      <div class="info-box trap">
+        <div class="box-header">Trap: Referencing Statics Inside Instances Without Class Name</div>
+        <div class="box-body">
+          You cannot directly reference static variables inside instance methods without qualifying them with the class name or constructor reference:
+          <pre style="margin: 10px 0; padding: 12px; font-size: 13px;">class Counter {
+  static total = 0;
+  increment() {
+    total++; // ReferenceError: total is not defined!
+    // Correct: Counter.total++ or this.constructor.total++
+  }
+}</pre>
+        </div>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">💡 Mini Quiz: Static Method Resolution Failures</div>
+        <div class="quiz-question">
+          Why does <code>a.createFeral()</code> fail with <code>TypeError: a.createFeral is not a function</code>, even though <code>Animal.createFeral()</code> works fine? Walk through where static methods live.
+        </div>
+        <button class="quiz-btn" id="quiz-static-res-btn" onclick="toggleQuiz('quiz-static-res')">Show Answer</button>
+        <div class="quiz-answer" id="quiz-static-res">
+          <b>Answer:</b> Static methods are attached directly to the class constructor function object (<code>Animal.createFeral</code>), not to <code>Animal.prototype</code>.
+          <br><br>
+          <b>Explanation:</b>
+          When you call a method on an instance (<code>a.createFeral()</code>), JavaScript's property lookup walks the prototype chain (<code>a.__proto__</code> &rarr; <code>Animal.prototype</code> &rarr; <code>Object.prototype</code>). Since the static method resides directly on the <code>Animal</code> constructor function itself, and the constructor function is not part of the instance's prototype chain, it is completely invisible to the instance. The lookup resolves to <code>undefined</code>, and attempting to call <code>undefined()</code> throws a <code>TypeError</code>.
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. GETTERS & SETTERS -->
+    <section id="getters-setters">
+      <div class="sec-header">
+        <span class="sec-num">08</span>
+        <h3 class="sec-title">Getters & Setters</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          <b>The Vending Machine Analogy:</b> Think of a getter/setter like a vending machine's front panel — you press a button (access a property normally, <code>obj.price</code>) but behind the panel, real logic runs (calculations, validation, logging) before you get your result. From the outside, it looks like plain property access — no parentheses, no method call syntax — but real code executes underneath.
+        </p>
+        <p>
+          <b>Why they exist:</b> Sometimes you want a property to be computed dynamically on the fly, or you want to validate/transform a value whenever it's assigned, without forcing users of your class to use method-call syntaxes like <code>obj.getPrice()</code> or <code>obj.setPrice(val)</code>.
+        </p>
+      </div>
+
+      <pre><span class="keyword">class</span> Rectangle {
+  constructor(width, height) {
+    <span class="keyword">this</span>.width = width;
+    <span class="keyword">this</span>.height = height;
+  }
+
+  <span class="keyword">get</span> area() {                    <span class="comment">// getter — accessed WITHOUT parentheses</span>
+    <span class="keyword">return this</span>.width * <span class="keyword">this</span>.height;
+  }
+
+  <span class="keyword">set</span> area(value) {                <span class="comment">// setter — assigned WITHOUT parentheses</span>
+    console.log(<span class="string">"Adjusting width to match desired area"</span>);
+    <span class="keyword">this</span>.width = value / <span class="keyword">this</span>.height;
+  }
+}
+
+<span class="keyword">const</span> rect = <span class="keyword">new</span> Rectangle(<span class="number">4</span>, <span class="number">5</span>);
+console.log(rect.area); <span class="comment">// 20 — invokes the getter function under the hood</span>
+
+rect.area = <span class="number">50</span>;         <span class="comment">// invokes the setter function under the hood</span>
+console.log(rect.width); <span class="comment">// 10 — recalculated by the setter</span></pre>
+
+      <div class="info-box hood">
+        <div class="box-header">Under the Hood: Property Descriptors</div>
+        <div class="box-body">
+          Getters and setters are configured under the hood using special properties in the property descriptor:
+          <pre style="margin: 10px 0; padding: 12px; font-size: 13px;">console.log(Object.getOwnPropertyDescriptor(Rectangle.prototype, 'area'));
+// { get: [Function: get area], set: [Function: set area], enumerable: false, configurable: true }</pre>
+          Notice there is no <code>value</code> or <code>writable</code> key in the descriptor. The properties <code>get</code> and <code>set</code> take over these duties entirely.
+        </div>
+      </div>
+
+      <div class="info-box trap">
+        <div class="box-header">Trap: Infinite Recursion & Stack Overflow</div>
+        <div class="box-body">
+          <p>
+            If your getter/setter tries to read or write the same property name it is defining, it triggers infinite recursion:
+          </p>
+          <pre style="margin: 6px 0; padding: 8px; font-size: 12.5px; background: rgba(0,0,0,0.2);">class Bad {
+  get name() {
+    return this.name; // Calling this.name calls the getter again!
+  }
+}
+const b = new Bad();
+b.name; // RangeError: Maximum call stack size exceeded</pre>
+          <p>
+            <b>The Fix:</b> You must store the actual value in a backing property with a different name (such as prepending an underscore or using a private <code>#name</code> field):
+          </p>
+          <pre style="margin: 6px 0; padding: 8px; font-size: 12.5px; background: rgba(0,0,0,0.2);">class Good {
+  #name;
+  get name() { return this.#name; }
+  set name(v) { this.#name = v; }
+}</pre>
+        </div>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">💡 Mini Quiz: Getter Recursion</div>
+        <div class="quiz-question">
+          Why does writing <code>get name() { return this.name; }</code> cause an infinite loop / stack overflow?
+        </div>
+        <button class="quiz-btn" id="quiz-getter-rec-btn" onclick="toggleQuiz('quiz-getter-rec')">Show Answer</button>
+        <div class="quiz-answer" id="quiz-getter-rec">
+          <b>Answer:</b> The getter does not create a data storage box named "name"; it creates a function to execute whenever ".name" is accessed.
+          <br><br>
+          <b>Explanation:</b>
+          When you call <code>this.name</code> inside the getter, JavaScript sees it as another access request for the property <code>name</code>. It resolves this request by invoking the getter function again. This creates a recursive loop of function calls (<code>get name()</code> calling <code>get name()</code>) without an exit condition, quickly exhausting the call stack and throwing a <code>RangeError</code>.
+        </div>
+      </div>
+    </section>
+
+    <!-- 9. PRIVATE CLASS FIELDS -->
+    <section id="private-fields">
+      <div class="sec-header">
+        <span class="sec-num">09</span>
+        <h3 class="sec-title">Private Class Fields (#field)</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          <b>The Vault Analogy:</b> Think of public properties like items lying on your desk, and private fields (<code>#field</code>) like contents locked inside a biometric vault. The outside world cannot bypass security — they can only see or modify the contents if you provide controlled pathways (getters/setters).
+        </p>
+        <p>
+          <b>Why they exist:</b> Before ES2022, JavaScript had no language-level support for true property privacy. Developers faked it using naming conventions like <code>_email</code>, which was only a social contract. Private class fields prefixed with <code>#</code> are enforced strictly by the V8/JavaScript engines, preventing external read/write completely.
+        </p>
+      </div>
+
+      <pre><span class="keyword">class</span> User {
+  #email;             <span class="comment">// must be explicitly declared in the class body</span>
+  #loginAttempts = <span class="number">0</span>;
+
+  constructor(email) {
+    <span class="keyword">this</span>.#email = email;
+  }
+
+  #logAttempt() {     <span class="comment">// private methods are also supported</span>
+    <span class="keyword">this</span>.#loginAttempts++;
+  }
+
+  login() {
+    <span class="keyword">this</span>.#logAttempt();
+    console.log(<span class="string">`Attempt #${this.#loginAttempts}`</span>);
+  }
+}
+
+<span class="keyword">const</span> u = <span class="keyword">new</span> User(<span class="string">"marwa@example.com"</span>);
+u.login(); <span class="comment">// "Attempt #1"</span>
+
+<span class="comment">// Attempts to read private members directly throw or return undefined</span>
+console.log(u.email);       <span class="comment">// undefined</span>
+console.log(Object.keys(u)); <span class="comment">// [] — private properties are invisible to keys/looping</span>
+<span class="comment">// console.log(u.#email);   // SyntaxError: Private field '#email' must be declared...</span></pre>
+
+      <div class="info-box hood">
+        <div class="box-header">Under the Hood: Parse-time vs. Runtime Enforcement</div>
+        <div class="box-body">
+          <p>
+            Unlike conventions, private fields are compiled differently by the engine:
+          </p>
+          <ul class="nested-list">
+            <li>They are not stored in the regular property array of the object and are completely omitted from <code>JSON.stringify</code> or bracket lookup <code>obj["#email"]</code>.</li>
+            <li>They are lexically scoped to the class body. The parser analyzes the source code at compile time, and writing <code>u.#email</code> outside the class scope immediately triggers a <code>SyntaxError</code> before the engine even executes the code.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="info-box trap">
+        <div class="box-header">Trap: Private Fields in Subclasses</div>
+        <div class="box-body">
+          Private properties are strictly encapsulated to the declaring class. Subclasses (via <code>extends</code>) cannot access them:
+          <pre style="margin: 10px 0; padding: 12px; font-size: 13px;">class Admin extends User {
+  checkEmail() {
+    console.log(this.#email); // SyntaxError! Private fields are not inherited.
+  }
+}</pre>
+        </div>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">💡 Mini Quiz: Convention vs. Syntactic Privacy</div>
+        <div class="quiz-question">
+          Why is referencing <code>#email</code> outside a class body a <code>SyntaxError</code>, while referencing <code>_email</code> works fine?
+        </div>
+        <button class="quiz-btn" id="quiz-priv-fields-btn" onclick="toggleQuiz('quiz-priv-fields')">Show Answer</button>
+        <div class="quiz-answer" id="quiz-priv-fields">
+          <b>Answer:</b> <code>_email</code> is a regular property governed by developer convention, while <code>#email</code> is a distinct syntax structure enforced by the parser.
+          <br><br>
+          <b>Explanation:</b>
+          The underscore in <code>_email</code> carries no special meaning to the JavaScript engine; it is just a public property key that developer guidelines request you do not touch.
+          <br>
+          Conversely, the <code>#</code> character prefix represents private lexical identifiers. The JavaScript parser checks all references to <code>#</code> properties at parse time. Any reference to a private field outside of its declaring class body is grammatically invalid, triggering a <code>SyntaxError</code> and preventing execution entirely.
+        </div>
+      </div>
+    </section>
+
+    <!-- 10. POLYMORPHISM -->
+    <section id="polymorphism">
+      <div class="sec-header">
+        <span class="sec-num">10</span>
+        <h3 class="sec-title">Polymorphism</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          <b>The Universal Remote Analogy:</b> Think of a universal remote control. Pressing the "power" button does something completely different depending on which device you are pointing it at (the TV turns on, the soundbar wakes up, or the projector rolls down). You interact with the exact same interface (the power button), but the receiver objects choose their own implementation of how to respond.
+        </p>
+        <p>
+          <b>Why it exists:</b> Without polymorphism, code that coordinates different classes would require complicated conditional switching blocks (e.g. <code>if (isDog) speakWoof(); else if (isCat) speakMeow();</code>). Polymorphism lets you program to a uniform interface, calling the same method name on different objects and trusting each to behave correctly.
+        </p>
+      </div>
+
+      <pre><span class="keyword">class</span> Animal {
+  speak() { console.log(<span class="string">"Generic animal sound"</span>); }
+}
+
+<span class="keyword">class</span> Dog <span class="keyword">extends</span> Animal {
+  speak() { console.log(<span class="string">"Woof!"</span>); } <span class="comment">// overrides Animal.speak</span>
+}
+
+<span class="keyword">class</span> Cat <span class="keyword">extends</span> Animal {
+  speak() { console.log(<span class="string">"Meow!"</span>); }
+}
+
+<span class="keyword">const</span> animals = [<span class="keyword">new</span> Animal(), <span class="keyword">new</span> Dog(), <span class="keyword">new</span> Cat()];
+animals.forEach(animal => animal.speak());
+<span class="comment">// "Generic animal sound"</span>
+<span class="comment">// "Woof!"</span>
+<span class="comment">// "Meow!"</span></pre>
+
+      <div class="info-box hood">
+        <div class="box-header">Under the Hood: Prototype Chains Enable Polymorphism</div>
+        <div class="box-body">
+          Polymorphism is not a separate engine mechanism; it is the natural consequence of the prototype chain lookup:
+          <ul class="nested-list">
+            <li>When the engine evaluates <code>dog.speak()</code>, it finds the overridden method directly on <code>Dog.prototype</code> first and executes it.</li>
+            <li>If a subclass does not override the method, the engine continues searching up the prototype chain until it hits the implementation on <code>Animal.prototype</code>.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Duck Typing in JavaScript</div>
+        <div class="box-body">
+          <p>
+            In dynamically-typed languages like JavaScript, polymorphism does not require objects to share a common class inheritance tree. This is called <b>Duck Typing</b>: "If it walks like a duck and quacks like a duck, it's a duck."
+          </p>
+          <pre style="margin: 10px 0; padding: 12px; font-size: 13px;">const robot = { speak() { console.log("BEEP BOOP"); } };
+const players = [new Dog(), robot];
+players.forEach(p => p.speak()); // "Woof!", "BEEP BOOP" both work!</pre>
+          <p>
+            The loop executes <code>.speak()</code> successfully on both objects despite <code>robot</code> having no relation to <code>Animal</code>.
+          </p>
+        </div>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">💡 Mini Quiz: Polymorphism & Base Classes</div>
+        <div class="quiz-question">
+          Does JavaScript require <code>Dog</code> and <code>Cat</code> to share a common base class (<code>Animal</code>) for polymorphism to work? What would happen if you removed <code>extends Animal</code>?
+        </div>
+        <button class="quiz-btn" id="quiz-poly-base-btn" onclick="toggleQuiz('quiz-poly-base')">Show Answer</button>
+        <div class="quiz-answer" id="quiz-poly-base">
+          <b>Answer:</b> No, a shared base class is not required for polymorphism in JavaScript.
+          <br><br>
+          <b>Explanation:</b>
+          Because JavaScript is a dynamically typed language, it uses duck typing. The invocation <code>animal.speak()</code> resolves successfully as long as the target object has a property named <code>speak</code> that is callable as a function. Removing <code>extends Animal</code> does not break the polymorphism in the loop; the engine only checks for the method's presence at runtime, regardless of the object's inheritance ancestors.
+        </div>
+      </div>
+    </section>
+
+    <!-- 11. COMPOSITION VS INHERITANCE -->
+    <section id="composition-inheritance">
+      <div class="sec-header">
+        <span class="sec-num">11</span>
+        <h3 class="sec-title">Composition vs. Inheritance</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          <b>The Toolkit Analogy:</b> Inheritance is like a family tree — you inherit a fixed bundle of traits from your parent, whether they are useful to you or not. Composition is like assembling a custom toolkit — you pick, choose, and pack only the specific tools you need for the job, without being constrained by any lineage.
+        </p>
+        <p>
+          <b>Why this is a hot interview topic:</b> Deep class inheritance (<code>extends</code>) builds rigid, tightly coupled taxonomies. If requirements change (or an exception arises), class structures break down, leading to the famous "fragile base class" problem.
+        </p>
+      </div>
+
+      <pre><span class="comment">// The Fragile/Inflexible Inheritance Trap</span>
+<span class="keyword">class</span> Bird {
+  fly() { console.log(<span class="string">"Flying!"</span>); }
+}
+<span class="keyword">class</span> Penguin <span class="keyword">extends</span> Bird {
+  <span class="comment">// Penguins can't fly! But they are birds.</span>
+  <span class="comment">// Overriding to throw or do nothing violates polymorphism interfaces</span>
+  fly() { <span class="keyword">throw new</span> Error(<span class="string">"Can't fly!"</span>); }
+}</pre>
+
+      <div class="info-box hood">
+        <div class="box-header">The Solution: Composing Capabilities</div>
+        <div class="box-body">
+          Instead of classifying objects by what they <b>are</b> (inheritance), composition defines objects by what they <b>do</b> or <b>have</b>:
+          <pre style="margin: 10px 0; padding: 12px; font-size: 13px;">const canFly = {
+  fly() { console.log(`${this.name} is flying`); }
+};
+const canSwim = {
+  swim() { console.log(`${this.name} is swimming`); }
+};
+
+function createDuck(name) {
+  return Object.assign({ name }, canFly, canSwim); // Duck has both
+}
+function createPenguin(name) {
+  return Object.assign({ name }, canSwim); // Penguin only gets swimming
+}</pre>
+        </div>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Mixins: Class-based Composition</div>
+        <div class="box-body">
+          <p>
+            Since ES6 classes can only inherit from a single parent class, we can use <b>Mixins</b> (functions that return classes extending a passed base class) to compose behaviors:
+          </p>
+          <pre style="margin: 10px 0; padding: 12px; font-size: 13.0px;">const CanFly = Base => class extends Base {
+  fly() { console.log(`${this.name} flies`); }
+};
+const CanSwim = Base => class extends Base {
+  swim() { console.log(`${this.name} swims`); }
+};
+
+class BaseAnimal {
+  constructor(name) { this.name = name; }
+}
+
+class Duck extends CanSwim(CanFly(BaseAnimal)) {}</pre>
+        </div>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">💡 Mini Quiz: Composition vs. Inheritance Trade-offs</div>
+        <div class="quiz-question">
+          In the Penguin/Bird example, what specifically goes wrong with using inheritance, and how does composition solve it structurally?
+        </div>
+        <button class="quiz-btn" id="quiz-comp-inh-btn" onclick="toggleQuiz('quiz-comp-inh')">Show Answer</button>
+        <div class="quiz-answer" id="quiz-comp-inh">
+          <b>Answer:</b> Inheritance forces an all-or-nothing capability bundle, whereas composition lets you assemble specific behaviors on demand.
+          <br><br>
+          <b>Explanation:</b>
+          When using inheritance (<code>class Penguin extends Bird</code>), the subclass is forced to receive all methods defined on the parent class (like <code>fly()</code>). If a subclass cannot use a parent capability, you must override it to throw an error, which breaks uniform polymorphism interfaces and crashes callers.
+          <br>
+          Composition avoids this entirely because objects are built by copying behavior blocks. A penguin simply is not composed with <code>canFly</code>, meaning the method never exists on its prototype in the first place.
+        </div>
+      </div>
+    </section>
+
+    <!-- 12. INTERVIEW QA -->
+    <section id="interview-qa">
+      <div class="sec-header">
+        <span class="sec-num">12</span>
+        <h3 class="sec-title">Interview Questions & Answers</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          Prepare for senior-level interviews with these conceptual questions and answers:
+        </p>
+      </div>
+
+      <!-- Q1 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q1: What does Object.create(parent) do, and how does it compare to Object.assign({}, parent)?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> <code>Object.create(parent)</code> creates a new object and points its internal <code>[[Prototype]]</code> directly to <code>parent</code>. This sets up a live link; any later changes or additions to <code>parent</code> are immediately reflected on the child because lookup walks the prototype chain at access time. On the other hand, <code>Object.assign({}, parent)</code> copies the enumerable own properties of <code>parent</code> as a one-time shallow snapshot into a new object. The two objects are completely disconnected, so modifications to <code>parent</code> have no effect on the copy.
+        </p>
+      </div>
+
+      <!-- Q2 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q2: Why does invoking a class constructor without 'new' throw a TypeError, while regular constructors fail silently?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> ES6 classes are not just cosmetic sugar; they introduce distinct runtime protections enforced by the engine. Class constructors are tagged with an internal <code>[[IsClassConstructor]]</code> metadata flag. At invocation time, the JavaScript engine checks this flag and throws a <code>TypeError</code> immediately if the <code>new</code> operator was omitted. Regular constructor functions do not have this flag, so when called without <code>new</code>, they execute like standard functions, binding <code>this</code> to the global object or <code>undefined</code> (in strict mode), which silently leads to bugs.
+        </p>
+      </div>
+
+      <!-- Q3 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q3: Why must super() be called first in a derived class constructor before using 'this'?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> In base classes or old-style constructor functions, the engine automatically creates the object instance and assigns it to <code>this</code> before executing any constructor code. In derived (subclass) constructors, this automatic allocation is bypassed. The derived class constructor expects the parent constructor to instantiate the object. Therefore, <code>this</code> sits in an uninitialized state (similar to the Temporal Dead Zone) until <code>super()</code> executes, invokes the parent constructor, sets up the parent's properties, and initializes the instance. Attempting to read or write to <code>this</code> prior to calling <code>super()</code> results in a <code>ReferenceError</code>.
+        </p>
+      </div>
+
+      <!-- Q4 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q4: Why does Object.freeze fail to protect nested objects, and how do you resolve it?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> <code>Object.freeze</code> operates shallowly: it only changes the property descriptors (setting <code>writable: false</code> and <code>configurable: false</code>) on the direct, top-level keys of the object. If a top-level key holds a reference to another object (like <code>user.address</code>), freezing only prevents the reference pointer itself from being reassigned. The object located at that reference address remains mutable. To protect nested data, you must implement a recursive deep freeze helper that walks the object tree, calling <code>Object.freeze</code> on every nested object.
+        </p>
+      </div>
+
+      <!-- Q5 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q5: Why does a.createFeral() fail with a TypeError, even though Animal.createFeral() works fine?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> Static methods are attached directly to the constructor function object (<code>Animal.createFeral</code>), not to <code>Animal.prototype</code>. Instance property lookup only searches the prototype chain (<code>a.__proto__</code> &rarr; <code>Animal.prototype</code> &rarr; <code>Object.prototype</code>). Since the constructor function itself is never part of that prototype chain, the static method is not reachable from the instance <code>a</code>. <code>a.createFeral</code> resolves to <code>undefined</code>, and attempting to invoke it throws a <code>TypeError</code>.
+        </p>
+      </div>
+
+      <!-- Q6 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q6: Why does writing get name() { return this.name; } trigger an infinite loop / stack overflow?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> The getter does not create any actual storage for the property; it merely binds a function to be executed whenever the property <code>name</code> is accessed. Referencing <code>this.name</code> inside the getter body triggers another evaluation of the <code>name</code> property, recursively calling the same getter function indefinitely until the call stack limit is reached. A separate backing property (such as a private <code>#name</code> field) must be used to house the actual value.
+        </p>
+      </div>
+
+      <!-- Q7 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q7: What is the fundamental difference in how _email and #email are enforced as private fields?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> <code>_email</code> is enforced solely by convention; it is a regular public property that other developers are politely asked not to mutate directly. <code>#email</code> is enforced by JavaScript's grammar rules. Syntaxes using the <code>#</code> prefix are invalid outside the class body, meaning any attempt to access <code>#email</code> externally is caught by the parser and throws a compile-time <code>SyntaxError</code>.
+        </p>
+      </div>
+
+      <!-- Q8 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q8: Does JavaScript require subclasses to share a common base class for polymorphism to work?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> No. Since JavaScript is dynamically typed, it utilizes duck typing. The runtime only verifies whether a method exists and is callable when it is invoked. Two completely unrelated objects or classes can participate in polymorphism as long as they implement the expected method interface.
+        </p>
+      </div>
+
+      <!-- Q9 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q9: Why is composition preferred over inheritance in modern JavaScript architectures?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> Inheritance establishes a rigid, all-or-nothing dependency model where subclasses must accept every parent capability, forcing awkward workarounds or exception handling when capabilities mismatch. Composition avoids this by assembling objects out of small, decoupled blocks of behavior on demand, resulting in much more flexible and refactor-friendly designs.
+        </p>
+      </div>
+    </section>
+
+    <!-- Footer Navigation -->
+    <div style="margin-top: 80px; padding-top: 30px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+      <a href="chapter3-advanced-functional-js.html" style="color: var(--js-yellow); text-decoration: none; font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 8px;">
+        ← Chapter 3: Advanced Functional JS
+      </a>
+      <span style="color: var(--text-faint); font-size: 13px;">Chapter 4: OOP & Prototypes</span>
+    </div>
+  </main>
+
+  <script>
+    // Toggle answers
+    function toggleQuiz(id) {
+      const el = document.getElementById(id);
+      const btn = document.getElementById(id + '-btn');
+      if (el.classList.contains('open')) {
+        el.classList.remove('open');
+        btn.textContent = "Show Answer";
+      } else {
+        el.classList.add('open');
+        btn.textContent = "Hide Answer";
+      }
+    }
+
+    // Scroll active item highlight
+    window.addEventListener('DOMContentLoaded', () => {
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          const id = entry.target.getAttribute('id');
+          const navItem = document.getElementById(`nav-${id}`);
+          if (entry.intersectionRatio > 0.3) {
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            if (navItem) navItem.classList.add('active');
+          }
+        });
+      }, { threshold: [0.1, 0.3, 0.5], rootMargin: "0px 0px -40% 0px" });
+
+      document.querySelectorAll('section').forEach(section => {
+        observer.observe(section);
+      });
+    });
+  </script>
+</body>
+</html>

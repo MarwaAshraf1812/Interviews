@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HTML & CSS Mastery — Study Chain</title>
+  <style>
+    :root {
+      --ink: #0b0f17;
+      --panel: #10161f;
+      --panel-2: #141c28;
+      --border: #232e3d;
+      --text: #e6ecf3;
+      --muted: #7c8ba1;
+      --ref: #ff5722;
+      /* HTML Orange — "linked" / studied */
+      --prim: #f2b84b;
+      /* in-progress */
+      --warn: #ff7a7a;
+      /* mistake / gotcha coral */
+      --mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+      --sans: 'Inter', -apple-system, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--ink);
+      color: var(--text);
+      font-family: var(--sans);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* ---------- Sidebar ---------- */
+    #sidebar {
+      width: 100%;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 0;
+      position: relative;
+    }
+
+    .brand {
+      padding: 0 20px 20px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+
+    .brand .tag {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--ref);
+      letter-spacing: 1px;
+    }
+
+    .brand h1 {
+      font-size: 22px;
+      font-weight: 800;
+      margin: 6px 0 4px;
+    }
+
+    .brand .sub {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .progress-wrap {
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+
+    .progress-bar {
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--ref);
+      width: 0;
+      transition: width 0.4s ease;
+    }
+
+    .progress-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .batch {
+      margin-bottom: 8px;
+    }
+
+    .batch-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.01);
+      transition: all 0.2s;
+    }
+
+    .batch-head:hover {
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text);
+    }
+
+    .batch-head .count {
+      font-family: var(--mono);
+      font-size: 11px;
+      background: var(--border);
+      color: var(--text);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .topic-list {
+      display: none;
+      padding: 4px 0;
+    }
+
+    .topic-list.open {
+      display: block;
+    }
+
+    .topic-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 24px;
+      font-size: 13.5px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .topic-item:hover {
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text);
+    }
+
+    .topic-item.active {
+      background: rgba(255, 87, 34, 0.08);
+      color: var(--ref);
+      font-weight: 600;
+    }
+
+    .topic-item .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .topic-item .dot.done {
+      background: var(--ref);
+      box-shadow: 0 0 6px var(--ref);
+    }
+
+    .topic-item .dot.pending {
+      background: var(--border);
+    }
+
+    /* ---------- Main ---------- */
+    #main {
+      flex: 1;
+      padding: 24px 16px;
+      width: 100%;
+      max-width: 100%;
+    }
+
+    /* ---------- Responsive Desktop Layout ---------- */
+    @media (min-width: 768px) {
+      body {
+        flex-direction: row;
+      }
+
+      #sidebar {
+        width: 300px;
+        min-width: 300px;
+        max-height: 100vh;
+        position: sticky;
+        top: 0;
+        overflow-y: auto;
+        border-right: 1px solid var(--border);
+        border-bottom: none;
+        padding: 24px 0;
+      }
+
+      #main {
+        padding: 40px 56px;
+        max-width: 880px;
+      }
+    }
+
+    .eyebrow {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .title {
+      font-size: 28px;
+      font-weight: 800;
+      margin: 0 0 16px;
+      letter-spacing: -0.5px;
+    }
+
+    .status-badge {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 4px 8px;
+      border-radius: 4px;
+      margin-bottom: 32px;
+    }
+
+    .status-badge.done {
+      background: rgba(255, 87, 34, 0.1);
+      color: var(--ref);
+      border: 1px solid rgba(255, 87, 34, 0.2);
+    }
+
+    .status-badge.pending {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    .block {
+      margin-bottom: 30px;
+    }
+
+    .block h3 {
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin: 0 0 12px;
+      font-family: var(--sans);
+      font-weight: 700;
+    }
+
+    .block p {
+      font-size: 15.5px;
+      line-height: 1.65;
+      margin: 0;
+      color: var(--text);
+    }
+
+    .block p.muted {
+      color: var(--muted);
+    }
+
+    .block pre {
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 18px;
+      overflow-x: auto;
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 1.6;
+      color: #cfe8e2;
+    }
+
+    .diagram-box {
+      background: #090d14;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px;
+      font-family: var(--mono);
+      font-size: 12.5px;
+      line-height: 1.5;
+      color: var(--ref);
+      white-space: pre;
+      overflow-x: auto;
+      margin-bottom: 30px;
+    }
+
+    .mistake {
+      background: rgba(255, 122, 122, 0.06);
+      border: 1px solid rgba(255, 122, 122, 0.15);
+      border-radius: 8px;
+      padding: 16px 18px;
+      font-size: 14.5px;
+      line-height: 1.6;
+      color: var(--text);
+    }
+
+    .mistake .label {
+      display: block;
+      font-family: var(--mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      color: var(--warn);
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+
+    .trap-item {
+      background: rgba(255, 255, 255, 0.01);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .trap-item code {
+      font-family: var(--mono);
+      color: var(--warn);
+      background: rgba(255, 122, 122, 0.08);
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    #content a {
+      color: var(--ref);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      transition: color 0.2s ease;
+    }
+
+    #content a:hover {
+      color: var(--text);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+    }
+
+    .empty-state .chain {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--border);
+      margin-bottom: 18px;
+    }
+
+    .empty-state h3 {
+      color: var(--text);
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+  </style>
+  <script>window.TRACKER_DATA = [];</script>
+  <script src="tracker-data/module-1.js"></script>
+  <script src="tracker-data/module-2.js"></script>
+  <script src="tracker-data/module-3.js"></script>
+  <script src="tracker-data/module-4.js"></script>
+  <script src="tracker-data/module-5.js"></script>
+  <script src="tracker-data/module-6.js"></script>
+  <script src="tracker-data/module-7.js"></script>
+  <script src="tracker-data/module-8.js"></script>
+  <script src="tracker-data/module-9.js"></script>
+  <script src="tracker-data/module-10.js"></script>
+  <script src="tracker-data/module-11.js"></script>
+  <script src="tracker-data/module-12.js"></script>
+  <script src="tracker-data/module-13.js"></script>
+</head>
+
+<body>
+
+  <div id="sidebar">
+    <div class="brand">
+      <div class="tag">// html-css.chain</div>
+      <h1>Study Chain</h1>
+      <div class="sub">Marwa's HTML/CSS deep-dive tracker</div>
+      <div style="margin-top: 14px;">
+        <a href="handbook/index.html" style="color: var(--ref); text-decoration: none; font-size: 12px; font-family: var(--mono); display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1px solid rgba(255, 87, 34, 0.2); border-radius: 6px; background: rgba(255, 87, 34, 0.05); transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255, 87, 34, 0.15)'; this.style.borderColor='var(--ref)'" onmouseout="this.style.background='rgba(255, 87, 34, 0.05)'; this.style.borderColor='rgba(255, 87, 34, 0.2)'" id="handbook-link">
+          📖 Open Handbook →
+        </a>
+      </div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-label" id="progressLabel">0 / 0 linked</div>
+    </div>
+    <div id="batchContainer"></div>
+  </div>
+
+  <div id="main">
+    <div id="content">
+      <div class="empty-state">
+        <div class="chain">[ &lt;section&gt; ] → [ &lt;article&gt; ] → [ &lt;div&gt; ]</div>
+        <h3>Pick a topic from the chain</h3>
+        <p>Click any item on the left to revise it.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function escapeHTML(str) {
+      if (!str) return '';
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    const DATA = window.TRACKER_DATA || [];
+
+    const batchContainer = document.getElementById('batchContainer');
+    const content = document.getElementById('content');
+    let allTopics = [];
+
+    DATA.forEach((batch, bIdx) => {
+      const batchEl = document.createElement('div');
+      batchEl.className = 'batch';
+      const doneCount = batch.topics.filter(t => t.status === 'done').length;
+      batchEl.innerHTML = `
+    <div class="batch-head" data-idx="${bIdx}">
+      <span>${batch.batch}</span>
+      <span class="count">${doneCount}/${batch.topics.length}</span>
+    </div>
+    <div class="topic-list ${bIdx === 0 ? 'open' : ''}" id="list-${bIdx}"></div>
+  `;
+      batchContainer.appendChild(batchEl);
+
+      const list = batchEl.querySelector(`#list-${bIdx}`);
+      batch.topics.forEach(topic => {
+        allTopics.push(topic);
+        const item = document.createElement('div');
+        item.className = 'topic-item';
+        item.dataset.id = topic.id;
+        item.innerHTML = `<span class="dot ${topic.status}"></span><span>${escapeHTML(topic.title)}</span>`;
+        item.addEventListener('click', () => showTopic(topic, item));
+        list.appendChild(item);
+      });
+
+      batchEl.querySelector('.batch-head').addEventListener('click', () => {
+        list.classList.toggle('open');
+      });
+    });
+
+    // Handle initial routing if hash present
+    window.addEventListener('DOMContentLoaded', () => {
+      const hash = window.location.hash.substring(1);
+      if (hash) {
+        const topic = allTopics.find(t => t.id === hash);
+        if (topic) {
+          const itemEl = document.querySelector(`.topic-item[data-id="${hash}"]`);
+          if (itemEl) {
+            showTopic(topic, itemEl);
+            // open the list containing this item
+            const listEl = itemEl.parentElement;
+            if (listEl) listEl.classList.add('open');
+          }
+        }
+      }
+    });
+
+    function updateProgress() {
+      const done = allTopics.filter(t => t.status === 'done').length;
+      const total = allTopics.length;
+      document.getElementById('progressFill').style.width = `${(done / total * 100).toFixed(1)}%`;
+      document.getElementById('progressLabel').textContent = `${done} / ${total} linked`;
+    }
+    updateProgress();
+
+
+    function showTopic(topic, itemEl) {
+      document.querySelectorAll('.topic-item').forEach(el => el.classList.remove('active'));
+      itemEl.classList.add('active');
+      window.location.hash = topic.id;
+
+      if (topic.status === 'pending') {
+        content.innerHTML = `
+      <div class="eyebrow">// not yet linked</div>
+      <h2 class="title">${escapeHTML(topic.title)}</h2>
+      <span class="status-badge pending">pending</span>
+      <div class="empty-state" style="padding: 40px 0; text-align:left;">
+        <h3>Topic not yet covered</h3>
+        <p>This node is queued for study and has not been filled with content yet.</p>
+      </div>
+    `;
+        return;
+      }
+
+      const diagramHtml = topic.diagram ? `
+    <div class="block">
+      <h3>Visual Guide</h3>
+      <div class="diagram-box">${escapeHTML(topic.diagram)}</div>
+    </div>
+  ` : '';
+
+      const trapsHtml = topic.traps ? `
+    <div class="block">
+      <h3>Gotchas & Interview Traps</h3>
+      <div>
+        ${topic.traps.map(trap => `
+          <div class="trap-item">${trap}</div>
+        `).join('')}
+      </div>
+    </div>
+  ` : '';
+
+      const interviewQHtml = topic.interviewQ ? `
+        <div class="block" style="border-top: 1px dashed var(--border); padding-top: 20px; margin-top: 24px;">
+          <h3 style="color: var(--ref);">Interview Question</h3>
+          <p class="muted" style="font-style: italic; font-size: 14.5px;">${escapeHTML(topic.interviewQ)}</p>
+        </div>
+      ` : '';
+
+      content.innerHTML = `
+    <div class="eyebrow">// linked node</div>
+    <h2 class="title">${escapeHTML(topic.title)}</h2>
+    <span class="status-badge done">studied</span>
+
+    <div class="block">
+      <h3>Analogy</h3>
+      <p>${escapeHTML(topic.analogy)}</p>
+    </div>
+    <div class="block">
+      <h3>Core Idea</h3>
+      <p>${escapeHTML(topic.core)}</p>
+    </div>
+    <div class="block">
+      <h3>Code</h3>
+      <pre>${escapeHTML(topic.code)}</pre>
+    </div>
+    ${diagramHtml}
+    <div class="block">
+      <h3>Gotcha</h3>
+      <div class="mistake"><span class="label">common mistake</span>${escapeHTML(topic.mistake)}</div>
+    </div>
+    ${trapsHtml}
+    <div class="block">
+      <h3>Interview-Ready Answer</h3>
+      <p class="muted">${escapeHTML(topic.interview)}</p>
+    </div>
+    ${interviewQHtml}
+  `;
+      
+      if (window.innerWidth < 768) {
+        document.getElementById('main').scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  </script>
+</body>
+
+</html>
