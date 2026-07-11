@@ -872,37 +872,6 @@ console.log(nums); // [1, 2, 3] -- Unchanged!</pre>
     </div>
   </main>
 
-  <script>
-    // Toggle answers
-    function toggleQuiz(id) {
-      const el = document.getElementById(id);
-      const btn = document.getElementById(id + '-btn');
-      if (el.classList.contains('open')) {
-        el.classList.remove('open');
-        btn.textContent = "Show Answer";
-      } else {
-        el.classList.add('open');
-        btn.textContent = "Hide Answer";
-      }
-    }
-
-    // Scroll active item highlight
-    window.addEventListener('DOMContentLoaded', () => {
-      const observer = new IntersectionObserver(entries => {
-        entries.forEach(entry => {
-          const id = entry.target.getAttribute('id');
-          const navItem = document.getElementById(`nav-${id}`);
-          if (entry.intersectionRatio > 0.3) {
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            if (navItem) navItem.classList.add('active');
-          }
-        });
-      }, { threshold: [0.1, 0.3, 0.5], rootMargin: "0px 0px -40% 0px" });
-
-      document.querySelectorAll('section').forEach(section => {
-        observer.observe(section);
-      });
-    });
-  </script>
+  <script src="handbook.js" defer></script>
 </body>
 </html>

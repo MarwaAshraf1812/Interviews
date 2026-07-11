@@ -56,10 +56,11 @@
     <ul class="nav-list">
       <li class="nav-item active" id="nav-what-is-html"><a href="#what-is-html"><span class="num">01.</span> What is HTML?</a></li>
       <li class="nav-item" id="nav-browser-rendering"><a href="#browser-rendering"><span class="num">02.</span> How Browsers Render</a></li>
-      <li class="nav-item" id="nav-dom-vs-html"><a href="#dom-vs-html"><span class="num">03.</span> DOM vs HTML</a></li>
-      <li class="nav-item" id="nav-html-parser"><a href="#html-parser"><span class="num">04.</span> HTML Parser Quirks</a></li>
-      <li class="nav-item" id="nav-doc-structure"><a href="#doc-structure"><span class="num">05.</span> Document Structure</a></li>
-      <li class="nav-item" id="nav-interview-qa"><a href="#interview-qa"><span class="num">06.</span> Interview Q&A</a></li>
+      <li class="nav-item" id="nav-tokenizer"><a href="#tokenizer"><span class="num">03.</span> The Tokenizer</a></li>
+      <li class="nav-item" id="nav-dom-vs-html"><a href="#dom-vs-html"><span class="num">04.</span> DOM vs HTML</a></li>
+      <li class="nav-item" id="nav-html-parser"><a href="#html-parser"><span class="num">05.</span> HTML Parser Quirks</a></li>
+      <li class="nav-item" id="nav-doc-structure"><a href="#doc-structure"><span class="num">06.</span> Document Structure</a></li>
+      <li class="nav-item" id="nav-interview-qa"><a href="#interview-qa"><span class="num">07.</span> Interview Q&A</a></li>
     </ul>
   </aside>
 
@@ -239,10 +240,67 @@
       </div>
     </section>
 
-    <!-- 3. DOM VS HTML -->
-    <section id="dom-vs-html">
+    <!-- 3. THE TOKENIZER -->
+    <section id="tokenizer">
       <div class="sec-header">
         <span class="sec-num">03</span>
+        <h3 class="sec-title">The Tokenizer — Stage 1 of Parsing</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          The <b>Tokenizer</b> reads raw HTML bytes character-by-character and slices them into small units called <b>tokens</b> (StartTag, EndTag, Character, Comment). Crucially, the tokenizer has no concept of nesting, hierarchy, or tree structures—it is a dumb, linear processor. Conceptually, it is a reader sounding out individual words without yet understanding the grammar of the sentence.
+        </p>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">The Finite State Machine (FSM) trace</div>
+        <div class="box-body">
+          <p>
+            HTML tokenization is specified as a deterministic <b>Finite State Machine</b> (FSM). It shifts between states such as <code>Data state</code>, <code>Tag open state</code>, <code>Tag name state</code>, <code>Attribute name state</code>, and <code>Attribute value state</code> based on the characters it encounters.
+          </p>
+          <p>
+            For example, parsing the markup <code>&lt;div class="card"&gt;</code> triggers the following state transitions:
+          </p>
+          <ul class="nested-list" style="margin-top: 10px;">
+            <li><b>Data state</b> (reading plain text): encounters <code>&lt;</code> → switches to <b>Tag open state</b>.</li>
+            <li><b>Tag open state</b>: encounters <code>d</code> (a letter) → detects a start tag → switches to <b>Tag name state</b>.</li>
+            <li><b>Tag name state</b>: consumes <code>div</code> until it hits whitespace → switches to <b>Before attribute name state</b>.</li>
+            <li><b>Before attribute name state</b>: encounters <code>c</code> → switches to <b>Attribute name state</b>.</li>
+            <li><b>Attribute name state</b>: consumes <code>class</code> until it hits <code>=</code> → switches to <b>Attribute value state</b>.</li>
+            <li><b>Attribute value state</b>: consumes characters inside quotes (<code>card</code>) → switches back to <b>Tag open state</b>.</li>
+            <li><b>Tag open state</b>: encounters <code>&gt;</code> → emits a <code>StartTag: "div"</code> token with attribute <code>class="card"</code> → switches back to <b>Data state</b>.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="info-box trap">
+        <div class="box-header">Tokenizer Trap: Special Characters inside Attribute Values</div>
+        <div class="box-body">
+          <p>
+            Consider this tag: <code>&lt;div class="hello&gt;world"&gt;</code>
+          </p>
+          <p>
+            A common developer misconception is that this tag closes at the first <code>&gt;</code>. However, because the tokenizer is currently in the <b>Attribute value state</b> (having consumed an open quote <code>"</code>), it treats the <code>&gt;</code> character as **literal text inside the attribute value**, NOT as the tag closer. The state machine will only exit the attribute-value state when it encounters the matching closing quote <code>"</code>.
+          </p>
+        </div>
+      </div>
+
+      <div class="info-box answer">
+        <div class="box-header">Key Comparison: Tokenizer vs. Tree Construction</div>
+        <div class="box-body">
+          <ul class="nested-list" style="margin-bottom:0;">
+            <li><b>Tokenizer (Stage 1):</b> Identifies individual pieces (tokens). It is linear, dumb, and operates without any concept of tag hierarchy or nesting.</li>
+            <li><b>Tree Construction (Stage 2):</b> Consumes the emitted tokens to build the DOM tree. It enforces document hierarchy, tracks parent/child nesting, and executes recovery algorithms to auto-close unclosed tags.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. DOM VS HTML -->
+    <section id="dom-vs-html">
+      <div class="sec-header">
+        <span class="sec-num">04</span>
         <h3 class="sec-title">DOM vs HTML: The Crucial Interview Distinction</h3>
       </div>
 
@@ -251,37 +309,37 @@
           Interviewers love checking if you understand the conceptual boundary between HTML files and dynamic browser memory.
         </p>
         <ul class="nested-list">
-          <li><b>HTML (The Blueprint):</b> The raw text markup stored inside a static file. When you right-click on a page and select <i>"View Page Source"</i>, you see the exact, unchanged HTML originally served by the web host.</li>
-          <li><b>DOM (The Living House):</b> The active, live object representation in browser memory. JavaScript interacts with this tree via APIs (like <code>document.appendChild</code>). When JS updates contents, the DOM changes, but the original HTML source code remains untouched.</li>
+          <li><b>HTML:</b> The raw text markup stored in your static file. When you right-click on a page and select <i>"View Page Source"</i>, you see the exact, unchanged HTML originally served by the web host.</li>
+          <li><b>DOM (Document Object Model):</b> The live, in-memory tree object representation constructed by the browser. JavaScript mutates this tree directly (via <code>appendChild</code>, <code>innerHTML</code>, etc.) <b>without touching the original HTML file</b>.</li>
         </ul>
       </div>
 
       <div class="info-box trap">
-        <div class="box-header">Chrome DevTools: View Source vs. Element Inspector</div>
+        <div class="box-header">Real-World Payoffs & Debugging</div>
         <div class="box-body">
           <p>
-            When you inspect a page using Chrome DevTools' <b>"Elements" panel</b>, you are inspecting the **live, current state of the DOM tree**, including any mutations, script-injected attributes, and style overrides.
+            <b>Next.js SSR & React Hydration:</b> The server sends fully-formed HTML first (for fast first paint and SEO indexability). Then, React "hydrates"—attaching event listeners to that <i>already-existing</i> DOM instead of rebuilding it from scratch. Understanding DOM ≠ HTML explains why hydration works this way.
           </p>
           <p>
-            Conversely, opening **"View Page Source"** requests a fresh look at the static text document sent over HTTP. In modern single-page apps (like a React SPA), "View Source" shows a blank <code>&lt;div id="root"&gt;&lt;/div&gt;</code>, while the "Elements" panel displays the entire complex DOM tree built on the client.
+            <b>QA Payoff:</b> "The page displays content X but View Source does not show X." This is because client-side JavaScript mutated the DOM after load; it is not a server rendering bug.
           </p>
         </div>
       </div>
     </section>
 
-    <!-- 4. HTML PARSER QUIRKS -->
+    <!-- 5. HTML PARSER QUIRKS -->
     <section id="html-parser">
       <div class="sec-header">
-        <span class="sec-num">04</span>
+        <span class="sec-num">05</span>
         <h3 class="sec-title">The HTML Parser: Deterministic Error Recovery</h3>
       </div>
 
       <div class="desc">
         <p>
-          In XML or JSON parsing, a single syntax error (like a missing comma or unclosed tag) triggers a hard crash. The **HTML Parser** operates differently.
+          Unlike XML or JSON (which throw hard syntax errors on malformed markup), the HTML parser operates with strict, deterministic <b>error-recovery rules</b>.
         </p>
         <p>
-          Because the early web was filled with poorly written HTML files, browsers had to be highly forgiving. During the standardization of HTML5, engine creators formalized exact **error-recovery rules**. If you omit tag structures or nesting rules, the HTML parser recovers using a deterministic algorithm so that all browsers rebuild the malformed markup *identically*.
+          This was a deliberate design decision: by the time HTML5 was standardized, millions of web pages had unclosed tags and nested syntax errors. The HTML5 spec formalized "how all browsers must fix this identically" so pages render consistently across different rendering engines.
         </p>
       </div>
 
@@ -291,7 +349,7 @@
           <p>
             Consider this malformed markup block:
           </p>
-          <pre style="margin: 10px 0; padding: 10px; font-size: 13px;">&lt;html&gt;
+          <pre style="margin: 10px 0; padding: 12px; font-size: 13px; background: rgba(0, 0, 0, 0.2); border-radius: 6px; font-family: var(--mono); color: #cfe8e2; overflow-x: auto;">&lt;html&gt;
 &lt;head&gt;&lt;title&gt;Test&lt;/title&gt;
 &lt;body&gt;
 &lt;p&gt;First paragraph
@@ -299,24 +357,24 @@
 &lt;/body&gt;</pre>
           <p>
             <b>What does the parser do to rebuild the tree?</b>
-            <br>1. **Missing DOCTYPE:** Triggers quirks mode.
-            <br>2. **Unclosed <code>&lt;head&gt;</code>:** Upon encountering the <code>&lt;body&gt;</code> tag, the parser knows that a body element cannot live inside a head. It automatically inserts a closing <code>&lt;/head&gt;</code> tag before starting the body node.
-            <br>3. **Unclosed <code>&lt;p&gt;</code> elements:** When the parser reads the second <code>&lt;p&gt;</code> tag, it realizes that paragraphs cannot contain nested block-level paragraphs. It auto-inserts a closing <code>&lt;/p&gt;</code> to seal the first paragraph, creates the second paragraph element, and closes that paragraph at <code>&lt;/body&gt;</code>.
+            <br>1. <b>Missing DOCTYPE:</b> Triggers quirks mode.
+            <br>2. <b>Unclosed <code>&lt;head&gt;</code>:</b> When the parser encounters the <code>&lt;body&gt;</code> tag, it knows a body cannot live inside a head. It automatically inserts a closing <code>&lt;/head&gt;</code> tag.
+            <br>3. <b>Unclosed <code>&lt;p&gt;</code>:</b> When it reads the second <code>&lt;p&gt;</code> tag, it knows a paragraph cannot contain nested block-level paragraphs. It auto-closes the first paragraph with a <code>&lt;/p&gt;</code> before opening the second.
           </p>
         </div>
       </div>
     </section>
 
-    <!-- 5. DOCUMENT STRUCTURE -->
+    <!-- 6. DOCUMENT STRUCTURE -->
     <section id="doc-structure">
       <div class="sec-header">
-        <span class="sec-num">05</span>
+        <span class="sec-num">06</span>
         <h3 class="sec-title">HTML Document Structure Roles</h3>
       </div>
 
       <div class="desc">
         <p>
-          Every web page has structural boilerplate tags with distinct roles:
+          Every standard web page contains structural elements with specific browser configurations.
         </p>
       </div>
 
@@ -324,30 +382,32 @@
         <div class="box-header">DOCTYPE: Standards Mode vs. Quirks Mode</div>
         <div class="box-body">
           <p>
-            Writing <code>&lt;!DOCTYPE html&gt;</code> at the top of the file tells the browser to parse the layout in **Standards Mode** (complying with modern CSS specs).
+            Writing <code>&lt;!DOCTYPE html&gt;</code> at the top of the file triggers <b>Standards Mode</b>, ensuring layout calculations comply with modern CSS specs.
           </p>
           <p>
-            If you omit the DOCTYPE declaration, the browser drops into **Quirks Mode**. In Quirks Mode, the browser emulates bugs from the 1990s (like Netscape 4 box-model sizing where paddings subtract from content bounds, and incorrect font-inheritance inside tables). This exists purely to keep old legacy websites readable.
+            If you omit it, the browser falls into <b>Quirks Mode</b>, emulating bugs from the 1990s (like Netscape 4 box-model sizing where paddings subtract from content bounds, and incorrect font-style inheritance inside tables). This exists purely to keep decades-old websites readable.
           </p>
         </div>
       </div>
 
       <div class="info-box answer">
-        <div class="box-header">Roles of Root Elements</div>
+        <div class="box-header">Tag Roles & Render Blockages</div>
         <div class="box-body">
           <ul class="nested-list" style="margin-bottom:0;">
-            <li><code>&lt;html lang="en"&gt;</code>: Represents the structural root of the DOM tree. The <code>lang</code> parameter is critical—it controls the accent voice profile used by screen readers and triggers browser translation popups.</li>
-            <li><code>&lt;head&gt;</code>: Houses page metadata, scripts, stylesheets, and title configs. Elements inside the head do not render directly onto the page viewport.</li>
-            <li><code>&lt;body&gt;</code>: Contains all visible page markup (headers, main content sections, inputs) that combine into the Render Tree.</li>
+            <li><code>&lt;html lang="en"&gt;</code>: Root node of the DOM tree. The <code>lang</code> attribute is crucial—it controls screen-reader voice profiles and translation triggers.</li>
+            <li><code>&lt;head&gt;</code>: Metadata container. Items inside do not render directly onto the page viewport.</li>
+            <li><code>&lt;body&gt;</code>: Contains all visible page markup that combines into the Render Tree. Multiple body tags are illegal; additional ones are automatically merged into the first body node.</li>
+            <li><b>Case-Sensitivity:</b> Tag and attribute names are NOT case-sensitive (<code>&lt;DIV&gt;</code> is parsed as <code>&lt;div&gt;</code>), but lowercase is the universal convention.</li>
+            <li><b>CSS Render Blocking:</b> The browser does NOT build the Render Tree until CSSOM is ready to prevent a Flash of Unstyled Content (FOUC). This is why render-blocking CSS in the head delays first paint.</li>
           </ul>
         </div>
       </div>
     </section>
 
-    <!-- 6. INTERVIEW QA -->
+    <!-- 7. INTERVIEW QA -->
     <section id="interview-qa">
       <div class="sec-header">
-        <span class="sec-num">06</span>
+        <span class="sec-num">07</span>
         <h3 class="sec-title">Interview Questions & Answers</h3>
       </div>
 
@@ -384,6 +444,14 @@
       </div>
 
       <!-- Q5 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q5: If the tokenizer is in `Attribute value state` and hits a `&gt;` inside an open quote, does it close the tag?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> No. Inside an open quote, the state machine is in `Attribute value state`, so the <code>&gt;</code> is treated as literal text inside the attribute. The tag only closes when the matching quote is found, returning the state machine back to tag open/name states.
+        </p>
+      </div>
+
+      <!-- Q6 -->
       <div class="quiz-wrap">
         <div class="quiz-title">💡 Senior Interview Follow-up Challenge</div>
         <div class="quiz-question">
@@ -399,7 +467,7 @@
           <ul class="nested-list" style="margin-top:10px; margin-bottom:0;">
             <li><b>Parser Blocking:</b> It forces the browser's speculative pre-parsers (which look ahead to preload scripts and styles) to pause because the injected script content could rewrite subsequent markup. This breaks parallel resource downloading.</li>
             <li><b>Destructive Behavior:</b> If <code>document.write()</code> is executed *after* the DOM parsing is complete (for example, inside an async callback or after onload), it immediately overrides and clears the entire current document, wiping out the page.</li>
-            <li><b>Legacy Legacy Layout Shifts:</b> Modern engines cannot optimize rendering queues when pages dynamically inject text streams into the parser mid-run.</li>
+            <li><b>Legacy Layout Shifts:</b> Modern engines cannot optimize rendering queues when pages dynamically inject text streams into the parser mid-run.</li>
           </ul>
         </div>
       </div>
@@ -414,37 +482,6 @@
     </div>
   </main>
 
-  <script>
-    // Toggle answers
-    function toggleQuiz(id) {
-      const el = document.getElementById(id);
-      const btn = document.getElementById(id + '-btn');
-      if (el.classList.contains('open')) {
-        el.classList.remove('open');
-        btn.textContent = "Show Answer";
-      } else {
-        el.classList.add('open');
-        btn.textContent = "Hide Answer";
-      }
-    }
-
-    // Scroll active item highlight
-    window.addEventListener('DOMContentLoaded', () => {
-      const observer = new IntersectionObserver(entries => {
-        entries.forEach(entry => {
-          const id = entry.target.getAttribute('id');
-          const navItem = document.getElementById(`nav-${id}`);
-          if (entry.intersectionRatio > 0.3) {
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            if (navItem) navItem.classList.add('active');
-          }
-        });
-      }, { threshold: [0.1, 0.3, 0.5], rootMargin: "0px 0px -40% 0px" });
-
-      document.querySelectorAll('section').forEach(section => {
-        observer.observe(section);
-      });
-    });
-  </script>
+  <script src="handbook.js" defer></script>
 </body>
 </html>

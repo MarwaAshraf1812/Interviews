@@ -44,6 +44,8 @@
       border-bottom: 1px solid var(--border);
       padding: 20px 0;
       position: relative;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      box-sizing: border-box;
     }
 
     .brand {
@@ -183,6 +185,96 @@
       padding: 24px 16px;
       width: 100%;
       max-width: 100%;
+      box-sizing: border-box;
+    }
+
+    /* ---------- Mobile Header & Drawer Styles ---------- */
+    .mobile-header {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 990;
+      height: 56px;
+      box-sizing: border-box;
+    }
+
+    .mobile-header .brand-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      font-family: var(--mono);
+    }
+
+    .menu-toggle {
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-size: 14px;
+      font-family: var(--mono);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      transition: all 0.2s;
+    }
+
+    .menu-toggle:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--ref);
+    }
+
+    .sidebar-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(5, 9, 14, 0.7);
+      backdrop-filter: blur(4px);
+      z-index: 998;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .sidebar-backdrop.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    @media (max-width: 767px) {
+      .mobile-header {
+        display: flex;
+      }
+
+      #sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 290px;
+        height: 100vh;
+        max-height: 100vh;
+        z-index: 999;
+        transform: translateX(-100%);
+        border-right: 1px solid var(--border);
+        border-bottom: none;
+        box-shadow: 20px 0 40px rgba(0, 0, 0, 0.5);
+        padding: 24px 0;
+        overflow-y: auto;
+      }
+
+      #sidebar.open {
+        transform: translateX(0);
+      }
     }
 
     /* ---------- Responsive Desktop Layout ---------- */
@@ -436,19 +528,95 @@
 
     const batchContainer = document.getElementById('batchContainer');
     const content = document.getElementById('content');
+    const sidebar = document.getElementById('sidebar');
     let allTopics = [];
+
+    // 1. Dynamic creation of mobile header and backdrop
+    document.addEventListener('DOMContentLoaded', () => {
+      // Mobile header injection
+      const mobileHeader = document.createElement('div');
+      mobileHeader.className = 'mobile-header';
+      mobileHeader.innerHTML = `
+        <button class="menu-toggle" id="menuToggle" aria-label="Open Topics">☰ Topics</button>
+        <div class="brand-title">Study Chain</div>
+        <div style="width: 86px;"></div> <!-- Spacer to align center -->
+      `;
+      document.body.insertBefore(mobileHeader, document.body.firstChild);
+
+      // Backdrop injection
+      const backdrop = document.createElement('div');
+      backdrop.className = 'sidebar-backdrop';
+      document.body.appendChild(backdrop);
+
+      // Drawer Open/Close Actions
+      const openDrawer = () => {
+        sidebar.classList.add('open');
+        backdrop.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      };
+      
+      const closeDrawer = () => {
+        sidebar.classList.remove('open');
+        backdrop.classList.remove('active');
+        document.body.style.overflow = '';
+      };
+
+      document.getElementById('menuToggle').addEventListener('click', openDrawer);
+      backdrop.addEventListener('click', closeDrawer);
+
+      // Save closeDrawer reference globally so it can be called on item clicks
+      window.closeSidebarDrawer = closeDrawer;
+      window.openSidebarDrawer = openDrawer;
+
+      // Escape key closes drawer
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeDrawer();
+      });
+
+      // Resize guard
+      const mediaQuery = window.matchMedia('(min-width: 768px)');
+      mediaQuery.addEventListener('change', (e) => {
+        if (e.matches) closeDrawer();
+      });
+
+      // Native Touch Swipe Gestures
+      let touchStartX = 0;
+      let touchStartY = 0;
+      const SWIPE_THRESHOLD = 60;
+      const EDGE_THRESHOLD = 40;
+
+      document.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].clientX;
+        touchStartY = e.changedTouches[0].clientY;
+      }, { passive: true });
+
+      document.addEventListener('touchend', (e) => {
+        const touchEndX = e.changedTouches[0].clientX;
+        const touchEndY = e.changedTouches[0].clientY;
+        const diffX = touchEndX - touchStartX;
+        const diffY = touchEndY - touchStartY;
+
+        if (Math.abs(diffX) > Math.abs(diffY)) {
+          if (diffX > SWIPE_THRESHOLD && touchStartX < EDGE_THRESHOLD && !sidebar.classList.contains('open')) {
+            openDrawer();
+          } else if (diffX < -SWIPE_THRESHOLD && sidebar.classList.contains('open')) {
+            closeDrawer();
+          }
+        }
+      }, { passive: true });
+    });
 
     DATA.forEach((batch, bIdx) => {
       const batchEl = document.createElement('div');
       batchEl.className = 'batch';
       const doneCount = batch.topics.filter(t => t.status === 'done').length;
       batchEl.innerHTML = `
-    <div class="batch-head" data-idx="${bIdx}">
-      <span>${batch.batch}</span>
-      <span class="count">${doneCount}/${batch.topics.length}</span>
-    </div>
-    <div class="topic-list ${bIdx === 0 ? 'open' : ''}" id="list-${bIdx}"></div>
-  `;
+        <div class="batch-head" data-idx="${bIdx}">
+          <span>${batch.batch}</span>
+          <span class="count">${doneCount}/${batch.topics.length}</span>
+        </div>
+        <div class="topic-list ${bIdx === 0 ? 'open' : ''}" id="list-${bIdx}"></div>
+      `;
       batchContainer.appendChild(batchEl);
 
       const list = batchEl.querySelector(`#list-${bIdx}`);
@@ -492,79 +660,82 @@
     }
     updateProgress();
 
-
     function showTopic(topic, itemEl) {
       document.querySelectorAll('.topic-item').forEach(el => el.classList.remove('active'));
       itemEl.classList.add('active');
       window.location.hash = topic.id;
 
-      if (topic.status === 'pending') {
-        content.innerHTML = `
-      <div class="eyebrow">// not yet linked</div>
-      <h2 class="title">${escapeHTML(topic.title)}</h2>
-      <span class="status-badge pending">pending</span>
-      <div class="empty-state" style="padding: 40px 0; text-align:left;">
-        <h3>Topic not yet covered</h3>
-        <p>This node is queued for study and has not been filled with content yet.</p>
-      </div>
-    `;
-        return;
+      // Close mobile drawer if open
+      if (window.closeSidebarDrawer) {
+        window.closeSidebarDrawer();
       }
 
-      const diagramHtml = topic.diagram ? `
-    <div class="block">
-      <h3>Visual Guide</h3>
-      <div class="diagram-box">${escapeHTML(topic.diagram)}</div>
-    </div>
-  ` : '';
+      if (topic.status === 'pending') {
+        content.innerHTML = `
+          <div class="eyebrow">// not yet linked</div>
+          <h2 class="title">${escapeHTML(topic.title)}</h2>
+          <span class="status-badge pending">pending</span>
+          <div class="empty-state" style="padding: 40px 0; text-align:left;">
+            <h3>Topic not yet covered</h3>
+            <p>This node is queued for study and has not been filled with content yet.</p>
+          </div>
+        `;
+      } else {
+        const diagramHtml = topic.diagram ? `
+          <div class="block">
+            <h3>Visual Guide</h3>
+            <div class="diagram-box">${escapeHTML(topic.diagram)}</div>
+          </div>
+        ` : '';
 
-      const trapsHtml = topic.traps ? `
-    <div class="block">
-      <h3>Gotchas & Interview Traps</h3>
-      <div>
-        ${topic.traps.map(trap => `
-          <div class="trap-item">${trap}</div>
-        `).join('')}
-      </div>
-    </div>
-  ` : '';
+        const trapsHtml = topic.traps ? `
+          <div class="block">
+            <h3>Gotchas & Interview Traps</h3>
+            <div>
+              ${topic.traps.map(trap => `
+                <div class="trap-item">${trap}</div>
+              `).join('')}
+            </div>
+          </div>
+        ` : '';
 
-      const interviewQHtml = topic.interviewQ ? `
-        <div class="block" style="border-top: 1px dashed var(--border); padding-top: 20px; margin-top: 24px;">
-          <h3 style="color: var(--ref);">Interview Question</h3>
-          <p class="muted" style="font-style: italic; font-size: 14.5px;">${escapeHTML(topic.interviewQ)}</p>
-        </div>
-      ` : '';
+        const interviewQHtml = topic.interviewQ ? `
+          <div class="block" style="border-top: 1px dashed var(--border); padding-top: 20px; margin-top: 24px;">
+            <h3 style="color: var(--ref);">Interview Question</h3>
+            <p class="muted" style="font-style: italic; font-size: 14.5px;">${escapeHTML(topic.interviewQ)}</p>
+          </div>
+        ` : '';
 
-      content.innerHTML = `
-    <div class="eyebrow">// linked node</div>
-    <h2 class="title">${escapeHTML(topic.title)}</h2>
-    <span class="status-badge done">studied</span>
+        content.innerHTML = `
+          <div class="eyebrow">// linked node</div>
+          <h2 class="title">${escapeHTML(topic.title)}</h2>
+          <span class="status-badge done">studied</span>
 
-    <div class="block">
-      <h3>Analogy</h3>
-      <p>${escapeHTML(topic.analogy)}</p>
-    </div>
-    <div class="block">
-      <h3>Core Idea</h3>
-      <p>${escapeHTML(topic.core)}</p>
-    </div>
-    <div class="block">
-      <h3>Code</h3>
-      <pre>${escapeHTML(topic.code)}</pre>
-    </div>
-    ${diagramHtml}
-    <div class="block">
-      <h3>Gotcha</h3>
-      <div class="mistake"><span class="label">common mistake</span>${escapeHTML(topic.mistake)}</div>
-    </div>
-    ${trapsHtml}
-    <div class="block">
-      <h3>Interview-Ready Answer</h3>
-      <p class="muted">${escapeHTML(topic.interview)}</p>
-    </div>
-    ${interviewQHtml}
-  `;
+          <div class="block">
+            <h3>Analogy</h3>
+            <p>${escapeHTML(topic.analogy)}</p>
+          </div>
+          <div class="block">
+            <h3>Core Idea</h3>
+            <p>${escapeHTML(topic.core)}</p>
+          </div>
+          <div class="block">
+            <h3>Code</h3>
+            <pre>${escapeHTML(topic.code)}</pre>
+          </div>
+          ${diagramHtml}
+          <div class="block">
+            <h3>Gotcha</h3>
+            <div class="mistake"><span class="label">common mistake</span>${escapeHTML(topic.mistake)}</div>
+          </div>
+          ${trapsHtml}
+          <div class="block">
+            <h3>Interview-Ready Answer</h3>
+            <p class="muted">${escapeHTML(topic.interview)}</p>
+          </div>
+          ${interviewQHtml}
+        `;
+      }
       
       if (window.innerWidth < 768) {
         document.getElementById('main').scrollIntoView({ behavior: 'smooth' });
