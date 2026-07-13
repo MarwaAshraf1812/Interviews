@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JS Mastery Handbook — Chapter 5: Modern Syntax & Data</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="handbook.css">
+  
+  <style>
+    /* Custom style enhancements for diagrams and SVGs */
+    .diagram-container {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin: 24px 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow-x: auto;
+    }
+    
+    .svg-diagram {
+      width: 100%;
+      max-width: 680px;
+      height: auto;
+      display: block;
+    }
+    
+    /* Interactive node styling inside SVG */
+    .svg-node {
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: default;
+    }
+    
+    .svg-node:hover {
+      transform: translateY(-2px);
+      filter: drop-shadow(0 6px 12px rgba(94, 230, 208, 0.15));
+    }
+    
+    .svg-node-error:hover {
+      filter: drop-shadow(0 6px 12px rgba(255, 122, 122, 0.15));
+    }
+    
+    .svg-node-yellow:hover {
+      filter: drop-shadow(0 6px 12px rgba(247, 223, 30, 0.15));
+    }
+
+    .svg-link {
+      stroke-dasharray: 4;
+      animation: dash 15s linear infinite;
+    }
+
+    @keyframes dash {
+      to {
+        stroke-dashoffset: -100;
+      }
+    }
+    
+    .nested-list {
+      margin-left: 24px;
+      margin-bottom: 12px;
+      line-height: 1.6;
+    }
+    
+    .nested-list li {
+      margin-bottom: 6px;
+    }
+    
+    /* Table styles */
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: rgba(0,0,0,0.15);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+    
+    .comparison-table th {
+      background: rgba(255,255,255,0.03);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 14px;
+      text-align: left;
+      font-size: 12.5px;
+      font-family: var(--mono);
+      color: var(--js-yellow);
+    }
+    
+    .comparison-table td {
+      padding: 10px 14px;
+      font-size: 13.5px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .comparison-table tr:last-child td {
+      border-bottom: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Sidebar -->
+  <aside>
+    <div class="brand">
+      <div class="tag">// handbook.javascript</div>
+      <h1>Interview Bible</h1>
+      <div class="sub">Chapter 5: Modern Syntax & Data</div>
+    </div>
+    <ul class="nav-list">
+      <li class="nav-item active" id="nav-template-literals"><a href="#template-literals"><span class="num">01.</span> Template Literals</a></li>
+      <li class="nav-item" id="nav-modules"><a href="#modules"><span class="num">02.</span> ESM vs CommonJS</a></li>
+      <li class="nav-item" id="nav-generators"><a href="#generators"><span class="num">03.</span> Generators & Iterators</a></li>
+      <li class="nav-item" id="nav-operators"><a href="#operators"><span class="num">04.</span> Symbol, Chain, Nullish</a></li>
+      <li class="nav-item" id="nav-array-mutations"><a href="#array-mutations"><span class="num">05.</span> Mutating vs Non-mutating</a></li>
+      <li class="nav-item" id="nav-immutability"><a href="#immutability"><span class="num">06.</span> Immutability Patterns</a></li>
+      <li class="nav-item" id="nav-array-like"><a href="#array-like"><span class="num">07.</span> Array-likes vs Arrays</a></li>
+      <li class="nav-item" id="nav-interview-qa"><a href="#interview-qa"><span class="num">08.</span> Interview Q&A</a></li>
+    </ul>
+  </aside>
+
+  <!-- Main Content -->
+  <main>
+    <div style="display: flex; gap: 16px; margin-bottom: 30px;">
+      <a href="index.html" class="top-nav-link" id="handbook-home-link" style="margin-bottom: 0;">← Handbook Home</a>
+      <span style="color: var(--text-faint);">|</span>
+      <a href="../../index.html" class="top-nav-link" id="hub-link" style="margin-bottom: 0;">← Hub Dashboard</a>
+    </div>
+    
+    <div class="intro-header">
+      <h2>Chapter 5: Modern Syntax & Data Structures</h2>
+      <p>
+        Master the syntax and data structures of ES6+ JavaScript. Dive into the mechanical underpinnings of template literals and tagged templates, module resolutions, advanced operators, array behaviors, and immutability structures.
+      </p>
+    </div>
+
+    <!-- 1. TEMPLATE LITERALS -->
+    <section id="template-literals">
+      <div class="sec-header">
+        <span class="sec-num">01</span>
+        <h3 class="sec-title">Template Literals & Tagged Templates</h3>
+      </div>
+      
+      <div class="desc">
+        <p>
+          <b>The Duct Tape Analogy:</b> Imagine old-school string concatenation like building a sentence with pieces of paper and duct tape — piece, tape, piece, tape. Template literals are like printing the entire sentence on a page naturally, leaving blank slots (<code>${}</code>) for variables to fall into place. No tape, no mess.
+        </p>
+        <p>
+          <b>Why they exist:</b> Before ES6, constructing dynamic strings meant chaining string parts with <code>+</code> operators. This was not only verbose and hard to read, but also highly error-prone with type coercion (accidentally adding numbers instead of concatenating them, or producing <code>"undefined"</code> strings). Writing multi-line strings required escaping newlines with <code>\n</code> or gluing arrays together.
+        </p>
+      </div>
+
+      <pre><span class="comment">// Old Way (ES5)</span>
+<span class="keyword">var</span> name = "Marwa";
+<span class="keyword">var</span> age = 26;
+<span class="keyword">var</span> oldGreeting = "Hello, " + name + "! You are " + age + " years old.";
+
+<span class="comment">// New Way (ES6 Template Literals)</span>
+<span class="keyword">const</span> greeting = <span class="string">`Hello, ${name}! You are ${age} years old.`</span>;
+
+<span class="comment">// Multi-line Strings</span>
+<span class="keyword">const</span> multiline = <span class="string">`Line 1
+Line 2
+Line 3`</span>;</pre>
+
+      <div class="info-box hood">
+        <div class="box-header">Under the Hood: String Coercion & Symbols</div>
+        <div class="box-body">
+          <p>
+            Every <code>${}</code> interpolation in a template literal triggers string coercion. The expression is evaluated and passed through ToString conversion. Plain objects evaluate to <code>"[object Object]"</code> unless they implement a custom <code>toString()</code> method:
+          </p>
+          <pre style="margin: 10px 0; padding: 12px; font-size: 13px;">console.log(<span class="string">`${[1, 2, 3]}`</span>); <span class="comment">// "1,2,3" (joins array items)</span>
+console.log(<span class="string">`${{name: "Marwa"}}`</span>); <span class="comment">// "[object Object]"</span>
+console.log(<span class="string">`${null}`</span>); <span class="comment">// "null"</span>
+console.log(<span class="string">`${undefined}`</span>); <span class="comment">// "undefined"</span></pre>
+          <p>
+            <b>One Genuine Exception:</b> Symbols explicitly refuse implicit string coercion. Doing <code>`${Symbol('test')}`</code> throws a <code>TypeError: Cannot convert a Symbol value to a string</code>. You must call <code>String(sym)</code> or <code>sym.toString()</code> explicitly instead.
+          </p>
+        </div>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Under the Hood: The Tagged Template Mechanism</div>
+        <div class="box-body">
+          <p>
+            An advanced feature of template literals is **Tagged Templates**. By prefixing a template literal with a function name, you can intercept the parsing process before a string is assembled:
+          </p>
+          <pre style="margin: 10px 0; padding: 12px; font-size: 13px;"><span class="keyword">function</span> highlight(strings, ...values) {
+  <span class="comment">// strings: Array of literal text segments</span>
+  <span class="comment">// values: Evaluated expressions passed to ${}</span>
+  <span class="keyword">return</span> strings.reduce((acc, str, i) => {
+    <span class="keyword">const</span> val = values[i] !== <span class="keyword">undefined</span> ? <span class="string">`**${values[i]}**`</span> : '';
+    <span class="keyword">return</span> <span class="string">`${acc}${str}${val}`</span>;
+  }, '');
+}</pre>
+          <p>
+            Under the hood, V8 compiles the literal call <code>highlight`Hello, ${name}!`</code> into a direct function invocation: <code>highlight(["Hello, ", "!"], "Marwa")</code>. The first argument has a special <code>.raw</code> property that contains the raw, unescaped string pieces (preserving backslashes like <code>\n</code>).
+          </p>
+        </div>
+      </div>
+
+      <!-- Diagram 1: Tagged Template Parsing -->
+      <div class="diagram-container">
+        <svg class="svg-diagram" viewBox="0 0 700 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="700" height="240" rx="16" fill="#101622" stroke="var(--border)" stroke-width="1"/>
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--text-muted)"/>
+            </marker>
+          </defs>
+          
+          <text x="30" y="35" fill="var(--text)" font-family="var(--sans)" font-size="14" font-weight="700">TAGGED TEMPLATE COMPILATION & PARSING FLOW</text>
+          
+          <!-- Source Code Box -->
+          <g class="svg-node" transform="translate(30, 75)">
+            <rect width="200" height="110" rx="8" fill="#151d2a" stroke="var(--border)" stroke-width="1.5"/>
+            <text x="15" y="24" fill="var(--js-yellow)" font-family="var(--mono)" font-size="12" font-weight="bold">Source Code Call</text>
+            <text x="15" y="52" fill="var(--text)" font-family="var(--mono)" font-size="11">const name = "Marwa";</text>
+            <text x="15" y="72" fill="var(--text)" font-family="var(--mono)" font-size="11">highlight`Hello, ${name}!`</text>
+            <text x="15" y="92" fill="var(--text-muted)" font-family="var(--sans)" font-size="9">(No parentheses used)</text>
+          </g>
+          
+          <!-- Arrows -->
+          <path d="M 240 110 L 290 90" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#arrow)"/>
+          <path d="M 240 150 L 290 170" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#arrow)"/>
+          
+          <!-- strings parameter -->
+          <g class="svg-node" transform="translate(300, 50)">
+            <rect width="210" height="70" rx="8" fill="#132427" stroke="var(--neon-teal)" stroke-width="1.5"/>
+            <text x="15" y="22" fill="var(--neon-teal)" font-family="var(--mono)" font-size="11" font-weight="bold">1. strings (Array of strings)</text>
+            <text x="15" y="42" fill="var(--text)" font-family="var(--mono)" font-size="10.5">["Hello, ", "!"]</text>
+            <text x="15" y="58" fill="var(--text-muted)" font-family="var(--sans)" font-size="9">.raw property preserves escapes</text>
+          </g>
+          
+          <!-- values parameter -->
+          <g class="svg-node" transform="translate(300, 140)">
+            <rect width="210" height="70" rx="8" fill="#201c10" stroke="var(--js-yellow)" stroke-width="1.5"/>
+            <text x="15" y="22" fill="var(--js-yellow)" font-family="var(--mono)" font-size="11" font-weight="bold">2. ...values (Rest Parameter)</text>
+            <text x="15" y="42" fill="var(--text)" font-family="var(--mono)" font-size="10.5">["Marwa"]</text>
+            <text x="15" y="58" fill="var(--text-muted)" font-family="var(--sans)" font-size="9">Evaluated expression list</text>
+          </g>
+          
+          <!-- Invocation Arrow -->
+          <path d="M 520 85 L 560 105" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#arrow)"/>
+          <path d="M 520 175 L 560 155" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#arrow)"/>
+          
+          <!-- Final Function Box -->
+          <g class="svg-node" transform="translate(570, 85)">
+            <rect width="100" height="90" rx="8" fill="#151d2a" stroke="var(--border)" stroke-width="1.5"/>
+            <text x="50" y="25" text-anchor="middle" fill="var(--text)" font-family="var(--sans)" font-size="11" font-weight="bold">Invocation</text>
+            <text x="50" y="45" text-anchor="middle" fill="var(--text-muted)" font-family="var(--mono)" font-size="9">highlight(</text>
+            <text x="50" y="60" text-anchor="middle" fill="var(--neon-teal)" font-family="var(--mono)" font-size="9">strings,</text>
+            <text x="50" y="75" text-anchor="middle" fill="var(--js-yellow)" font-family="var(--mono)" font-size="9">...values</text>
+            <text x="50" y="90" text-anchor="middle" fill="var(--text-muted)" font-family="var(--mono)" font-size="9">)</text>
+          </g>
+        </svg>
+      </div>
+
+      <div class="info-box trap">
+        <div class="box-header">Gotcha: Quote Typos & Security (XSS)</div>
+        <div class="box-body">
+          <ul class="nested-list">
+            <li><b>The Quote Typo:</b> Forgetting to use backticks and accidentally using standard quotes: <code>"Hello, ${name}"</code>. The engine treats this as a plain literal string, rendering <code>"${name}"</code> verbatim without interpolating anything.</li>
+            <li><b>XSS Vulnerability:</b> Using template literals to inject user-generated input directly into the DOM (e.g. <code>element.innerHTML = `&lt;h1&gt;${userInput}&lt;/h1&gt;`</code>) leaves you wide open to Cross-Site Scripting. Since the literal performs simple string interpolation, it executes any script tags inside <code>userInput</code>. Use a sanitizing tag function or <code>element.textContent</code> instead.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">💡 Mini Quiz: Tagged Template Bounds</div>
+        <div class="quiz-question">
+          For the invocation <code>tag`A${1}B${2}`</code>, what are the exact arguments passed to the <code>tag</code> function?
+        </div>
+        <button class="quiz-btn" id="quiz-tagged-bounds-btn" onclick="toggleQuiz('quiz-tagged-bounds')">Show Answer & Explanation</button>
+        <div class="quiz-answer" id="quiz-tagged-bounds">
+          <b>Answer:</b> 
+          <br>• First argument (strings): <code>["A", "B", ""]</code>
+          <br>• Remaining arguments: <code>1</code> and <code>2</code>.
+          <br><br>
+          <b>Explanation:</b>
+          The JS engine splits the template literal by its expression blocks. Because there is no character after the last expression <code>${2}</code>, the parser appends an empty string <code>""</code> to the end of the strings array. As a result, the length of the <code>strings</code> array is always exactly <code>values.length + 1</code>. This makes array reduction clean and consistent!
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. MODULES (ESM vs CommonJS) -->
+    <section id="modules">
+      <div class="sec-header">
+        <span class="sec-num">02</span>
+        <h3 class="sec-title">Modules: ESM vs. CommonJS</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          <b>The Ordering Analogy:</b> Think of CommonJS like ordering food and waiting at the counter until it's ready before doing anything else (synchronous, blocking). ES Modules (ESM) is like ordering food with a buzzer — you can keep doing other things, and get notified when it is ready (designed for asynchronous, non-blocking loading, which is browser-friendly).
+        </p>
+        <p>
+          <b>Why modules exist:</b> Historically, JavaScript had no built-in way to split code across multiple files with proper lexical scoping. Everything written was added to the global window scope (polluting the namespace) or required wrapping everything in manual Self-Executing Functions (IIFE). Node.js created CommonJS to solve this for servers; browsers later introduced native ES Modules (ESM) as part of the ECMAScript language standard.
+        </p>
+      </div>
+
+      <pre><span class="comment">// --- CommonJS (Node.js Default Style) ---</span>
+<span class="comment">// math.js</span>
+<span class="keyword">function</span> add(a, b) { <span class="keyword">return</span> a + b; }
+module.exports = { add };
+<span class="comment">// app.js</span>
+<span class="keyword">const</span> { add } = require(<span class="string">'./math.js'</span>);
+
+<span class="comment">// --- ES Modules (Modern ESM Standard) ---</span>
+<span class="comment">// math.mjs</span>
+export <span class="keyword">function</span> add(a, b) { <span class="keyword">return</span> a + b; }
+export default <span class="keyword">function</span> multiply(a, b) { <span class="keyword">return</span> a * b; }
+<span class="comment">// app.mjs</span>
+import multiply, { add } from <span class="string">'./math.mjs'</span>;</pre>
+
+      <div class="info-box hood">
+        <div class="box-header">Under the Hood: Live Bindings vs. Snapshots</div>
+        <div class="box-body">
+          <p>
+            The single biggest runtime difference between CommonJS and ESM is **Live Bindings**:
+          </p>
+          <ul class="nested-list">
+            <li><b>ESM Live Bindings:</b> ESM exports are read-only live references to the exporter's scope. If the exporting module changes a value after exporting it, the importing module sees the updated value instantly.</li>
+            <li><b>CommonJS Snapshots:</b> CommonJS copies/snapshots values at the moment they are exported. Any updates inside the module are lost to the importer.</li>
+          </ul>
+          <pre style="margin: 10px 0; padding: 12px; font-size: 13px;"><span class="comment">// counter.mjs (ESM)</span>
+export <span class="keyword">let</span> count = 0;
+export <span class="keyword">function</span> increment() { count++; }
+
+<span class="comment">// app.mjs (ESM)</span>
+import { count, increment } from <span class="string">'./counter.mjs'</span>;
+console.log(count); <span class="comment">// 0</span>
+increment();
+console.log(count); <span class="comment">// 1 (Live reference is updated!)</span></pre>
+        </div>
+      </div>
+
+      <!-- Diagram 2: Module Binding Mechanisms -->
+      <div class="diagram-container">
+        <svg class="svg-diagram" viewBox="0 0 700 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="700" height="240" rx="16" fill="#101622" stroke="var(--border)" stroke-width="1"/>
+          <text x="30" y="35" fill="var(--text)" font-family="var(--sans)" font-size="14" font-weight="700">MODULE RESOLUTION: RUNTIME COPIES VS COMPILE-TIME BINDINGS</text>
+          
+          <!-- CommonJS Side -->
+          <g class="svg-node" transform="translate(40, 60)">
+            <rect width="280" height="150" rx="8" fill="#1b1212" stroke="var(--neon-coral)" stroke-width="1.5"/>
+            <text x="140" y="24" text-anchor="middle" fill="var(--neon-coral)" font-family="var(--mono)" font-size="12" font-weight="bold">CommonJS (Runtime Snapshot)</text>
+            
+            <rect x="20" y="45" width="100" height="40" rx="4" fill="#2c1e1e" stroke="var(--border)"/>
+            <text x="70" y="68" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="10">count = 0</text>
+            
+            <path d="M 120 65 L 160 65" stroke="var(--text-muted)" stroke-dasharray="3" stroke-width="1.5" marker-end="url(#arrow)"/>
+            
+            <rect x="160" y="45" width="100" height="40" rx="4" fill="#2c1e1e" stroke="var(--border)"/>
+            <text x="210" y="68" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="10">Copy: count = 0</text>
+            
+            <text x="140" y="115" text-anchor="middle" fill="var(--text-muted)" font-family="var(--sans)" font-size="10">Calling increment() changes internal count</text>
+            <text x="140" y="132" text-anchor="middle" fill="var(--neon-coral)" font-family="var(--sans)" font-size="10" font-weight="600">Imported copy remains 0 (stale)</text>
+          </g>
+
+          <!-- ESM Side -->
+          <g class="svg-node" transform="translate(380, 60)">
+            <rect width="280" height="150" rx="8" fill="#121c1c" stroke="var(--neon-teal)" stroke-width="1.5"/>
+            <text x="140" y="24" text-anchor="middle" fill="var(--neon-teal)" font-family="var(--mono)" font-size="12" font-weight="bold">ES Modules (Live Binding Link)</text>
+            
+            <rect x="20" y="45" width="100" height="40" rx="4" fill="#1e2c2c" stroke="var(--border)"/>
+            <text x="70" y="68" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="10">count = 0</text>
+            
+            <path d="M 120 65 L 160 65" stroke="var(--neon-teal)" stroke-width="2" marker-end="url(#arrow)"/>
+            
+            <rect x="160" y="45" width="100" height="40" rx="4" fill="#1e2c2c" stroke="var(--neon-teal)" stroke-width="1"/>
+            <text x="210" y="68" text-anchor="middle" fill="var(--neon-teal)" font-family="var(--mono)" font-size="10">Link [Read-Only]</text>
+            
+            <text x="140" y="115" text-anchor="middle" fill="var(--text-muted)" font-family="var(--sans)" font-size="10">Calling increment() changes internal count</text>
+            <text x="140" y="132" text-anchor="middle" fill="var(--neon-teal)" font-family="var(--sans)" font-size="10" font-weight="600">Imported reference updates to 1 (live)</text>
+          </g>
+        </svg>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Feature Comparison: CommonJS vs. ES Modules</div>
+        <div class="box-body">
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>Property</th>
+                <th>CommonJS (CJS)</th>
+                <th>ES Modules (ESM)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>Loading Execution</b></td>
+                <td>Synchronous (blocks thread)</td>
+                <td>Asynchronous (non-blocking)</td>
+              </tr>
+              <tr>
+                <td><b>Resolution Timing</b></td>
+                <td>Runtime (evaluated during execution)</td>
+                <td>Compile-time (static pre-parse)</td>
+              </tr>
+              <tr>
+                <td><b>Export Mode</b></td>
+                <td>Snapshot value copy</td>
+                <td>Live binding reference</td>
+              </tr>
+              <tr>
+                <td><b>Top-level <code>this</code></b></td>
+                <td>Refers to <code>exports</code> object</td>
+                <td>Evaluates to <code>undefined</code></td>
+              </tr>
+              <tr>
+                <td><b>Static Analysis / Tree-shaking</b></td>
+                <td>Hard (dynamic require statements allowed)</td>
+                <td>Easy (enforces top-level syntax)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">💡 Mini Quiz: Why Static Imports Enable Tree-Shaking</div>
+        <div class="quiz-question">
+          Why does CommonJS's <code>require()</code> make tree-shaking (removing unused exports) virtually impossible for bundlers like Webpack or Vite, whereas ESM's <code>import</code> enables it?
+        </div>
+        <button class="quiz-btn" id="quiz-tree-shaking-btn" onclick="toggleQuiz('quiz-tree-shaking')">Show Answer & Explanation</button>
+        <div class="quiz-answer" id="quiz-tree-shaking">
+          <b>Answer:</b> CommonJS's <code>require()</code> is a dynamic runtime function call, meaning paths can be conditional (e.g. <code>if (x) require('./a') else require('./b')</code>) and evaluated only during code execution. Bundlers cannot guess what will run. ES Modules, however, must be declared statically at the top level of the file. This allows static analysis at compile-time to trace the entire dependency tree and remove code paths that are never imported.
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. GENERATORS & ITERATORS -->
+    <section id="generators">
+      <div class="sec-header">
+        <span class="sec-num">03</span>
+        <h3 class="sec-title">Generators & Iterators</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          <b>The Staircase Analogy:</b> Think of a normal function like a water slide — once you start, you go all the way to the bottom without stopping. A generator is like a flight of stairs with landings (<code>yield</code>s) — you step down to a landing, pause for as long as you want, and only continue to the next step when you explicitly choose to.
+        </p>
+        <p>
+          <b>Why they exist:</b> A normal JavaScript function operates on a "run-to-completion" model. Once invoked, it occupies the call stack and runs synchronously until it returns or errors, blocking any other code execution. Generators solve this by introducing cooperative multitasking — letting functions yield control back to the caller mid-execution, freezing their execution state in memory, and resuming exactly where they left off when requested.
+        </p>
+      </div>
+
+      <pre><span class="comment">// Generator function definition</span>
+<span class="keyword">function*</span> numberGenerator() {
+  <span class="keyword">let</span> i = 0;
+  <span class="keyword">while</span> (<span class="keyword">true</span>) {
+    <span class="keyword">yield</span> i++; <span class="comment">// Suspends context, returns i, waits for next()</span>
+  }
+}
+
+<span class="keyword">const</span> iterator = numberGenerator();
+console.log(iterator.next()); <span class="comment">// { value: 0, done: false }</span>
+console.log(iterator.next()); <span class="comment">// { value: 1, done: false }</span>
+
+<span class="comment">// Custom iterable implementing Symbol.iterator</span>
+<span class="keyword">const</span> customIterable = {
+  [Symbol.iterator]() {
+    <span class="keyword">let</span> step = 0;
+    <span class="keyword">return</span> {
+      next() {
+        step++;
+        <span class="keyword">return</span> step &lt;= 3 
+          ? { value: step, done: <span class="keyword">false</span> }
+          : { value: <span class="keyword">undefined</span>, done: <span class="keyword">true</span> };
+      }
+    };
+  }
+};</pre>
+
+      <div class="info-box hood">
+        <div class="box-header">Under the Hood: How the V8 Engine Suspends Functions</div>
+        <div class="box-body">
+          <p>
+            Normally, when a function executes, its variables and execution context are stored in a **stack frame**. When the function returns, this frame is popped off the call stack and garbage collected.
+          </p>
+          <p>
+            Generators behave differently. When a generator is invoked, V8 allocates a **Generator Object** on the heap. This object retains a reference to the function's execution state, including its local variable bindings, argument values, temporary intermediate evaluation values, and the current instruction pointer.
+          </p>
+          <p>
+            When a <code>yield</code> statement is reached:
+            <br>1. V8 saves the current register states and local variables into the heap-allocated Generator Object.
+            <br>2. It pops the generator's stack frame off the active call stack, resuming execution of the calling code.
+            <br>3. When <code>.next()</code> is called again, V8 pushes the generator's saved frame back onto the call stack, restores its registers and instruction pointer, and resumes execution seamlessly.
+          </p>
+        </div>
+      </div>
+
+      <!-- Diagram 3: Generator Lifecycle -->
+      <div class="diagram-container">
+        <svg class="svg-diagram" viewBox="0 0 700 250" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="700" height="250" rx="16" fill="#101622" stroke="var(--border)" stroke-width="1"/>
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--text-muted)"/>
+            </marker>
+          </defs>
+          <text x="30" y="35" fill="var(--text)" font-family="var(--sans)" font-size="14" font-weight="700">GENERATOR LIFECYCLE: SUSPEND & RESUME PIPELINE</text>
+          
+          <!-- Call Generator -->
+          <g class="svg-node" transform="translate(30, 70)">
+            <rect width="180" height="110" rx="8" fill="#151d2a" stroke="var(--border)" stroke-width="1.5"/>
+            <text x="90" y="24" text-anchor="middle" fill="var(--js-yellow)" font-family="var(--mono)" font-size="11" font-weight="bold">const gen = numberGen();</text>
+            <text x="90" y="55" text-anchor="middle" fill="var(--text-muted)" font-family="var(--sans)" font-size="10">1. Generator Init</text>
+            <text x="90" y="75" text-anchor="middle" fill="var(--neon-coral)" font-family="var(--sans)" font-size="10" font-weight="600">State: SUSPENDED</text>
+            <text x="90" y="92" text-anchor="middle" fill="var(--text-muted)" font-family="var(--sans)" font-size="8.5">(Zero function body runs)</text>
+          </g>
+          
+          <!-- Arrow 1 -->
+          <path d="M 220 125 L 260 125" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#arrow)"/>
+          <text x="240" y="115" text-anchor="middle" fill="var(--text-muted)" font-family="var(--mono)" font-size="9">gen.next()</text>
+          
+          <!-- Execution Phase -->
+          <g class="svg-node" transform="translate(270, 50)">
+            <rect width="180" height="140" rx="8" fill="#132427" stroke="var(--neon-teal)" stroke-width="1.5"/>
+            <text x="90" y="24" text-anchor="middle" fill="var(--neon-teal)" font-family="var(--mono)" font-size="11" font-weight="bold">Active Frame</text>
+            <text x="90" y="50" text-anchor="middle" fill="var(--text)" font-family="var(--sans)" font-size="10">Executes body code...</text>
+            <rect x="20" y="70" width="140" height="30" rx="4" fill="#1e2c2c" stroke="var(--neon-teal)" stroke-width="0.5"/>
+            <text x="90" y="88" text-anchor="middle" fill="var(--js-yellow)" font-family="var(--mono)" font-size="10">yields value</text>
+            <text x="90" y="122" text-anchor="middle" fill="var(--text-muted)" font-family="var(--sans)" font-size="9">Freezes stack in memory</text>
+          </g>
+          
+          <!-- Arrow 2 -->
+          <path d="M 460 125 L 500 125" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#arrow)"/>
+          <text x="480" y="115" text-anchor="middle" fill="var(--text-muted)" font-family="var(--mono)" font-size="9">gen.next()</text>
+          
+          <!-- Yield Value Return -->
+          <g class="svg-node" transform="translate(510, 70)">
+            <rect width="160" height="110" rx="8" fill="#201c10" stroke="var(--js-yellow)" stroke-width="1.5"/>
+            <text x="80" y="24" text-anchor="middle" fill="var(--js-yellow)" font-family="var(--mono)" font-size="11" font-weight="bold">Returns IteratorResult</text>
+            <text x="80" y="55" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="10.5">{ value, done }</text>
+            <text x="80" y="82" text-anchor="middle" fill="var(--text-muted)" font-family="var(--sans)" font-size="9.5">State: SUSPENDED</text>
+            <text x="80" y="96" text-anchor="middle" fill="var(--text-muted)" font-family="var(--sans)" font-size="8.5">(Awaiting next call)</text>
+          </g>
+         </svg>
+       </div>
+
+       <div class="quiz-wrap">
+         <div class="quiz-title">💡 Mini Quiz: Infinite Generator Safety</div>
+         <div class="quiz-question">
+           Why can you write an infinite <code>while(true)</code> loop inside a generator function without crashing the browser, whereas doing so inside a normal function blocks the page completely?
+         </div>
+         <button class="quiz-btn" id="quiz-infinite-gen-btn" onclick="toggleQuiz('quiz-infinite-gen')">Show Answer & Explanation</button>
+         <div class="quiz-answer" id="quiz-infinite-gen">
+           <b>Answer:</b> Normal functions execute synchronously to completion on the call stack, so an infinite loop keeps the engine busy indefinitely, blocking the main thread. A generator function pauses execution every time it hits a <code>yield</code> statement, saving its execution frame on the heap and returning control to the caller. The loop only advances one step at a time, each step triggered by a separate call to <code>.next()</code>, meaning it never blocks the main thread.
+         </div>
+       </div>
+     </section>
+
+     <!-- 4. SYMBOL, OPTIONAL CHAINING, NULLISH COALESCING -->
+     <section id="operators">
+       <div class="sec-header">
+         <span class="sec-num">04</span>
+         <h3 class="sec-title">Symbol, Optional Chaining & Nullish Coalescing</h3>
+       </div>
+
+      <div class="desc">
+        <p>
+          <b>The Analogies:</b>
+          <br>• <b>Symbol:</b> A unique, one-of-a-kind security badge. Even if two badges say the same name, they are physically distinct and never trigger identity conflicts.
+          <br>• <b>Optional Chaining (<code>?.</code>):</b> Politely checking if a door is unlocked and exists before attempting to open it, instead of running headfirst into a wall (cashing the script).
+          <br>• <b>Nullish Coalescing (<code>??</code>):</b> A smart safety net that only catches true missing values (<code>null</code> or <code>undefined</code>), ignoring harmless falsy values like empty strings <code>""</code> or <code>0</code>.
+        </p>
+      </div>
+
+      <pre><span class="comment">// 1. Symbols: Guaranteed uniqueness</span>
+<span class="keyword">const</span> s1 = Symbol(<span class="string">"meta"</span>);
+<span class="keyword">const</span> s2 = Symbol(<span class="string">"meta"</span>);
+console.log(s1 === s2); <span class="comment">// false!</span>
+
+<span class="comment">// 2. Optional Chaining: Short-circuit safety</span>
+<span class="keyword">const</span> user = { profile: { name: <span class="string">"Marwa"</span> } };
+console.log(user?.address?.city); <span class="comment">// undefined (No crash!)</span>
+
+<span class="comment">// 3. Nullish Coalescing: Smart fallback</span>
+<span class="keyword">const</span> speed = 0;
+<span class="keyword">const</span> sFallback1 = speed || 10; <span class="comment">// 10 (falsy check overwrites 0!)</span>
+<span class="keyword">const</span> sFallback2 = speed ?? 10; <span class="comment">// 0 (only overrides null/undefined)</span></pre>
+
+      <div class="info-box hood">
+        <div class="box-header">Under the Hood: Symbols as Hidden Object Keys</div>
+        <div class="box-body">
+          <p>
+            Symbols are primitive values that are guaranteed to be unique. They are commonly used as object keys to prevent property collisions in libraries or frameworks. Properties keyed with Symbols do not show up in <code>Object.keys()</code> or <code>for...in</code> loops:
+          </p>
+          <pre style="margin: 10px 0; padding: 12px; font-size: 13px;"><span class="keyword">const</span> key = Symbol(<span class="string">"secret"</span>);
+<span class="keyword">const</span> obj = { name: <span class="string">"Marwa"</span>, [key]: <span class="string">"classified"</span> };
+
+console.log(Object.keys(obj)); <span class="comment">// ["name"]</span>
+console.log(obj[key]); <span class="comment">// "classified"</span></pre>
+          <p>
+            This mechanism is also used for JS **Well-Known Symbols** (like <code>Symbol.iterator</code>), allowing objects to declare iterable capabilities hidden from normal property key lists.
+          </p>
+        </div>
+      </div>
+
+      <!-- Diagram 3: Optional Chaining Short-Circuiting -->
+      <div class="diagram-container">
+        <svg class="svg-diagram" viewBox="0 0 700 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="700" height="220" rx="16" fill="#101622" stroke="var(--border)" stroke-width="1"/>
+          <text x="30" y="35" fill="var(--text)" font-family="var(--sans)" font-size="14" font-weight="700">OPTIONAL CHAINING (?.) EVALUATION PIPELINE</text>
+          
+          <!-- Input -->
+          <text x="30" y="80" fill="var(--js-yellow)" font-family="var(--mono)" font-size="13">user?.profile?.name</text>
+          
+          <!-- Step 1 -->
+          <g transform="translate(30, 110)">
+            <rect width="130" height="40" rx="6" fill="#151d2a" stroke="var(--border)"/>
+            <text x="65" y="24" text-anchor="middle" fill="var(--text)" font-family="var(--sans)" font-size="11">Check "user"</text>
+          </g>
+          
+          <!-- Arrow 1 -->
+          <path d="M 160 130 L 200 130" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#arrow)"/>
+          
+          <!-- Decision 1 -->
+          <g transform="translate(200, 100)">
+            <polygon points="40,0 80,30 40,60 0,30" fill="#201c10" stroke="var(--js-yellow)" stroke-width="1.5"/>
+            <text x="40" y="34" text-anchor="middle" fill="var(--js-yellow)" font-family="var(--sans)" font-size="9" font-weight="bold">Nullish?</text>
+          </g>
+          
+          <!-- Yes Arrow (down) -->
+          <path d="M 240 160 L 240 190" stroke="var(--neon-coral)" stroke-width="1.5" marker-end="url(#arrow)"/>
+          <text x="250" y="175" fill="var(--neon-coral)" font-family="var(--sans)" font-size="10">YES</text>
+          
+          <!-- No Arrow (right) -->
+          <path d="M 280 130 L 320 130" stroke="var(--neon-teal)" stroke-width="1.5" marker-end="url(#arrow)"/>
+          <text x="295" y="120" fill="var(--neon-teal)" font-family="var(--sans)" font-size="10">NO</text>
+          
+          <!-- Step 2 -->
+          <g transform="translate(320, 110)">
+            <rect width="140" height="40" rx="6" fill="#151d2a" stroke="var(--border)"/>
+            <text x="70" y="24" text-anchor="middle" fill="var(--text)" font-family="var(--sans)" font-size="11">Check "profile"</text>
+          </g>
+          
+          <!-- Arrow 2 -->
+          <path d="M 460 130 L 500 130" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#arrow)"/>
+          
+          <!-- Decision 2 -->
+          <g transform="translate(500, 100)">
+            <polygon points="40,0 80,30 40,60 0,30" fill="#201c10" stroke="var(--js-yellow)" stroke-width="1.5"/>
+            <text x="40" y="34" text-anchor="middle" fill="var(--js-yellow)" font-family="var(--sans)" font-size="9" font-weight="bold">Nullish?</text>
+          </g>
+          
+          <!-- Yes Arrow (right and down) -->
+          <path d="M 580 130 L 610 130 L 610 190" stroke="var(--neon-coral)" stroke-width="1.5" marker-end="url(#arrow)"/>
+          
+          <!-- No Arrow (up) -->
+          <path d="M 540 100 L 540 70 L 600 70" stroke="var(--neon-teal)" stroke-width="1.5" marker-end="url(#arrow)"/>
+          
+          <!-- Success End -->
+          <g transform="translate(610, 50)">
+            <rect width="70" height="40" rx="6" fill="#132427" stroke="var(--neon-teal)"/>
+            <text x="35" y="24" text-anchor="middle" fill="var(--neon-teal)" font-family="var(--mono)" font-size="10">Return value</text>
+          </g>
+          
+          <!-- Short Circuit End -->
+          <g transform="translate(500, 190)">
+            <rect width="130" height="25" rx="4" fill="#221515" stroke="var(--neon-coral)"/>
+            <text x="65" y="16" text-anchor="middle" fill="var(--neon-coral)" font-family="var(--mono)" font-size="9">undefined (Short-circuit)</text>
+          </g>
+        </svg>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">💡 Mini Quiz: Chaining Over Empty Arrays</div>
+        <div class="quiz-question">
+          Given: <code>const val = obj?.data?.items?.[0]?.name ?? "Unknown";</code>.
+          If <code>obj.data</code> exists and contains <code>items: []</code> (an empty array), what is the evaluation of <code>val</code> and how does the code behave?
+        </div>
+        <button class="quiz-btn" id="quiz-empty-array-btn" onclick="toggleQuiz('quiz-empty-array')">Show Answer & Explanation</button>
+        <div class="quiz-answer" id="quiz-empty-array">
+          <b>Answer:</b> <code>"Unknown"</code>
+          <br><br>
+          <b>Explanation:</b>
+          Let's trace the evaluation step-by-step:
+          <br>1. <code>obj?.data</code> resolves to the data object since it exists.
+          <br>2. <code>?.items</code> resolves to <code>[]</code>.
+          <br>3. <code>?.[0]</code> accesses index 0. The array itself is a valid object (not nullish), so ?. checks pass, but reading index 0 on an empty array returns <code>undefined</code>.
+          <br>4. The next optional chain <code>?.name</code> reads the property on <code>undefined</code>. This triggers a short-circuit, stopping compilation and returning <code>undefined</code>.
+          <br>5. The nullish coalescing operator (<code>??</code>) checks if the left value (<code>undefined</code>) is nullish. Since it is, it yields the fallback value: <code>"Unknown"</code>.
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. MUTATING VS NON-MUTATING ARRAY METHODS -->
+    <section id="array-mutations">
+      <div class="sec-header">
+        <span class="sec-num">05</span>
+        <h3 class="sec-title">Mutating vs. Non-mutating Array Methods</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          <b>The Document Analogy:</b> Think of a mutating method like editing a Google Doc directly. The file is modified in-place, and every variable pointing to it instantly sees the change. A non-mutating method is like hitting "Make a copy" — you get a fresh duplicate to modify, while the original file remains untouched.
+        </p>
+        <p>
+          <b>Why it matters:</b> JavaScript arrays are reference types. When you mutate an array in-place, you modify the underlying memory location. If multiple variables refer to that array (such as React props or Redux states), direct mutations bypass change-detection systems (which compare references, not deep contents), causing silent rendering bugs.
+        </p>
+      </div>
+
+      <pre><span class="comment">// 1. Mutating: Modifies array in place</span>
+<span class="keyword">const</span> nums = [3, 1, 2];
+nums.sort(); <span class="comment">// Sorts in place!</span>
+console.log(nums); <span class="comment">// [1, 2, 3] (Original array changed)</span>
+
+<span class="comment">// 2. Non-mutating: Returns new array copy</span>
+<span class="keyword">const</span> original = [3, 1, 2];
+<span class="keyword">const</span> doubled = original.map(x => x * 2);
+console.log(original); <span class="comment">// [3, 1, 2] (Original array untouched!)</span></pre>
+
+      <div class="info-box hood">
+        <div class="box-header">The Classic Interview Trap: Lexicographical sort()</div>
+        <div class="box-body">
+          <p>
+            By default, <code>Array.prototype.sort()</code> without a comparator converts elements to strings and compares their Unicode code point values character-by-character. This results in counter-intuitive numeric sorting:
+          </p>
+          <pre style="margin: 10px 0; padding: 12px; font-size: 13px;">console.log([10, 2, 33, 4].sort()); 
+<span class="comment">// Output: [10, 2, 33, 4] (because "10" starts with "1", which comes before "2"!)</span></pre>
+          <p>
+            <b>The Fix:</b> Always pass a comparator function <code>(a, b) => a - b</code>. The sign of the returned number determines sorting order (negative: <code>a</code> before <code>b</code>; positive: <code>b</code> before <code>a</code>).
+          </p>
+        </div>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Method Classification Reference</div>
+        <div class="box-body">
+          <ul class="nested-list">
+            <li><b>Mutating (In-place changes):</b> <code>push()</code>, <code>pop()</code>, <code>shift()</code>, <code>unshift()</code>, <code>splice()</code>, <code>sort()</code>, <code>reverse()</code>.</li>
+            <li><b>Non-mutating (Return copy/value):</b> <code>map()</code>, <code>filter()</code>, <code>slice()</code>, <code>concat()</code>, <code>join()</code>, <code>find()</code>, <code>reduce()</code>.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Diagram 4: Mutating vs Non-mutating References -->
+      <div class="diagram-container">
+        <svg class="svg-diagram" viewBox="0 0 700 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="700" height="240" rx="16" fill="#101622" stroke="var(--border)" stroke-width="1"/>
+          <text x="30" y="35" fill="var(--text)" font-family="var(--sans)" font-size="14" font-weight="700">ARRAY OPERATIONS: MUTATION VS COPY REF FLOW</text>
+          
+          <!-- Original Array Reference -->
+          <g transform="translate(260, 50)">
+            <rect width="180" height="40" rx="6" fill="#151d2a" stroke="var(--border)" stroke-width="2"/>
+            <text x="90" y="24" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="12">Memory: [3, 1, 2]</text>
+          </g>
+
+          <!-- Mutating Branch -->
+          <path d="M 250 70 L 140 100" stroke="var(--neon-coral)" stroke-width="1.5" marker-end="url(#arrow)"/>
+          <text x="140" y="80" fill="var(--neon-coral)" font-family="var(--sans)" font-size="10">Mutating: push(4)</text>
+
+          <g transform="translate(40, 110)">
+            <rect width="180" height="80" rx="6" fill="#2a1818" stroke="var(--neon-coral)" stroke-width="1"/>
+            <text x="90" y="25" text-anchor="middle" fill="var(--neon-coral)" font-family="var(--sans)" font-size="11" font-weight="bold">Mutates Same Memory</text>
+            <text x="90" y="48" text-anchor="middle" fill="var(--text-muted)" font-family="var(--mono)" font-size="10">Memory → [3, 1, 2, 4]</text>
+            <text x="90" y="68" text-anchor="middle" fill="var(--text-muted)" font-family="var(--sans)" font-size="9">(Caller sees modification)</text>
+          </g>
+
+          <!-- Non-Mutating Branch -->
+          <path d="M 450 70 L 560 100" stroke="var(--neon-teal)" stroke-width="1.5" marker-end="url(#arrow)"/>
+          <text x="490" y="80" fill="var(--neon-teal)" font-family="var(--sans)" font-size="10">Non-mutating: map()</text>
+
+          <g transform="translate(480, 110)">
+            <rect width="180" height="80" rx="6" fill="#132427" stroke="var(--neon-teal)" stroke-width="1"/>
+            <text x="90" y="25" text-anchor="middle" fill="var(--neon-teal)" font-family="var(--sans)" font-size="11" font-weight="bold">Allocates New Array</text>
+            <text x="90" y="48" text-anchor="middle" fill="var(--text-muted)" font-family="var(--mono)" font-size="10">Orig Memory → [3, 1, 2]</text>
+            <text x="90" y="68" text-anchor="middle" fill="var(--neon-teal)" font-family="var(--mono)" font-size="10">New Ref → [6, 2, 4]</text>
+          </g>
+        </svg>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">💡 Mini Quiz: Accidental Prop Mutation</div>
+        <div class="quiz-question">
+          A developer attempts to sort a shopping list array from props before rendering: <code>const sorted = props.items.sort();</code>.
+          Why is this an anti-pattern, and what is the clean way to sort the array without mutation?
+        </div>
+        <button class="quiz-btn" id="quiz-sort-mutation-btn" onclick="toggleQuiz('quiz-sort-mutation')">Show Answer & Explanation</button>
+        <div class="quiz-answer" id="quiz-sort-mutation">
+          <b>Answer:</b> 
+          This is a severe anti-pattern because <code>sort()</code> mutates the array in-place, which directly mutates the parent component's state/props. This causes side-effects and breaks React change detection.
+          <br><br>
+          <b>The Fix:</b> Clone the array first using the spread operator or <code>slice()</code>, then sort the copy:
+          <br><code>const sorted = [...props.items].sort((a, b) => a.price - b.price);</code>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. IMMUTABILITY PATTERNS -->
+    <section id="immutability">
+      <div class="sec-header">
+        <span class="sec-num">06</span>
+        <h3 class="sec-title">Immutability Patterns</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          <b>The Tracing Paper Analogy:</b> Imagine immutability like using tracing paper over a photo instead of drawing directly on the original. You create a new layer with your changes, leaving the original photo underneath completely untouched.
+        </p>
+        <p>
+          <b>Why it matters:</b> In modern state management libraries (like React and Redux), change-detection algorithms check references (using <code>Object.is</code> or <code>===</code> comparison). If you mutate properties inside an object or array directly without changing its reference, React assumes nothing has changed and skips UI updates.
+        </p>
+      </div>
+
+      <pre><span class="comment">// 1. Immutable Object Updates (Spread)</span>
+<span class="keyword">const</span> user = { name: <span class="string">"Marwa"</span>, age: 26 };
+<span class="keyword">const</span> updatedUser = { ...user, age: 27 }; <span class="comment">// Fresh reference</span>
+
+<span class="comment">// 2. Immutable Array Updates</span>
+<span class="keyword">const</span> list = [1, 2, 3];
+<span class="keyword">const</span> added = [...list, 4]; <span class="comment">// Push alternative</span>
+<span class="keyword">const</span> edited = list.map((x, i) => i === 1 ? 99 : x); <span class="comment">// Edit alternative</span></pre>
+
+      <div class="info-box trap">
+        <div class="box-header">The Shallow Spread Trap</div>
+        <div class="box-body">
+          <p>
+            The spread operator (<code>{...obj}</code> or <code>[...arr]</code>) only copies properties one-level deep. Any nested objects are not cloned; their memory references are simply shared between the original and the copy:
+          </p>
+          <pre style="margin: 10px 0; padding: 12px; font-size: 13px;"><span class="keyword">const</span> original = { name: <span class="string">"Marwa"</span>, address: { city: <span class="string">"Giza"</span> } };
+<span class="keyword">const</span> copy = { ...original };
+copy.address.city = <span class="string">"Cairo"</span>; <span class="comment">// Mutates nested property!</span>
+console.log(original.address.city); <span class="comment">// "Cairo" (Original is corrupted!)</span></pre>
+          <p>
+            <b>The Solutions:</b> Either spread at every level of nested updates, use <code>structuredClone()</code> for deep copying, or utilize state libraries like Immer.
+          </p>
+        </div>
+      </div>
+
+      <!-- Diagram 5: Shallow vs Deep Cloning -->
+      <div class="diagram-container">
+        <svg class="svg-diagram" viewBox="0 0 700 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="700" height="240" rx="16" fill="#101622" stroke="var(--border)" stroke-width="1"/>
+          <text x="30" y="35" fill="var(--text)" font-family="var(--sans)" font-size="14" font-weight="700">SHALLOW SPREAD VS DEEP CLONING REF TREE</text>
+          
+          <!-- Original Object -->
+          <g transform="translate(30, 60)">
+            <rect width="180" height="150" rx="8" fill="#151d2a" stroke="var(--border)" stroke-width="1.5"/>
+            <text x="90" y="22" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="11" font-weight="bold">Original Object</text>
+            <text x="90" y="55" text-anchor="middle" fill="var(--text-muted)" font-family="var(--mono)" font-size="10">Ref A</text>
+            
+            <rect x="20" y="80" width="140" height="40" rx="4" fill="#201c10" stroke="var(--js-yellow)" stroke-width="1"/>
+            <text x="90" y="104" text-anchor="middle" fill="var(--js-yellow)" font-family="var(--mono)" font-size="10">address: Ref B</text>
+          </g>
+
+          <!-- Shallow Copy (Spread) -->
+          <g transform="translate(260, 60)">
+            <rect width="180" height="150" rx="8" fill="#2a1818" stroke="var(--neon-coral)" stroke-width="1.5"/>
+            <text x="90" y="22" text-anchor="middle" fill="var(--neon-coral)" font-family="var(--sans)" font-size="11" font-weight="bold">Shallow Copy {...}</text>
+            <text x="90" y="55" text-anchor="middle" fill="var(--text-muted)" font-family="var(--mono)" font-size="10">Ref C (New)</text>
+            
+            <!-- Pointer arrow showing it still points to address Ref B -->
+            <path d="M 60 100 L -70 100" stroke="var(--neon-coral)" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="2"/>
+            <text x="-10" y="90" fill="var(--neon-coral)" font-family="var(--sans)" font-size="9">Shares Ref B!</text>
+            
+            <rect x="20" y="110" width="140" height="30" rx="4" fill="#1a1111" stroke="var(--neon-coral)" stroke-width="0.5"/>
+            <text x="90" y="128" text-anchor="middle" fill="var(--neon-coral)" font-family="var(--mono)" font-size="9">address: Ref B (Same)</text>
+          </g>
+
+          <!-- Deep Copy (structuredClone) -->
+          <g transform="translate(490, 60)">
+            <rect width="180" height="150" rx="8" fill="#121c1c" stroke="var(--neon-teal)" stroke-width="1.5"/>
+            <text x="90" y="22" text-anchor="middle" fill="var(--neon-teal)" font-family="var(--sans)" font-size="11" font-weight="bold">Deep Copy (Cloned)</text>
+            <text x="90" y="55" text-anchor="middle" fill="var(--text-muted)" font-family="var(--mono)" font-size="10">Ref D (New)</text>
+            
+            <rect x="20" y="80" width="140" height="40" rx="4" fill="#132427" stroke="var(--neon-teal)" stroke-width="1"/>
+            <text x="90" y="104" text-anchor="middle" fill="var(--neon-teal)" font-family="var(--mono)" font-size="10">address: Ref E (New)</text>
+            <text x="90" y="138" text-anchor="middle" fill="var(--text-muted)" font-family="var(--sans)" font-size="8.5">Fully Isolated Memory</text>
+          </g>
+        </svg>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">💡 Mini Quiz: Nested Updates vs Shallow Copies</div>
+        <div class="quiz-question">
+          Why does:
+          <br><code>const copy = { ...state, user: { ...state.user, address: { city: "Cairo" } } };</code>
+          <br>correctly isolate the nested city update, whereas:
+          <br><code>const copy = { ...state }; copy.user.address.city = "Cairo";</code>
+          <br>mutates the original state object?
+        </div>
+        <button class="quiz-btn" id="quiz-nested-update-btn" onclick="toggleQuiz('quiz-nested-update')">Show Answer & Explanation</button>
+        <div class="quiz-answer" id="quiz-nested-update">
+          <b>Answer:</b>
+          <br>The first statement creates a completely **new object reference** at every single level of the modification path:
+          <br>1. Spreads <code>state</code> to make a new wrapper object.
+          <br>2. Spreads <code>state.user</code> to make a new user object.
+          <br>3. Creates a fresh <code>address</code> object with the updated <code>city</code> value.
+          <br>Because new references are created at each level, the original nested tree remains untouched.
+          <br><br>
+          In contrast, the second statement only clones the top-level <code>state</code>. The reference to <code>copy.user</code> and <code>copy.user.address</code> still points directly to the same nested memory nodes of the original object, meaning any mutations directly affect the original.
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. ARRAY-LIKE OBJECTS VS TRUE ARRAYS -->
+    <section id="array-like">
+      <div class="sec-header">
+        <span class="sec-num">07</span>
+        <h3 class="sec-title">Array-like Objects vs. True Arrays</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          <b>The Passport Analogy:</b> A true array is an official, valid passport. It grants you the legal right to travel using array methods (like <code>map</code>, <code>filter</code>, <code>push</code>). An array-like object is a color photocopy of a passport — it has a picture, indices (pages), and a length, but if you try to cross a border with it (call an array method), it throws a validation error.
+        </p>
+        <p>
+          <b>Why they exist:</b> Historically, JavaScript did not have a unified way to describe sequences. Some APIs returned objects that looked like arrays but lacked their methods. For example, the <code>arguments</code> object in functions, <code>NodeList</code> (from <code>querySelectorAll</code>), and <code>HTMLCollection</code> are all objects with indexed keys and a <code>length</code> property, but they do not inherit from <code>Array.prototype</code>.
+        </p>
+      </div>
+
+      <pre><span class="comment">// A plain array-like object</span>
+<span class="keyword">const</span> arrayLike = { <span class="number">0</span>: "a", <span class="number">1</span>: "b", length: <span class="number">2</span> };
+
+<span class="comment">// Throws TypeError: arrayLike.map is not a function</span>
+<span class="comment">// arrayLike.map(x => x.toUpperCase());</span>
+
+<span class="comment">// Solution: Convert to true array</span>
+<span class="keyword">const</span> arr1 = Array.from(arrayLike);
+console.log(arr1.map(x => x.toUpperCase())); <span class="comment">// ["A", "B"]</span></pre>
+
+      <div class="info-box hood">
+        <div class="box-header">Under the Hood: Iteration Protocol vs. Index-based Fallbacks</div>
+        <div class="box-body">
+          <p>
+            Why does the spread operator <code>[...arrayLike]</code> throw an error on plain array-like objects, while <code>Array.from(arrayLike)</code> works seamlessly?
+          </p>
+          <ul class="nested-list">
+            <li><b>Spread Operator (<code>[...]</code>):</b> Relies strictly on the **Iterable Protocol**. It searches for the iterator method at <code>Symbol.iterator</code>. If this property is absent, the engine immediately aborts and throws a <code>TypeError: object is not iterable</code>.</li>
+            <li><b><code>Array.from()</code>:</b> Is a hybrid utility. First, it tries the Iterable Protocol. If <code>Symbol.iterator</code> is missing, it falls back to checking the object's <code>length</code> property. If <code>length</code> is present, it constructs a new array and performs manual index-based lookups from <code>0</code> up to <code>length - 1</code>, copying the values.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Diagram 6: Conversion Pathways -->
+      <div class="diagram-container">
+        <svg class="svg-diagram" viewBox="0 0 700 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="700" height="280" rx="16" fill="#101622" stroke="var(--border)" stroke-width="1"/>
+          
+          <text x="30" y="35" fill="var(--text)" font-family="var(--sans)" font-size="14" font-weight="700">ARRAY-LIKE CONVERSION PATHWAYS: SPREAD VS Array.from</text>
+          
+          <!-- Input Node -->
+          <g class="svg-node" transform="translate(250, 50)">
+            <rect width="200" height="50" rx="8" fill="#151d2a" stroke="var(--border)" stroke-width="1.5"/>
+            <text x="100" y="22" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="11" font-weight="bold">const obj = { 0: "a", length: 1 };</text>
+            <text x="100" y="38" text-anchor="middle" fill="var(--text-muted)" font-family="var(--sans)" font-size="9.5">Plain Array-like (No Symbol.iterator)</text>
+          </g>
+          
+          <!-- Left Arrow -->
+          <path d="M 240 75 L 140 105" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#arrow)"/>
+          <text x="165" y="85" fill="var(--text-muted)" font-family="var(--mono)" font-size="10">Spread: [...obj]</text>
+          
+          <!-- Right Arrow -->
+          <path d="M 460 75 L 560 105" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#arrow)"/>
+          <text x="495" y="85" fill="var(--text-muted)" font-family="var(--mono)" font-size="10">Array.from(obj)</text>
+          
+          <!-- Left Path: Spread (Error) -->
+          <g class="svg-node svg-node-error" transform="translate(40, 115)">
+            <rect width="200" height="120" rx="8" fill="#2a1818" stroke="var(--neon-coral)" stroke-width="1.5"/>
+            <text x="100" y="24" text-anchor="middle" fill="var(--neon-coral)" font-family="var(--mono)" font-size="11" font-weight="bold">Iterable Protocol Check</text>
+            <text x="100" y="45" text-anchor="middle" fill="var(--text-muted)" font-family="var(--sans)" font-size="10">Checks obj[Symbol.iterator]</text>
+            <text x="100" y="65" text-anchor="middle" fill="var(--neon-coral)" font-family="var(--mono)" font-size="11" font-weight="bold">❌ Missing</text>
+            <line x1="20" y1="80" x2="180" y2="80" stroke="rgba(255, 122, 122, 0.2)" stroke-width="1"/>
+            <text x="100" y="98" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="9.5">Throws TypeError:</text>
+            <text x="100" y="110" text-anchor="middle" fill="var(--text-muted)" font-family="var(--mono)" font-size="9">"obj is not iterable"</text>
+          </g>
+          
+          <!-- Right Path: Array.from (Success) -->
+          <g class="svg-node" transform="translate(460, 115)">
+            <rect width="200" height="120" rx="8" fill="#132427" stroke="var(--neon-teal)" stroke-width="1.5"/>
+            <text x="100" y="24" text-anchor="middle" fill="var(--neon-teal)" font-family="var(--mono)" font-size="11" font-weight="bold">Hybrid Lookup Engine</text>
+            <text x="100" y="45" text-anchor="middle" fill="var(--text-muted)" font-family="var(--sans)" font-size="10">1. Check Symbol.iterator (missing)</text>
+            <text x="100" y="62" text-anchor="middle" fill="var(--js-yellow)" font-family="var(--sans)" font-size="10">2. Fallback to length & index</text>
+            <line x1="20" y1="75" x2="180" y2="75" stroke="rgba(94, 230, 208, 0.2)" stroke-width="1"/>
+            <text x="100" y="92" text-anchor="middle" fill="var(--neon-teal)" font-family="var(--mono)" font-size="11" font-weight="bold">✔ Success</text>
+            <text x="100" y="108" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="9.5">Returns: ["a"]</text>
+          </g>
+        </svg>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Feature Comparison Matrix</div>
+        <div class="box-body">
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>Feature / Characteristic</th>
+                <th>Plain Array-like</th>
+                <th>Iterable Array-like (NodeList)</th>
+                <th>True Array</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>Has length & index keys?</b></td>
+                <td style="color: var(--neon-green)">✔ Yes</td>
+                <td style="color: var(--neon-green)">✔ Yes</td>
+                <td style="color: var(--neon-green)">✔ Yes</td>
+              </tr>
+              <tr>
+                <td><b>Inherits Array.prototype?</b></td>
+                <td style="color: var(--neon-coral)">❌ No</td>
+                <td style="color: var(--neon-coral)">❌ No (has custom prototypes)</td>
+                <td style="color: var(--neon-green)">✔ Yes</td>
+              </tr>
+              <tr>
+                <td><b>Supports Spread ([...])?</b></td>
+                <td style="color: var(--neon-coral)">❌ No (missing Symbol.iterator)</td>
+                <td style="color: var(--neon-green)">✔ Yes</td>
+                <td style="color: var(--neon-green)">✔ Yes</td>
+              </tr>
+              <tr>
+                <td><b>Supports Array.from()?</b></td>
+                <td style="color: var(--neon-green)">✔ Yes (fallback path)</td>
+                <td style="color: var(--neon-green)">✔ Yes</td>
+                <td style="color: var(--neon-green)">✔ Yes</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">💡 Mini Quiz: The Missing Indices Gotcha</div>
+        <div class="quiz-question">
+          What is the output of <code>Array.from({ length: 2, 0: "a" })</code>, and what value is assigned to the missing index?
+        </div>
+        <button class="quiz-btn" id="quiz-missing-indices-btn" onclick="toggleQuiz('quiz-missing-indices')">Show Answer & Explanation</button>
+        <div class="quiz-answer" id="quiz-missing-indices">
+          <b>Answer:</b> <code>["a", undefined]</code>
+          <br><br>
+          <b>Explanation:</b>
+          When <code>Array.from()</code> uses its index fallback, it builds an array of length 2 (governed by the <code>length</code> property). It loops from index 0 to 1. Because index 1 is not defined on the input object, accessing <code>obj[1]</code> returns <code>undefined</code>. Thus, the resulting array has <code>undefined</code> filled in that position.
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. INTERVIEW QA -->
+    <section id="interview-qa">
+      <div class="sec-header">
+        <span class="sec-num">08</span>
+        <h3 class="sec-title">Interview Questions & Answers</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          Master the concepts and prepare for senior JavaScript interviews:
+        </p>
+      </div>
+
+      <!-- Q1 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q1: What are tagged template literals, and how are they processed by the V8 engine?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> A tagged template literal is a function call prefixing a template literal, written without parentheses (e.g. <code>tag`text`</code>). The V8 engine parses the template literal, separating the static string parts from the dynamic interpolated expressions. It invokes the tag function, passing the static pieces as an array in the first parameter, and the evaluated expressions as separate arguments (captured via rest parameters <code>...values</code>). The static string array also possesses a <code>.raw</code> property containing the raw, unescaped character versions of the strings.
+        </p>
+      </div>
+
+      <!-- Q2 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q2: Why does the live-binding behavior of ES Modules matter for something like tree-shaking in bundlers?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> Live bindings in ESM enforce that imports are read-only references to the exported variables in their original modules, analyzed statically at compile-time. Because ESM imports/exports cannot be altered dynamically or loaded conditionally at runtime (unlike CommonJS's <code>require()</code> which operates like a function returning copies), compilers can guarantee which exports are completely unused across the dependency graph and securely strip (tree-shake) them out of the production bundle.
+        </p>
+      </div>
+
+      <!-- Q3 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q3: Why can't you write an infinite while(true) loop inside a normal function without crashing, but you can inside a generator? What is fundamentally different about execution?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> A normal function runs synchronously to completion once invoked. It occupies the call stack and blocks the main thread, meaning an infinite <code>while(true)</code> loop will freeze the environment. A generator function has a suspend/resume mechanism. When V8 encounters the <code>yield</code> keyword, it saves the function's entire execution context (registers, stack variables) on the heap and pauses the function, returning control to the caller. Thus, the infinite loop is never executed all at once; it only runs up to the next yield, one step at a time, each triggered explicitly by calling <code>.next()</code>.
+        </p>
+      </div>
+
+      <!-- Q4 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q4: What are Symbols in JavaScript, and what is a practical use case for them?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> Symbols are unique, immutable primitive data types. Every symbol created is guaranteed to be completely unique, even if they share the same description string. A practical use case is assigning property keys to objects in utility libraries to prevent key collision bugs (as they don't appear in <code>Object.keys()</code> or <code>for...in</code> enumeration), or implementing JS protocols like custom iteration using the well-known <code>Symbol.iterator</code> key.
+        </p>
+      </div>
+
+      <!-- Q5 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q5: Why does the spread operator throw a TypeError on plain array-like objects?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> The spread operator <code>[...]</code> relies strictly on the ECMAScript **Iterable Protocol**. To execute, it checks for a method mapped to the key <code>Symbol.iterator</code> on the target object. Plain array-like objects (e.g. <code>{ 0: "a", length: 1 }</code>) have numeric indices and length, but lack the <code>Symbol.iterator</code> method, causing the engine to abort and throw a <code>TypeError: object is not iterable</code>.
+        </p>
+      </div>
+
+      <!-- Q6 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q6: How does <code>Array.from()</code> bypass the Iterable Protocol limitation on plain array-like objects?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> <code>Array.from()</code> uses a hybrid lookup mechanism. It first checks if the object implements the Iterable Protocol. If the iterator method is missing, it falls back to check for a <code>length</code> property. If present, it creates a new true array and executes a manual loop: it accesses elements via numeric keys (from <code>0</code> to <code>length - 1</code>) to populate the newly allocated array, bypassing the need for iterators.
+        </p>
+      </div>
+
+      <!-- Q7 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q7: Why is Array.prototype.sort() considered mutating, and what is its default sorting behavior?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> <code>sort()</code> is mutating because it rearranges the indices of the original array in-place instead of creating a clone. Its default sorting behavior is lexicographical: it converts all elements to strings and compares their Unicode character points. This causes numeric arrays (like <code>[10, 2]</code>) to sort incorrectly (as <code>"10"</code> comes before <code>"2"</code>). To enforce proper numeric sorting, a comparator function like <code>(a, b) => a - b</code> must be passed.
+        </p>
+      </div>
+
+      <!-- Q8 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q8: Why does shallow copy spread update nesting bugs occur in React?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> A shallow spread (e.g. <code>const copy = { ...state }</code>) only clones the top-level keys. Properties that hold references to nested objects are copied as references. If a developer modifies a nested field (e.g. <code>copy.user.address.city = "Cairo"</code>), they directly mutate the original object in memory. Because the reference of <code>copy.user</code> remains unchanged, React's reference comparison check (<code>Object.is</code>) fails to detect changes, leading to components not re-rendering. To resolve this, nested updates must be spread at every level of the state modification path.
+        </p>
+      </div>
+    </section>
+
+    <!-- Footer Navigation -->
+    <div style="margin-top: 80px; padding-top: 30px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+      <a href="chapter4-oop-prototypes.html" style="color: var(--js-yellow); text-decoration: none; font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 8px;">
+        ← Chapter 4: OOP & Prototypes
+      </a>
+      <span style="color: var(--text-faint); font-size: 13px;">Chapter 5: Modern Syntax & Data</span>
+      <a href="chapter6-memory-performance.html" style="color: var(--js-yellow); text-decoration: none; font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 8px;">
+        Chapter 6: Memory & Performance →
+      </a>
+    </div>
+  </main>
+
+  <script src="handbook.js" defer></script>
+</body>
+</html>

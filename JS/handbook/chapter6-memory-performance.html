@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JS Mastery Handbook — Chapter 6: Memory & Performance</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="handbook.css">
+  
+  <style>
+    /* Custom style enhancements for diagrams and SVGs */
+    .diagram-container {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin: 24px 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow-x: auto;
+    }
+    
+    .svg-diagram {
+      width: 100%;
+      max-width: 720px;
+      height: auto;
+      display: block;
+    }
+    
+    /* Interactive node styling inside SVG */
+    .svg-node {
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: default;
+    }
+    
+    .svg-node:hover {
+      transform: translateY(-2px);
+      filter: drop-shadow(0 6px 12px rgba(94, 230, 208, 0.15));
+    }
+    
+    .svg-node-error:hover {
+      filter: drop-shadow(0 6px 12px rgba(255, 122, 122, 0.15));
+    }
+    
+    .svg-node-yellow:hover {
+      filter: drop-shadow(0 6px 12px rgba(247, 223, 30, 0.15));
+    }
+
+    .svg-link {
+      stroke-dasharray: 4;
+      animation: dash 15s linear infinite;
+    }
+
+    @keyframes dash {
+      to {
+        stroke-dashoffset: -100;
+      }
+    }
+    
+    .nested-list {
+      margin-left: 24px;
+      margin-bottom: 12px;
+      line-height: 1.6;
+    }
+    
+    .nested-list li {
+      margin-bottom: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Sidebar -->
+  <aside>
+    <div class="brand">
+      <div class="tag">// handbook.javascript</div>
+      <h1>Interview Bible</h1>
+      <div class="sub">Chapter 6: Memory & Performance</div>
+    </div>
+    <ul class="nav-list">
+      <li class="nav-item active" id="nav-garbage-collection"><a href="#garbage-collection"><span class="num">01.</span> Garbage Collection</a></li>
+      <li class="nav-item" id="nav-memory-leaks"><a href="#memory-leaks"><span class="num">02.</span> Memory Leaks</a></li>
+      <li class="nav-item" id="nav-debounce-throttle"><a href="#debounce-throttle"><span class="num">03.</span> Debounce vs Throttle</a></li>
+      <li class="nav-item" id="nav-interview-qa"><a href="#interview-qa"><span class="num">04.</span> Interview Q&A</a></li>
+    </ul>
+  </aside>
+
+  <!-- Main Content -->
+  <main>
+    <div style="display: flex; gap: 16px; margin-bottom: 30px;">
+      <a href="index.html" class="top-nav-link" id="handbook-home-link" style="margin-bottom: 0;">← Handbook Home</a>
+      <span style="color: var(--text-faint);">|</span>
+      <a href="../../index.html" class="top-nav-link" id="hub-link" style="margin-bottom: 0;">← Hub Dashboard</a>
+    </div>
+    
+    <div class="intro-header">
+      <h2>Chapter 6: Memory Management & Performance</h2>
+      <p>
+        Understand how JavaScript engines control heap memory, allocate structures dynamically, identify reachable roots, reclaim dead objects, and optimize execution boundaries under stress.
+      </p>
+    </div>
+
+    <!-- 1. GARBAGE COLLECTION -->
+    <section id="garbage-collection">
+      <div class="sec-header">
+        <span class="sec-num">01</span>
+        <h3 class="sec-title">Garbage Collection (Mark-and-Sweep)</h3>
+      </div>
+      
+      <div class="desc">
+        <p>
+          <b>The Warehouse Analogy:</b> Think of memory like a warehouse full of boxes (objects). Periodically, a cleanup crew walks through starting from a few known "important" shelves (global variables, currently running functions) and tags every box they can physically reach by following connections. Any box that's untagged after the sweep — nothing points to it, nothing can reach it — gets thrown out to free up space.
+        </p>
+        <p>
+          <b>Why it exists:</b> Low-level languages like C require manual memory management, where the developer must explicitly allocate and free memory blocks. Forgetting to free memory causes memory leaks, while freeing it too early leads to dangling pointer crashes. JavaScript handles this automatically via its garbage collector (GC), relieving developers of manual allocation tasks. However, understanding how the GC determines what to collect is critical to writing leak-free, high-performance applications.
+        </p>
+      </div>
+
+      <pre><span class="keyword">let</span> user = { name: <span class="string">"Marwa"</span> }; <span class="comment">// Object reachable via the "user" root-adjacent reference</span>
+user = <span class="keyword">null</span>; <span class="comment">// The {name: "Marwa"} object is now UNREACHABLE; no path exists from roots</span>
+<span class="comment">// On the next GC cycle, V8 will sweep and deallocate this object</span></pre>
+
+      <div class="info-box hood">
+        <div class="box-header">Core Mechanics: Reachability vs Reference Counting</div>
+        <div class="box-body">
+          <p>
+            Older and simpler garbage collection systems used <b>reference counting</b>, which tracks the number of references pointing to an object. If the reference count drops to zero, the object is immediately reclaimed.
+          </p>
+          <p>
+            The fatal flaw of reference counting is <b>circular references</b>. If two objects reference each other, their count will never hit zero, even if they are completely cut off from the rest of the application:
+          </p>
+          <pre style="margin: 10px 0; padding: 12px; font-size: 13px;"><span class="keyword">function</span> createCircular() {
+  <span class="keyword">const</span> objA = {};
+  <span class="keyword">const</span> objB = {};
+  objA.ref = objB; <span class="comment">// objA points to objB</span>
+  objB.ref = objA; <span class="comment">// objB points to objA (circular)</span>
+  <span class="keyword">return</span> <span class="string">"done"</span>;   <span class="comment">// objA and objB are not returned or stored globally</span>
+}</pre>
+          <p>
+            Under reference counting, both objects would leak forever. Under V8's **Mark-and-Sweep** collector, because neither object is reachable by walking the dependency tree from the **roots**, both are correctly marked dead and swept away during the next collection cycle.
+          </p>
+        </div>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Under the Hood: The Mark-and-Sweep Lifecycle Steps</div>
+        <div class="box-body">
+          <ol class="nested-list">
+            <li>
+              <b>Root Identification:</b> The engine identifies "roots" — variables on the active Call Stack (local function variables and parameters), the global object (<code>window</code> or <code>global</code>), and DOM elements/bindings.
+            </li>
+            <li>
+              <b>The MARK Phase:</b> Starting from the roots, the GC traverses the reference graph recursively. Every object encountered is flagged/marked as "alive."
+            </li>
+            <li>
+              <b>The SWEEP Phase:</b> The GC iterates over all memory blocks in the heap. Any object that is not flagged as "alive" is swept, clearing its memory space and putting it back on the "free list" for future allocations.
+            </li>
+          </ol>
+          <p>
+            <b>V8 Optimization:</b> V8 optimizes this using a generational approach. The heap is split into **New Space** (young objects, collected frequently via a fast "Scavenger" copy collector) and **Old Space** (long-lived objects, collected via Major Mark-Sweep-Compact cycles).
+          </p>
+        </div>
+      </div>
+
+      <!-- Diagram 1: Mark-and-Sweep Flow -->
+      <div class="diagram-container">
+        <svg class="svg-diagram" viewBox="0 0 720 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="720" height="320" rx="16" fill="#101622" stroke="var(--border)" stroke-width="1"/>
+          
+          <!-- Title -->
+          <text x="30" y="35" fill="var(--text)" font-family="var(--sans)" font-size="14" font-weight="700">MARK-AND-SWEEP GC VISUALIZED</text>
+          
+          <!-- Roots Section -->
+          <g transform="translate(30, 60)">
+            <rect width="130" height="220" rx="8" fill="rgba(247, 223, 30, 0.03)" stroke="var(--js-yellow)" stroke-width="1.5" stroke-dasharray="4"/>
+            <text x="65" y="24" text-anchor="middle" fill="var(--js-yellow)" font-family="var(--sans)" font-size="11.5" font-weight="bold">GC ROOTS (Always Alive)</text>
+            
+            <!-- Root 1: Global Object -->
+            <g class="svg-node" transform="translate(15, 45)">
+              <rect width="100" height="45" rx="6" fill="#1d2217" stroke="var(--js-yellow)" stroke-width="1"/>
+              <text x="50" y="25" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="10">window / global</text>
+            </g>
+            
+            <!-- Root 2: Call Stack variables -->
+            <g class="svg-node" transform="translate(15, 105)">
+              <rect width="100" height="45" rx="6" fill="#1d2217" stroke="var(--js-yellow)" stroke-width="1"/>
+              <text x="50" y="20" text-anchor="middle" fill="var(--text)" font-family="var(--sans)" font-size="9.5" font-weight="600">Active Frame</text>
+              <text x="50" y="33" text-anchor="middle" fill="var(--text-muted)" font-family="var(--mono)" font-size="9">local variables</text>
+            </g>
+          </g>
+          
+          <!-- Alive/Reachable Objects -->
+          <g transform="translate(200, 60)">
+            <rect width="220" height="220" rx="8" fill="rgba(95, 217, 164, 0.03)" stroke="var(--good)" stroke-width="1.5" stroke-dasharray="4"/>
+            <text x="110" y="24" text-anchor="middle" fill="var(--good)" font-family="var(--sans)" font-size="11.5" font-weight="bold">REACHABLE (Marked Alive)</text>
+            
+            <!-- Object A -->
+            <g id="node-obja" class="svg-node" transform="translate(20, 60)">
+              <circle cx="25" cy="25" r="22" fill="#162c22" stroke="var(--good)" stroke-width="1.5"/>
+              <text x="25" y="29" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="10.5">objA</text>
+            </g>
+            
+            <!-- Object B -->
+            <g id="node-objb" class="svg-node" transform="translate(130, 110)">
+              <circle cx="25" cy="25" r="22" fill="#162c22" stroke="var(--good)" stroke-width="1.5"/>
+              <text x="25" y="29" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="10.5">objB</text>
+            </g>
+          </g>
+          
+          <!-- Unreachable/Circular Garbage Objects -->
+          <g transform="translate(460, 60)">
+            <rect width="230" height="220" rx="8" fill="rgba(255, 107, 94, 0.03)" stroke="var(--trap)" stroke-width="1.5" stroke-dasharray="4"/>
+            <text x="115" y="24" text-anchor="middle" fill="var(--trap)" font-family="var(--sans)" font-size="11.5" font-weight="bold">UNREACHABLE (Swept/Freed)</text>
+            
+            <!-- Object C -->
+            <g id="node-objc" class="svg-node svg-node-error" transform="translate(30, 90)">
+              <circle cx="25" cy="25" r="22" fill="#2d1717" stroke="var(--trap)" stroke-width="1.5"/>
+              <text x="25" y="29" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="10.5">objC</text>
+            </g>
+            
+            <!-- Object D -->
+            <g id="node-objd" class="svg-node svg-node-error" transform="translate(140, 90)">
+              <circle cx="25" cy="25" r="22" fill="#2d1717" stroke="var(--trap)" stroke-width="1.5"/>
+              <text x="25" y="29" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="10.5">objD</text>
+            </g>
+            
+            <text x="115" y="165" text-anchor="middle" fill="var(--text-muted)" font-family="var(--sans)" font-size="9.5" font-weight="600">Circular Reference</text>
+            <text x="115" y="180" text-anchor="middle" fill="var(--text-faint)" font-family="var(--sans)" font-size="8.5">(Isolated from roots, GC sweeps both)</text>
+          </g>
+          
+          <!-- Connections / Arrows -->
+          <defs>
+            <marker id="arrow-yellow" viewBox="0 0 10 10" refX="22" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--js-yellow)"/>
+            </marker>
+            <marker id="arrow-green" viewBox="0 0 10 10" refX="22" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--good)"/>
+            </marker>
+            <marker id="arrow-red" viewBox="0 0 10 10" refX="22" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--trap)"/>
+            </marker>
+          </defs>
+          
+          <!-- Link root to objA -->
+          <path d="M 145 130 L 220 135" stroke="var(--js-yellow)" stroke-width="1.5" marker-end="url(#arrow-yellow)" class="svg-link"/>
+          <!-- Link objA to objB -->
+          <path d="M 270 110 L 330 160" stroke="var(--good)" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+          
+          <!-- Circular reference links between objC and objD -->
+          <path d="M 540 105 C 560 90, 580 90, 600 105" stroke="var(--trap)" stroke-width="1.5" marker-end="url(#arrow-red)"/>
+          <path d="M 600 125 C 580 140, 560 140, 540 125" stroke="var(--trap)" stroke-width="1.5" marker-end="url(#arrow-red)"/>
+        </svg>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">💡 Mini Quiz: Setting to Null vs Immediate Release</div>
+        <div class="quiz-question">
+          Does writing <code>myObject = null;</code> immediately free up the memory associated with that object?
+        </div>
+        <button class="quiz-btn" id="quiz-null-release-btn" onclick="toggleQuiz('quiz-null-release')">Show Answer & Explanation</button>
+        <div class="quiz-answer" id="quiz-null-release">
+          <b>Answer:</b> No. Setting a variable to <code>null</code> simply removes one reference link to the object. It makes the object <i>eligible</i> for garbage collection if there are no other references to it from active roots. The actual collection and freeing of memory are asynchronous, happening when the JS engine's garbage collector decides to run its next cycle based on memory heap allocation thresholds and heuristics.
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. MEMORY LEAKS -->
+    <section id="memory-leaks">
+      <div class="sec-header">
+        <span class="sec-num">02</span>
+        <h3 class="sec-title">Memory Leaks & Prevention</h3>
+      </div>
+      
+      <div class="desc">
+        <p>
+          <b>The Running Water Analogy:</b> Think of a memory leak like leaving the water running in a room nobody uses anymore. The room is unreachable to normal traffic, but if a pipe from the main plumbing system still connects to it, the water (memory) never gets shut off — it just keeps accumulating, invisible, until eventually it floods the whole house (the app crashes or slows to a crawl).
+        </p>
+        <p>
+          <b>Why leaks happen in JS:</b> Since garbage collection only frees objects that are unreachable, a memory leak in JavaScript is simply: <i>something is unintentionally still reachable, even though the developer thinks it's no longer needed</i>. The GC itself is not broken; it is doing exactly what it was programmed to do. The bug is in the code keeping a reference path alive.
+        </p>
+      </div>
+
+      <pre><span class="comment">// 1. Forgotten interval leak</span>
+<span class="keyword">function</span> startPolling(largeData) {
+  setInterval(() => {
+    console.log(largeData.length); <span class="comment">// closure captures largeData forever</span>
+  }, 1000);
+}
+
+<span class="comment">// Fix: store and clear the interval when done</span>
+<span class="keyword">function</span> startPollingFixed(largeData) {
+  <span class="keyword">const</span> intervalId = setInterval(() => {
+    console.log(largeData.length);
+  }, 1000);
+  <span class="keyword">return</span> () => clearInterval(intervalId); <span class="comment">// caller can invoke to clean up</span>
+}</pre>
+
+      <div class="info-box hood">
+        <div class="box-header">The Five Classic Leak Scenarios</div>
+        <div class="box-body">
+          <ol class="nested-list">
+            <li>
+              <b>Forgotten Timers & Intervals:</b> Active callbacks registered in <code>setInterval</code> or <code>setTimeout</code> are kept alive in V8's timer table. If they hold references to large data objects via closures, that data is leaked until the timer is explicitly cleared.
+            </li>
+            <li>
+              <b>Detached DOM Nodes:</b> A DOM node removed from the document tree (e.g. via <code>removeChild</code>) will remain in memory if a JavaScript reference (like a local cache or event handler context) still points to it.
+            </li>
+            <li>
+              <b>Uncleared Event Listeners:</b> Registering listeners on the global window or body elements, then removing the UI component without tearing down the listeners, keeps the component's enclosing scopes alive in memory.
+            </li>
+            <li>
+              <b>Accidental Globals:</b> Assigning values to variables without declaration keywords (<code>let</code>, <code>const</code>) attaches them directly to the global object root, meaning they are never garbage collected.
+            </li>
+            <li>
+              <b>Closure Scopes Retention:</b> Unused variables inside outer scopes can be captured and kept in memory if a nested function (closure) is exported and remains active, keeping its entire lexical parent scope alive.
+            </li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">How to Detect Memory Leaks in Practice</div>
+        <div class="box-body">
+          <p>
+            <b>1. Record Heap Snapshots:</b> Open Chrome DevTools → Memory. Take a snapshot, perform an action (e.g. open and close a sub-modal 10 times), and take a second snapshot.
+          </p>
+          <p>
+            <b>2. Compare Allocations:</b> Select the second snapshot, change the view perspective from "Summary" to "Comparison", and select the first snapshot as the baseline. Sort by Delta or Constructor to find objects (like arrays or strings) that continue to grow in count and never get reclaimed.
+          </p>
+          <p>
+            <b>3. Force GC:</b> Click the garbage bin icon (Collect Garbage) before snapshotting to ensure any leftover transient objects are cleaned, isolating actual leaks.
+          </p>
+        </div>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">💡 Mini Quiz: React Component Memory Leaks</div>
+        <div class="quiz-question">
+          Why are React component unmounts a common source of memory leaks, and how does <code>useEffect</code> address this?
+        </div>
+        <button class="quiz-btn" id="quiz-react-leak-btn" onclick="toggleQuiz('quiz-react-leak')">Show Answer & Explanation</button>
+        <div class="quiz-answer" id="quiz-react-leak">
+          <b>Answer:</b> React components often register event listeners, websockets, or intervals when they mount. If the component unmounts and the developer forgets to clear them, V8's timer table or window listeners still hold references to the callback closures, which in turn retain the component instance and its state/props. <code>useEffect</code> solves this by allowing developers to return a <b>cleanup function</b> (e.g. <code>return () => clearInterval(id);</code>) that executes automatically upon unmounting to dismantle these reference paths.
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. DEBOUNCE VS THROTTLE -->
+    <section id="debounce-throttle">
+      <div class="sec-header">
+        <span class="sec-num">03</span>
+        <h3 class="sec-title">Debounce vs. Throttle</h3>
+      </div>
+      
+      <div class="desc">
+        <p>
+          <b>The Elevator Analogy:</b> Imagine an elevator door. <b>Debounce</b> is like a door that resets its "close" timer every time someone new walks up — it only actually closes once nobody has approached for a few seconds straight. <b>Throttle</b> is like a door that closes and reopens on a strict, automated schedule no matter how many people are approaching — say, once every 2 seconds, guaranteed, regardless of how much foot traffic there is.
+        </p>
+        <p>
+          <b>Why they exist:</b> Some browser events fire extremely rapidly — scrolling, resizing, typing, and mouse movement — often far more often than you actually need to react to them. Running expensive logic (API calls, DOM updates, calculations) on every single firing can tank performance or spam a server with requests. Debounce and throttle are rate-limiting strategies used to control how often a function executes in response to a stream of event triggers.
+        </p>
+      </div>
+
+      <pre><span class="comment">// Debounce — wait for a pause, then run once</span>
+<span class="keyword">function</span> debounce(fn, delay) {
+  <span class="keyword">let</span> timeoutId;
+  <span class="keyword">return</span> <span class="keyword">function</span> (...args) {
+    clearTimeout(timeoutId); <span class="comment">// cancel any pending call</span>
+    timeoutId = setTimeout(() => fn.apply(<span class="keyword">this</span>, args), delay); <span class="comment">// schedule a fresh one</span>
+  };
+}
+
+<span class="comment">// Throttle — guarantee a maximum execution rate</span>
+<span class="keyword">function</span> throttle(fn, limit) {
+  <span class="keyword">let</span> inThrottle = <span class="keyword">false</span>;
+  <span class="keyword">return</span> <span class="keyword">function</span> (...args) {
+    <span class="keyword">if</span> (!inThrottle) {
+      fn.apply(<span class="keyword">this</span>, args);
+      inThrottle = <span class="keyword">true</span>;
+      setTimeout(() => { inThrottle = <span class="keyword">false</span>; }, limit);
+    }
+  };
+}</pre>
+
+      <div class="info-box hood">
+        <div class="box-header">Under the Hood: Event Loop & Closure Mechanics</div>
+        <div class="box-body">
+          <p>
+            <b>Debounce Mechanism:</b> Every invocation of the debounced function clears the previous scheduled timer via <code>clearTimeout(timeoutId)</code>, removing the callback from the macro-task queue before it can run. A new <code>setTimeout</code> is scheduled. Only when the user pauses triggers for longer than the delay period does the callback survive to execute.
+          </p>
+          <p>
+            <b>Throttle Mechanism:</b> Execution occurs immediately on the first event if <code>inThrottle</code> is false. A timer then locks out subsequent executions for the limit duration by setting <code>inThrottle = true</code>. Subsequent invocations within the limit window are ignored. When the timer expires, the lock is released.
+          </p>
+        </div>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Key Distinctions & Use Cases</div>
+        <div class="box-body">
+          <ul class="nested-list">
+            <li>
+              <b>Debounce:</b> "Run once, only after activity has stopped for X ms." Ideal for search-as-you-type inputs, form input validations, or layout recalcs at the end of a window resize.
+            </li>
+            <li>
+              <b>Throttle:</b> "Run at most once every X ms, regardless of continuous activity." Ideal for scroll event handlers (like loading more items periodically), tracking mouse movement coords, or updating game loops.
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Diagram 2: Debounce vs Throttle Timeline -->
+      <div class="diagram-container">
+        <svg class="svg-diagram" viewBox="0 0 720 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="720" height="220" rx="16" fill="#101622" stroke="var(--border)" stroke-width="1"/>
+          <text x="30" y="30" fill="var(--text)" font-family="var(--sans)" font-size="14" font-weight="700">DEBOUNCE VS THROTTLE TIMELINE</text>
+          
+          <!-- Time axis -->
+          <line x1="30" y1="50" x2="690" y2="50" stroke="var(--border)" stroke-width="2" stroke-dasharray="2"/>
+          <text x="690" y="45" text-anchor="end" fill="var(--text-faint)" font-family="var(--mono)" font-size="9">TIME ➔</text>
+          
+          <!-- Event Triggers Row -->
+          <g transform="translate(30, 70)">
+            <text x="0" y="15" fill="var(--text-muted)" font-family="var(--sans)" font-size="11" font-weight="600">Events Fired</text>
+            <!-- Invocations -->
+            <circle cx="120" cy="12" r="5" fill="var(--js-yellow)"/>
+            <circle cx="150" cy="12" r="5" fill="var(--js-yellow)"/>
+            <circle cx="180" cy="12" r="5" fill="var(--js-yellow)"/>
+            <circle cx="210" cy="12" r="5" fill="var(--js-yellow)"/>
+            
+            <circle cx="360" cy="12" r="5" fill="var(--js-yellow)"/>
+            <circle cx="390" cy="12" r="5" fill="var(--js-yellow)"/>
+            
+            <circle cx="540" cy="12" r="5" fill="var(--js-yellow)"/>
+          </g>
+          
+          <!-- Throttled Row (limit = 100ms) -->
+          <g transform="translate(30, 115)">
+            <text x="0" y="15" fill="var(--good)" font-family="var(--sans)" font-size="11" font-weight="600">Throttled (Periodic)</text>
+            
+            <!-- Execution at first click, then ignored until limit expires -->
+            <rect x="120" y="5" width="20" height="15" rx="3" fill="#162c22" stroke="var(--good)" stroke-width="1"/>
+            <text x="130" y="16" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="9" font-weight="bold">T1</text>
+            
+            <rect x="210" y="5" width="20" height="15" rx="3" fill="#162c22" stroke="var(--good)" stroke-width="1"/>
+            <text x="220" y="16" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="9" font-weight="bold">T2</text>
+            
+            <rect x="360" y="5" width="20" height="15" rx="3" fill="#162c22" stroke="var(--good)" stroke-width="1"/>
+            <text x="370" y="16" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="9" font-weight="bold">T3</text>
+            
+            <rect x="540" y="5" width="20" height="15" rx="3" fill="#162c22" stroke="var(--good)" stroke-width="1"/>
+            <text x="550" y="16" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="9" font-weight="bold">T4</text>
+          </g>
+          
+          <!-- Debounced Row (delay = 60ms) -->
+          <g transform="translate(30, 160)">
+            <text x="0" y="15" fill="var(--trap)" font-family="var(--sans)" font-size="11" font-weight="600">Debounced (Delay-End)</text>
+            
+            <!-- Fires only after 60ms of silence from last click -->
+            <rect x="270" y="5" width="22" height="15" rx="3" fill="#2d1717" stroke="var(--trap)" stroke-width="1"/>
+            <text x="281" y="16" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="9" font-weight="bold">D1</text>
+            
+            <rect x="450" y="5" width="22" height="15" rx="3" fill="#2d1717" stroke="var(--trap)" stroke-width="1"/>
+            <text x="461" y="16" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="9" font-weight="bold">D2</text>
+            
+            <rect x="600" y="5" width="22" height="15" rx="3" fill="#2d1717" stroke="var(--trap)" stroke-width="1"/>
+            <text x="611" y="16" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="9" font-weight="bold">D3</text>
+          </g>
+        </svg>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">💡 Mini Quiz: Continuous Drag Interactions</div>
+        <div class="quiz-question">
+          If a user drags a viewport element continuously for 5 seconds straight, and the update handler is throttled at 200ms, how many times does the handler fire? Why wouldn't debounce be the right choice?
+        </div>
+        <button class="quiz-btn" id="quiz-drag-rate-btn" onclick="toggleQuiz('quiz-drag-rate')">Show Answer & Explanation</button>
+        <div class="quiz-answer" id="quiz-drag-rate">
+          <b>Answer:</b> The throttled handler will fire approximately <b>25 times</b> (5000ms / 200ms). Debouncing would not be correct here because a debounced function resets its timer on every single mousemove event. If the user drags continuously without pausing for 5 seconds, a debounced handler would fire <b>zero times</b> during the dragging, updates would be completely frozen, and the handler would execute exactly once only after the user lets go of the mouse.
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. INTERVIEW QA -->
+    <section id="interview-qa">
+      <div class="sec-header">
+        <span class="sec-num">04</span>
+        <h3 class="sec-title">Interview Questions & Answers</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          Master the concepts and prepare for senior JavaScript interviews:
+        </p>
+      </div>
+
+      <!-- Q1 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q1: In the circular reference example, why does mark-and-sweep correctly garbage collect objA and objB, even though they still reference each other?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> Mark-and-sweep determines garbage collection eligibility based on <b>reachability</b> from the GC roots (such as global scope, active call stack variables, and DOM nodes). Although <code>objA</code> and <code>objB</code> have reference links pointing to one another, once the function returns, they become completely isolated from the main root graph. During the Mark phase, the garbage collector cannot reach either object starting from any root, leaving them unmarked. Consequently, during the Sweep phase, both are correctly swept and freed.
+        </p>
+      </div>
+
+      <!-- Q2 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q2: What is the fundamental difference between automatic garbage collection in JavaScript and manual memory management in languages like C?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> In low-level languages like C, developers must manually allocate memory blocks (e.g. via <code>malloc()</code>) and explicitly free them (e.g. via <code>free()</code>). Forgetting to free them leads to memory leaks, while freeing them too early causes crashes (dangling pointer reference errors). JavaScript manages this automatically using a background Garbage Collector. While this removes manual overhead, developers must still prevent leaks by ensuring unused references are cleared so they become unreachable to the collector.
+        </p>
+      </div>
+
+      <!-- Q3 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q3: Why are memory leaks and garbage collection overhead much more critical in long-running Node.js servers compared to browser environments?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> Browser pages are typically short-lived; reloading a page or navigating away tears down the entire JS engine instance and completely clears the heap. A Node.js server, however, runs continuously for days or weeks. Even a tiny, slow memory leak (e.g., growing cache arrays, forgotten global listener bindings) will accumulate over time, eventually consuming the entire available heap and triggering an Out Of Memory (OOM) crash.
+        </p>
+      </div>
+
+      <!-- Q4 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q4: In the startPolling(largeData) example, why exactly does largeData stay in memory forever if the interval is never cleared — connect this back to both reachability (GC) and closures (Batch B)?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> Every function inside JavaScript retains access to its outer lexical scope via a closure (its environment backpack). When <code>setInterval</code> is called, the JS engine registers the callback function in its internal active timers registry, which behaves as a GC root. Because the interval is never cleared via <code>clearInterval</code>, the callback function remains reachable. Since the callback's closure scope captures the <code>largeData</code> variable from its parent scope, a reachability chain is preserved: <code>GC Root (timer registry) ──> Callback Function ──> Closure Environment ──> largeData</code>. As a result, the garbage collector is blocked from reclaiming the memory.
+        </p>
+      </div>
+
+      <!-- Q5 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q5: How do you programmatically or manually detect a memory leak in a production web application?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> Manually, leaks can be detected in Chrome DevTools → Memory by recording Heap Snapshots or Allocation Timelines across repeated operations and comparing them to identify objects growing indefinitely. Programmatically, you can monitor memory usage on servers using Node.js's <code>process.memoryUsage()</code> API or client-side using the <code>performance.memory</code> API (where supported). If heap usage maintains a continuous upward slope without returning to a baseline after garbage collection (which can be forced in Node with the <code>--expose-gc</code> flag), it indicates a memory leak.
+        </p>
+      </div>
+
+      <!-- Q6 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q6: Explain the difference between debouncing and throttling. What is a common mistake when applying them to scrolling and search components?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> Debouncing delays a function's execution until a period of inactivity has elapsed, resetting the delay timer with each new invocation. Throttling limits execution to once in a specified time window, ensuring a maximum frequency of invocations. A common mistake is using <b>debounce</b> on scroll events where you want real-time periodic updates (like infinite scroll list loading), which causes the function to never run until the user stops scrolling. Conversely, using <b>throttle</b> on search boxes causes incomplete and useless API requests to be fired mid-keystroke, when you should instead wait for typing to cease (debounce).
+        </p>
+      </div>
+    </section>
+
+    <!-- Footer Navigation -->
+    <div style="margin-top: 80px; padding-top: 30px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+      <a href="chapter5-modern-syntax.html" style="color: var(--js-yellow); text-decoration: none; font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 8px;">
+        ← Chapter 5: Modern Syntax
+      </a>
+      <span style="color: var(--text-faint); font-size: 13px;">Chapter 6: Memory & Performance</span>
+      <a href="index.html" style="color: var(--js-yellow); text-decoration: none; font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 8px;">
+        Handbook Home →
+      </a>
+    </div>
+  </main>
+
+  <script src="handbook.js" defer></script>
+</body>
+</html>
