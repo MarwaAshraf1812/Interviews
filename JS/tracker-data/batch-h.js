@@ -36,7 +36,43 @@ add("hello", "world");`,
         interview: "V8 balances fast startup and execution speeds using JIT (Just-In-Time) compilation. Synchronous source code is parsed into an AST and interpreted by Ignition into bytecode, bypassing immediate machine code generation to avoid compilation overhead for cold paths. When telemetry identifies 'hot' functions (e.g. repeated loop invocations), TurboFan compiles them into optimized machine code, assuming type consistency. If those assumptions fail (such as passing strings to a function optimized for numbers), V8 triggers a deoptimization, discarding the native code and returning to interpreter bytecode execution.",
         interviewQ: "How does V8 balance fast startup time and fast execution speed using a multi-tiered compiler architecture, and what triggers a deoptimization?"
       },
-      { id: "jit", title: "JIT Compilation", status: "pending" },
+      {
+        id: "jit",
+        title: "JIT Compilation",
+        status: "done",
+        analogy: "Think of JIT compilation like a chef who starts cooking a dish using a general, flexible recipe (interpreted bytecode) the first few times someone orders it. But once the chef notices this exact dish being ordered constantly, in exactly the same way, they develop a specialized, streamlined technique just for it — faster, but it only works perfectly if future orders match the same pattern. If someone suddenly orders it differently, the chef has to fall back to the slower, general method again.",
+        core: "JIT (Just-In-Time) compilation balances pure interpretation (fast startup, slow execution) and pure Ahead-Of-Time compilation (slow startup, fast execution). V8 starts immediately with the Ignition interpreter, generating bytecode. As code runs, the engine monitors execution counts and argument types. When a function becomes 'hot' and remains monomorphic (consistently receives the same argument types), TurboFan compiles it into optimized machine code, stripping away dynamic type checks. If dynamic types change later, V8 must discard the optimized code (deoptimization) and revert to bytecode.",
+        code: `function multiply(a, b) {
+  return a * b;
+}
+
+// 1. Ignition executes generic bytecode
+multiply(2, 3);
+
+// 2. Call count rises; arguments are consistently numbers -> TurboFan JIT-compiles
+for (let i = 0; i < 1000000; i++) {
+  multiply(i, 2); 
+}
+
+// 3. Suddenly called with a String argument -> Breaks assumptions & triggers Deopt
+multiply("5", 2);`,
+        mistake: "Assuming that JIT compilation automatically optimizes all JS code. In reality, 'cold' code (run once or twice) never gets compiled to machine code, and polymorphic hot code (called with varying argument shapes) can suffer from repeated deopt/reopt cycles that consume significant CPU resources.",
+        diagram: `Interpreted Bytecode (Flexible, cold)
+           │
+           ▼ (Called repeatedly with same types)
+TurboFan JIT Compiler ──> Optimized Machine Code (Fast, specific)
+           │
+           ▼ (Types change / Assumption broken)
+Deoptimization ──> Discard Machine Code ──> Fallback to Bytecode`,
+        traps: [
+          "Pure interpreters execute code line-by-line without memory of past runs, starting fast but execution remains slow.",
+          "Ahead-Of-Time (AOT) compilers compile the whole program to native machine code beforehand, which is difficult for JS due to dynamic types.",
+          "JIT combines both: immediate startup with bytecode, runtime optimization for hot/predictable sections.",
+          "Repeatedly flip-flopping argument types in a hot function causes optimization/deoptimization cycles, harming performance."
+        ],
+        interview: "Just-In-Time (JIT) compilation is a hybrid model that resolves the startup delay of Ahead-Of-Time compilation and the execution slowness of interpretation. V8 compiles source code into intermediate bytecode via the Ignition interpreter for rapid initialization. As execution proceeds, JIT profilers monitor for hot functions and record argument types. When a threshold is met with type stability (monomorphism), TurboFan compiles the bytecode to native machine code that bypasses runtime type-checking. However, if a subsequent invocation introduces a different type signature, the JIT engine must initiate deoptimization, invalidating the machine code and falling back to bytecode execution. Repeated type changes can result in JIT thrashing, making execution slower than non-optimized bytecode.",
+        interviewQ: "Why would calling the same function repeatedly with wildly different argument types (sometimes numbers, sometimes strings, sometimes objects) actually make your code SLOWER than if V8 never tried to optimize it at all?"
+      },
       { id: "hidden-classes", title: "Hidden Classes / Inline Caching", status: "pending" },
     ]
   }
