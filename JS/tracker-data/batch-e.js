@@ -111,3 +111,89 @@ Throttled: T-----T-----T-----------  (runs at most once per period)`,
     ]
   }
 );
+
+window.TRACKER_DATA.push(
+  {
+    batch: "Bonus tangent — for...of vs .forEach()",
+    topics: [
+      {
+        id: "for-of-vs-foreach",
+        title: "for...of vs .forEach() Execution",
+        status: "done",
+        analogy: "Think of a for...of loop like driving a manual transmission car where you control every stop, start, and pause (using break, continue, or await). A .forEach() call is like riding a roller coaster — once it starts, it calls its callback for every single seat on the train sequentially, and you cannot jump off or pause the ride until it reaches the very end.",
+        core: "for...of is a language-level loop statement that operates on iterables (objects with Symbol.iterator). It supports loop-control statements like break and continue, and properly pauses execution when await is used within async functions. In contrast, .forEach() is a prototype method on arrays that executes a callback function for each element; it cannot be broken out of or paused, and it completely ignores promise resolutions returned from its callback, executing all steps concurrently/synchronously.",
+        code: `// 1. for...of supports break / await
+for (const item of [1, 2, 3]) {
+  if (item === 2) break;
+  console.log(item); // Logs: 1
+}
+
+// 2. .forEach return behavior (does NOT stop the loop)
+[1, 2, 3].forEach(item => {
+  if (item === 2) return; // Only exits this callback instance
+  console.log(item); // Logs: 1, 3
+});`,
+        mistake: "Attempting to use break or continue inside a .forEach() callback (which throws a SyntaxError), or using await inside a .forEach() callback expecting it to execute sequentially (it will run concurrently and won't await the completions before moving on).",
+        diagram: `for...of loop:   [Item 1] ──await/break?──> [Item 2] ──await/break?──> [Item 3] (Sequential / Control)
+
+.forEach() call: [Callback(1)] & [Callback(2)] & [Callback(3)] (Fires all synchronously, ignores returns/promises)`,
+        traps: [
+          "for...of is a language-level loop construct working on iterables, supporting break and continue, while forEach is just a method calling a function per element.",
+          "break/continue inside forEach is a SyntaxError. return inside forEach callback only exits that single call, it does not stop iteration.",
+          "for...of properly pauses on await inside async functions for sequential execution. forEach fires all async callbacks synchronously, ignoring returned promises."
+        ],
+        interview: "forEach is an array method that invokes a callback for every element; it cannot be halted with break or continue, and returning from the callback only exits the current function invocation, not the loop. Furthermore, forEach is completely async-unaware—if the callback returns a promise, forEach does not await it. for...of, on the other hand, is a control-flow statement that consumes iterables, allowing full control over iteration with break, continue, and sequential await pausing.",
+        interviewQ: "Why does return inside a forEach callback not stop the loop the way break does in for...of?"
+      }
+    ]
+  }
+);
+
+window.TRACKER_DATA.push(
+  {
+    batch: "Bonus tangent — Event Loop",
+    topics: [
+      {
+        id: "event-loop-internals",
+        title: "Call Stack, Web APIs, Microtasks vs Macrotasks",
+        status: "done",
+        analogy: "Think of the JS engine like a busy restaurant kitchen. The Call Stack is the head chef preparing orders immediately. Web APIs are the ovens and delivery drivers doing things in the background. The Microtask Queue is the 'emergency corrections' tray (high priority tasks like wiping spills) that the chef must empty completely before touching the Macrotask Queue (the regular line of incoming new orders, like setTimeout).",
+        core: "JavaScript is single-threaded and uses an event loop to orchestrate async execution. Synchronous code runs immediately on the Call Stack. Async operations are handed off to Web APIs/Node APIs, which place their callbacks onto queues when complete. The Event Loop waits for the Call Stack to be empty. It then drains the entire Microtask Queue (Promise callbacks, queueMicrotask) before processing a single Macrotask (setTimeout, setInterval, I/O).",
+        code: `console.log('Sync Start');
+
+setTimeout(() => console.log('Timeout (Macrotask)'), 0);
+
+Promise.resolve().then(() => console.log('Promise 1 (Microtask)'));
+Promise.resolve().then(() => console.log('Promise 2 (Microtask)'));
+
+console.log('Sync End');
+
+// Logs:
+// Sync Start
+// Sync End
+// Promise 1 (Microtask)
+// Promise 2 (Microtask)
+// Timeout (Macrotask)`,
+        mistake: "Believing that setTimeout(fn, 0) executes the callback immediately. In reality, it only registers the callback with a 0ms minimum delay, placing it in the macrotask queue. It must wait for all currently executing synchronous code and all pending microtasks to finish first.",
+        diagram: `Call Stack (Sync Code)
+       │  (hands off async work)
+       ▼
+   Web APIs (Timers, Promises)
+       │  (returns callbacks)
+       ▼
+┌────────────────────────────────────────────────────────┐
+│ Event Loop Checks:                                     │
+│ 1. Microtask Queue (Promises) ──> Drains completely    │
+│ 2. Macrotask Queue (setTimeout) ──> Runs one task      │
+└────────────────────────────────────────────────────────┘`,
+        traps: [
+          "The event loop only runs task queues when the call stack is completely empty.",
+          "It always drains the entire Microtask queue before running a single Macrotask.",
+          "setTimeout(fn, 0) does not run immediately; it is a macrotask and always yields to the microtask queue."
+        ],
+        interview: "The JS runtime executes code synchronously on the Call Stack. Async tasks are delegated to Web APIs, and their callbacks land in either the Microtask or Macrotask queue. Once the Call Stack is empty, the Event Loop prioritizes the Microtask queue, executing every microtask in it until it is empty. Only then does it run a single macrotask from the Macrotask queue, repeating the cycle. This is why Promise resolutions always run before setTimeout callbacks, even if the timeout was registered first with 0ms.",
+        interviewQ: "Given setTimeout(()=>log('A'),0), then Promise.resolve().then(()=>log('B')), then another Promise.resolve().then(()=>log('C')) — what's the output order, and why does C print before A even though A was scheduled first?"
+      }
+    ]
+  }
+);

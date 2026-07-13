@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JS Mastery Handbook — Chapter 7: Error Handling</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="handbook.css">
+  
+  <style>
+    .diagram-container {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin: 24px 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow-x: auto;
+    }
+    
+    .svg-diagram {
+      width: 100%;
+      max-width: 720px;
+      height: auto;
+      display: block;
+    }
+    
+    .svg-node {
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: default;
+    }
+    
+    .svg-node:hover {
+      transform: translateY(-2px);
+      filter: drop-shadow(0 6px 12px rgba(94, 230, 208, 0.15));
+    }
+    
+    .svg-node-error:hover {
+      filter: drop-shadow(0 6px 12px rgba(255, 122, 122, 0.15));
+    }
+    
+    .svg-node-yellow:hover {
+      filter: drop-shadow(0 6px 12px rgba(247, 223, 30, 0.15));
+    }
+
+    .svg-link {
+      stroke-dasharray: 4;
+      animation: dash 15s linear infinite;
+    }
+
+    @keyframes dash {
+      to {
+        stroke-dashoffset: -100;
+      }
+    }
+    
+    .nested-list {
+      margin-left: 24px;
+      margin-bottom: 12px;
+      line-height: 1.6;
+    }
+    
+    .nested-list li {
+      margin-bottom: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Sidebar -->
+  <aside>
+    <div class="brand">
+      <div class="tag">// handbook.javascript</div>
+      <h1>Interview Bible</h1>
+      <div class="sub">Chapter 7: Error Handling</div>
+    </div>
+    <ul class="nav-list">
+      <li class="nav-item active" id="nav-custom-errors"><a href="#custom-errors"><span class="num">01.</span> Custom Errors</a></li>
+      <li class="nav-item" id="nav-async-errors"><a href="#async-errors"><span class="num">02.</span> Async Error Handling</a></li>
+      <li class="nav-item" id="nav-interview-qa"><a href="#interview-qa"><span class="num">03.</span> Interview Q&A</a></li>
+    </ul>
+  </aside>
+
+  <!-- Main Content -->
+  <main>
+    <div style="display: flex; gap: 16px; margin-bottom: 30px;">
+      <a href="index.html" class="top-nav-link" id="handbook-home-link" style="margin-bottom: 0;">← Handbook Home</a>
+      <span style="color: var(--text-faint);">|</span>
+      <a href="../../index.html" class="top-nav-link" id="hub-link" style="margin-bottom: 0;">← Hub Dashboard</a>
+    </div>
+    
+    <div class="intro-header">
+      <h2>Chapter 7: Robust Error Handling</h2>
+      <p>
+        Master structural exception handling in modern JavaScript: explore ES6 class-based inheritance for custom errors, inspect call stack and V8 stack trace mechanics, and contrast sync try/catch boundaries with event-driven async Promise rejections.
+      </p>
+    </div>
+
+    <!-- 1. CUSTOM ERROR CLASSES -->
+    <section id="custom-errors">
+      <div class="sec-header">
+        <span class="sec-num">01</span>
+        <h3 class="sec-title">Custom Error Classes</h3>
+      </div>
+      
+      <div class="desc">
+        <p>
+          <b>The Specialized Medical Tag Analogy:</b> Think of custom error classes like specialized medical warning tags. Instead of a generic tag that just says "Problem" (a base <code>Error</code> class), you have specific tags like "CardiacAlert" or "AllergyAlert" (custom error classes). This lets medical staff immediately know the type of emergency and route the patient to the right specialist (catch block) without having to inspect long textual messages, while still retaining the patient's full medical history (the call stack trace).
+        </p>
+        <p>
+          <b>Why they exist:</b> In complex production setups, catch blocks need to react differently depending on the root cause of a failure. Performing fragile string-matching on <code>err.message</code> (e.g. <code>if (err.message.includes("database"))</code>) is a major anti-pattern that breaks easily when messages change. Extending the native <code>Error</code> constructor allows catch blocks to filter errors securely using the <code>instanceof</code> operator.
+        </p>
+      </div>
+
+      <pre><span class="keyword">class</span> DatabaseError <span class="keyword">extends</span> Error {
+  constructor(message, query) {
+    <span class="keyword">super</span>(message); <span class="comment">// MANDATORY: Sets up message and captures stack trace</span>
+    <span class="keyword">this</span>.name = <span class="string">'DatabaseError'</span>; <span class="comment">// Overrides default "Error" name</span>
+    <span class="keyword">this</span>.query = query; <span class="comment">// Custom context metadata</span>
+  }
+}
+
+<span class="keyword">try</span> {
+  <span class="keyword">throw new</span> DatabaseError(<span class="string">'Query failed'</span>, <span class="string">'SELECT * FROM users'</span>);
+} <span class="keyword">catch</span> (err) {
+  <span class="keyword">if</span> (err <span class="keyword">instanceof</span> DatabaseError) {
+    console.error(<span class="string">`DB Error: ${err.message} on query: ${err.query}`</span>);
+  } <span class="keyword">else</span> {
+    <span class="keyword">throw</span> err; <span class="comment">// Bubble up other errors</span>
+  }
+}</pre>
+
+      <div class="info-box hood">
+        <div class="box-header">Core Mechanics: The Super Constructor & Stack Trace Retention</div>
+        <div class="box-body">
+          <p>
+            When creating a custom class that inherits from <code>Error</code>, calling <code>super(message)</code> is the absolute first step inside the constructor. Under the hood, the base <code>Error</code> constructor executes engine-specific operations (like V8's <code>Error.captureStackTrace</code>) to grab the current state of the execution call stack. If you omit <code>super()</code>:
+          </p>
+          <ul class="nested-list">
+            <li>A <code>ReferenceError</code> is thrown during construction because <code>this</code> is uninitialized before calling the base constructor.</li>
+            <li>Properties like <code>message</code> and <code>stack</code> are never created or mapped properly on the instance.</li>
+          </ul>
+          <p>
+            <b>Overriding this.name:</b> Although the <code>instanceof</code> check relies strictly on prototype chain references (which is unaffected by instance properties), standard serialization methods (like <code>err.toString()</code> or JSON encoders) look for the <code>name</code> property. If you forget to set <code>this.name = 'MyCustomError'</code>, your custom errors will log to production consoles with the generic label <code>"Error: ..."</code>, causing confusion in triage alerts.
+          </p>
+        </div>
+      </div>
+
+      <!-- Diagram 1: Error Prototype Inheritance Chain -->
+      <div class="diagram-container">
+        <svg class="svg-diagram" viewBox="0 0 720 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="720" height="280" rx="16" fill="#101622" stroke="var(--border)" stroke-width="1"/>
+          
+          <!-- Title -->
+          <text x="30" y="35" fill="var(--text)" font-family="var(--sans)" font-size="14" font-weight="700">PROTOTYPE CHAIN FOR CUSTOM ERRORS</text>
+          
+          <!-- Base Object -->
+          <g class="svg-node" transform="translate(40, 90)">
+            <rect width="160" height="70" rx="8" fill="#1b1f2b" stroke="var(--border)" stroke-width="1.5"/>
+            <text x="80" y="28" text-anchor="middle" fill="var(--text)" font-family="var(--sans)" font-size="12" font-weight="bold">Object.prototype</text>
+            <text x="80" y="48" text-anchor="middle" fill="var(--text-faint)" font-family="var(--mono)" font-size="10">toString(), hasOwnProperty()</text>
+          </g>
+          
+          <path d="M 270 125 L 200 125" stroke="var(--text-faint)" stroke-width="2" marker-start="url(#arrow)" stroke-dasharray="4"/>
+          
+          <!-- Error Base Class -->
+          <g class="svg-node-error" transform="translate(270, 90)">
+            <rect width="180" height="70" rx="8" fill="#2d1d22" stroke="var(--trap)" stroke-width="1.5"/>
+            <text x="90" y="28" text-anchor="middle" fill="var(--trap)" font-family="var(--sans)" font-size="12" font-weight="bold">Error.prototype</text>
+            <text x="90" y="48" text-anchor="middle" fill="var(--text-dim)" font-family="var(--mono)" font-size="9.5">message, name: "Error"</text>
+          </g>
+          
+          <path d="M 520 125 L 450 125" stroke="var(--text-faint)" stroke-width="2" marker-start="url(#arrow)" stroke-dasharray="4"/>
+          
+          <!-- DatabaseError Custom Class -->
+          <g class="svg-node-yellow" transform="translate(520, 90)">
+            <rect width="160" height="70" rx="8" fill="#2c2818" stroke="var(--js-yellow)" stroke-width="1.5"/>
+            <text x="80" y="28" text-anchor="middle" fill="var(--js-yellow)" font-family="var(--sans)" font-size="12" font-weight="bold">DatabaseError.prototype</text>
+            <text x="80" y="48" text-anchor="middle" fill="var(--text-dim)" font-family="var(--mono)" font-size="9.5">name: "DatabaseError", query</text>
+          </g>
+          
+          <!-- Marker definitions -->
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--text-faint)"/>
+            </marker>
+          </defs>
+        </svg>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">💡 Mini Quiz: instanceof vs. name overrides</div>
+        <div class="quiz-question">
+          If you throw an instance of <code>DatabaseError</code> but forget to write <code>this.name = 'DatabaseError'</code> in its constructor, will <code>err instanceof DatabaseError</code> still evaluate to true inside a catch block?
+        </div>
+        <button class="quiz-btn" id="quiz-error-name-btn" onclick="toggleQuiz('quiz-error-name')">Show Answer & Explanation</button>
+        <div class="quiz-answer" id="quiz-error-name">
+          <b>Answer: Yes.</b> The <code>instanceof</code> operator checks prototype chain linkages. It walks the prototype chain of the thrown instance (<code>err.__proto__</code>) and compares it with the prototype property of the class (<code>DatabaseError.prototype</code>). Since the class declaration sets up the prototype chain automatically, this check works perfectly regardless of any instance properties. However, if you log the error (e.g. <code>console.log(err.toString())</code>), it will serialize as <code>"Error: Query failed"</code> instead of <code>"DatabaseError: Query failed"</code> because the name default falls back to the parent class.
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. ASYNC ERROR HANDLING -->
+    <section id="async-errors">
+      <div class="sec-header">
+        <span class="sec-num">02</span>
+        <h3 class="sec-title">Async Error Handling (Rejections)</h3>
+      </div>
+      
+      <div class="desc">
+        <p>
+          <b>The Teleporting Net Analogy:</b> Think of a <code>try/catch</code> block around synchronous code like a safety net positioned directly under a tightrope walker. If they slip and fall right there, the net catches them immediately. But if the walker later teleports to a different stage entirely (asynchronous execution, running later in a separate tick of the event loop), the original net is useless — by the time they fall, the net is no longer underneath them.
+        </p>
+        <p>
+          <b>The Event Loop mismatch:</b> A standard <code>try/catch</code> block can only capture exceptions thrown synchronously, while the code is actively executing within the boundaries of that block on the call stack. Once an async callback (like <code>setTimeout</code> or a network I/O complete event) is delegated to the Web API and scheduled for later, the try/catch block finishes execution, gets popped off the stack, and is gone. Any error thrown inside the deferred callback runs on a clean call stack and crashes as an uncaught exception.
+        </p>
+      </div>
+
+      <div class="info-box warning">
+        <div class="box-header">The Uncaught setTimeout Trap</div>
+        <div class="box-body">
+          <p>
+            Notice why this code fails to handle the exception, causing a production crash:
+          </p>
+          <pre style="margin: 10px 0; padding: 12px; font-size: 13.5px;"><span class="keyword">try</span> {
+  setTimeout(() => {
+    <span class="keyword">throw new</span> Error(<span class="string">"Boom!"</span>); <span class="comment">// Thrown later inside a separate tick of the Event Loop</span>
+  }, 100);
+} <span class="keyword">catch</span> (err) {
+  console.log(<span class="string">"Caught:"</span>, err.message); <span class="comment">// NEVER RUNS — the try/catch block has already finished executing!</span>
+}</pre>
+        </div>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">How Promises and async/await Solve This</div>
+        <div class="box-body">
+          <p>
+            Promises solve async error routing by wrapping the async callback operation in a container that supports two distinct resolution pathways: <code>resolve</code> and <code>reject</code>. Instead of relying on stack-dependent throw constructs, callbacks report failures by calling <code>reject(error)</code>. This routes the failure directly to any callback registered via <code>.catch()</code>.
+          </p>
+          <p>
+            When using <code>async/await</code>, the JS compiler transforms the code. The <code>await</code> keyword pauses the async function execution, preserving its local variables and execution state in heap memory. When the awaited promise is rejected, the engine resumes the function context and <i>re-throws</i> the rejection directly onto the active stack frame. This enables standard synchronous-looking <code>try/catch</code> syntax to intercept async errors:
+          </p>
+          <pre style="margin: 10px 0; padding: 12px; font-size: 13.5px;"><span class="keyword">async function</span> fetchDashboardData() {
+  <span class="keyword">try</span> {
+    <span class="keyword">const</span> rawData = <span class="keyword">await</span> fetchFromDatabase(); <span class="comment">// Rejection is re-thrown as a stack exception</span>
+    console.log(rawData);
+  } <span class="keyword">catch</span> (err) {
+    console.log(<span class="string">"Caught async error:"</span>, err.message); <span class="comment">// Works perfectly!</span>
+  }
+}</pre>
+        </div>
+      </div>
+
+      <!-- Diagram 2: Sync vs Async Error Lifecycles -->
+      <div class="diagram-container">
+        <svg class="svg-diagram" viewBox="0 0 720 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="720" height="300" rx="16" fill="#101622" stroke="var(--border)" stroke-width="1"/>
+          
+          <text x="30" y="30" fill="var(--text)" font-family="var(--sans)" font-size="14" font-weight="700">SYNCHRONOUS VS. ASYNCHRONOUS EXCEPTION LIFECYCLE</text>
+          
+          <!-- Sync Case -->
+          <g transform="translate(30, 60)">
+            <rect width="310" height="210" rx="8" fill="rgba(95, 217, 164, 0.02)" stroke="var(--good)" stroke-width="1.5"/>
+            <text x="15" y="25" fill="var(--good)" font-family="var(--sans)" font-size="12" font-weight="bold">SYNCHRONOUS FLOW</text>
+            
+            <g transform="translate(15, 45)">
+              <rect width="280" height="40" rx="4" fill="#162c22" stroke="var(--good)" stroke-width="1"/>
+              <text x="15" y="24" fill="var(--text)" font-family="var(--mono)" font-size="11">try { throwSyncError(); }</text>
+            </g>
+            
+            <path d="M 155 85 L 155 125" stroke="var(--good)" stroke-width="1.5" marker-end="url(#arrow-good)"/>
+            
+            <g transform="translate(15, 125)">
+              <rect width="280" height="40" rx="4" fill="#1b251f" stroke="var(--good)" stroke-width="1" stroke-dasharray="3"/>
+              <text x="15" y="24" fill="var(--text)" font-family="var(--mono)" font-size="11">catch (err) { /* Catches Instantly */ }</text>
+            </g>
+            
+            <text x="15" y="190" fill="var(--text-muted)" font-family="var(--sans)" font-size="10">Both operations run sequentially in the same stack tick.</text>
+          </g>
+          
+          <!-- Async Case -->
+          <g transform="translate(380, 60)">
+            <rect width="310" height="210" rx="8" fill="rgba(255, 107, 94, 0.02)" stroke="var(--trap)" stroke-width="1.5"/>
+            <text x="15" y="25" fill="var(--trap)" font-family="var(--sans)" font-size="12" font-weight="bold">ASYNCHRONOUS TIMEOUT FLOW</text>
+            
+            <g transform="translate(15, 45)">
+              <rect width="280" height="40" rx="4" fill="#2d1717" stroke="var(--trap)" stroke-width="1"/>
+              <text x="15" y="24" fill="var(--text)" font-family="var(--mono)" font-size="11">try { setTimeout(cb, 100); }</text>
+            </g>
+            
+            <path d="M 155 85 L 155 110" stroke="var(--text-faint)" stroke-width="1.5" stroke-dasharray="3"/>
+            <text x="165" y="102" fill="var(--text-faint)" font-family="var(--sans)" font-size="9">Try exits, pops stack</text>
+            
+            <g transform="translate(15, 125)">
+              <rect width="280" height="40" rx="4" fill="#101622" stroke="var(--border)" stroke-width="1"/>
+              <text x="15" y="24" fill="var(--text-faint)" font-family="var(--mono)" font-size="11">catch (err) { /* Exited - Inactive */ }</text>
+            </g>
+            
+            <path d="M 155 165 L 155 195" stroke="var(--trap)" stroke-width="1.5" marker-end="url(#arrow-error)"/>
+            <text x="165" y="182" fill="var(--trap)" font-family="var(--sans)" font-size="9">Callback runs, throws!</text>
+            
+            <text x="15" y="200" fill="var(--trap)" font-family="var(--sans)" font-size="10" font-weight="bold"></text>
+            <text x="15" y="200" fill="var(--trap)" font-family="var(--sans)" font-size="10" font-weight="bold">Result: Uncaught Exception (App Crashes)</text>
+          </g>
+          
+          <defs>
+            <marker id="arrow-good" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--good)"/>
+            </marker>
+            <marker id="arrow-error" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--trap)"/>
+            </marker>
+          </defs>
+        </svg>
+      </div>
+
+      <div class="info-box warning">
+        <div class="box-header">The Silent forEach Async Leak</div>
+        <div class="box-body">
+          <p>
+            Passing an async function to <code>Array.prototype.forEach</code> is a dangerous mistake:
+          </p>
+          <pre style="margin: 10px 0; padding: 12px; font-size: 13px;"><span class="keyword">async function</span> processArray(items) {
+  items.forEach(<span class="keyword">async</span> (item) => {
+    <span class="keyword">await</span> riskyDatabaseWrite(item); <span class="comment">// If this throws, the rejection goes unhandled!</span>
+  });
+}</pre>
+          <p>
+            Because <code>forEach</code> executes the callback synchronously and is completely oblivious to promises, it does not await the callback, does not collect the returned promises, and does not propagate exceptions. If a write fails, it leaks as an unhandled promise rejection. To process loops sequentially with error boundaries, always use <code>for...of</code> loops instead.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. INTERVIEW QA -->
+    <section id="interview-qa">
+      <div class="sec-header">
+        <span class="sec-num">03</span>
+        <h3 class="sec-title">Interview Questions & Answers</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          Master the concepts and prepare for senior JavaScript interviews:
+        </p>
+      </div>
+
+      <!-- Q1 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q1: Why does forgetting super(message) in a custom error constructor break the instance?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> Under ES6 class specifications, subclass constructors must invoke <code>super()</code> before accessing <code>this</code>. If omitted, the engine throws a <code>ReferenceError</code> during instantiation because the subclass prototype is not linked to the base constructor's instance creation cycle. Furthermore, the parent <code>Error</code> constructor is what configures the native stack trace capture (using internal engines like V8's <code>Error.captureStackTrace</code>) and populates the <code>message</code> property. Without calling <code>super(message)</code>, these critical properties remain empty.
+        </p>
+      </div>
+
+      <!-- Q2 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q2: Why does try/catch fail to catch an error thrown inside a raw setTimeout callback, but it correctly catches a rejection from an awaited promise inside an async function? What's the structural difference in execution timing between the two?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> A synchronous <code>try/catch</code> block wraps code execution in the current call stack frame. The <code>setTimeout</code> callback is pushed to Web APIs and executed in a completely new tick of the event loop. By the time that callback executes, the call stack containing the original <code>try/catch</code> has already finished executing and popped off the stack, leaving no handler active to capture the error. 
+          <br><br>
+          In contrast, when you <code>await</code> a promise inside an <code>async</code> function, the engine compiles the code by suspending the function's execution context, storing it on the heap, and yielding control back to the event loop. When the promise resolves or rejects, the execution context is loaded back onto the call stack. If the promise is rejected, the engine resumes execution by re-throwing the rejection as a stack error <i>inside</i> the active evaluation frame, allowing the surrounding <code>try/catch</code> structure to catch it.
+        </p>
+      </div>
+
+      <!-- Q3 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q3: How do uncaught promise rejections behave in an Express route handler by default, and how should they be managed?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> In Express (before version 5), async route handlers that encounter an uncaught promise rejection (e.g. throwing an error inside an async function) will fail silently or log as an unhandled rejection, but they will <b>not</b> automatically trigger the custom Express error handling middleware. The server will hang, leaving the HTTP request open until a gateway timeout occurs. To handle this properly, you must wrap all async route codes in a try/catch and explicitly call the <code>next(err)</code> callback, or use a routing wrapper utility (or libraries like <code>express-async-errors</code>) to automate this forwarding.
+        </p>
+      </div>
+
+      <!-- Q4 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q4: What is an unhandled promise rejection, and how can it be triaged globally in Node.js vs. the browser?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> An unhandled rejection occurs when a Promise rejects but no rejection handler (like <code>.catch()</code> or a try/catch wrapping an await expression) is attached. In Node.js, you can intercept these globally using the process event <code>process.on('unhandledRejection', (reason, promise) => { ... })</code>. In browser environments, they are captured using the window event <code>window.addEventListener('unhandledrejection', event => { ... })</code>. Intercepting these globally is critical for logging telemetry data and clean process terminations under critical system failures.
+        </p>
+      </div>
+    </section>
+
+    <!-- Footer Navigation -->
+    <div style="margin-top: 80px; padding-top: 30px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+      <a href="chapter6-memory-performance.html" style="color: var(--js-yellow); text-decoration: none; font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 8px;">
+        ← Chapter 6: Memory & Performance
+      </a>
+      <span style="color: var(--text-faint); font-size: 13px;">Chapter 7: Error Handling</span>
+      <a href="index.html" style="color: var(--js-yellow); text-decoration: none; font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 8px;">
+        Handbook Home →
+      </a>
+    </div>
+  </main>
+
+  <script src="handbook.js" defer></script>
+</body>
+</html>
