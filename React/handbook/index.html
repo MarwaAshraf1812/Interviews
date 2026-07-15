@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>React Mastery Handbook Directory</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="handbook.css">
+  <script src="handbook.js" defer></script>
+  
+  <style>
+    /* Custom styles for directory catalog */
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+      gap: 24px;
+      margin-top: 32px;
+    }
+
+    .chapter-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .chapter-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--color-react);
+      box-shadow: 0 12px 30px rgba(0, 216, 255, 0.05);
+    }
+
+    .card-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .chapter-badge {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--color-react);
+      background: rgba(0, 216, 255, 0.08);
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(0, 216, 255, 0.15);
+    }
+
+    .read-time {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .chapter-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      line-height: 1.4;
+      color: var(--text);
+    }
+
+    .chapter-desc {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 24px;
+      flex-grow: 1;
+    }
+
+    .topics-list {
+      list-style: none;
+      margin-bottom: 28px;
+      border-top: 1px dashed var(--border);
+      padding-top: 16px;
+    }
+
+    .topic-item {
+      font-size: 13px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .topic-item::before {
+      content: "•";
+      color: var(--color-react);
+      font-weight: bold;
+    }
+
+    .card-action-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--sans);
+      font-weight: 600;
+      font-size: 14px;
+      padding: 12px;
+      border-radius: 10px;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .chapter-card:hover .card-action-btn {
+      background: var(--color-react);
+      color: var(--bg);
+      border-color: var(--color-react);
+    }
+
+    /* Locked state */
+    .chapter-card.locked {
+      opacity: 0.6;
+    }
+
+    .chapter-card.locked:hover {
+      transform: none;
+      border-color: var(--border);
+      box-shadow: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside>
+    <div class="brand">
+      <div class="tag">// handbook.react</div>
+      <h1>Interview Bible</h1>
+      <div class="sub">Catalog Dashboard</div>
+    </div>
+    <ul class="nav-list">
+      <li class="nav-item active"><a href="#"><span class="num">00.</span> Overview</a></li>
+      <li class="nav-item"><a href="chapter1-react-fundamentals.html"><span class="num">01.</span> Ch 1: Fundamentals</a></li>
+      <li class="nav-item"><a href="#" style="cursor: not-allowed;"><span class="num">02.</span> Ch 2: Hooks & Closures (Locked)</a></li>
+      <li class="nav-item"><a href="#" style="cursor: not-allowed;"><span class="num">03.</span> Ch 3: Advanced Optimization (Locked)</a></li>
+      <li class="nav-item"><a href="#" style="cursor: not-allowed;"><span class="num">04.</span> Ch 4: State Management (Locked)</a></li>
+      <li class="nav-item"><a href="#" style="cursor: not-allowed;"><span class="num">05.</span> Ch 5: Server Components (Locked)</a></li>
+      <li class="nav-item"><a href="#" style="cursor: not-allowed;"><span class="num">06.</span> Ch 6: Routing & SSR (Locked)</a></li>
+    </ul>
+  </aside>
+
+  <!-- Main Content -->
+  <main>
+    <a href="../../index.html" class="top-nav-link" id="hub-link">← Hub Dashboard</a>
+
+    <div class="intro-header">
+      <h2>React & Next.js Interview Handbook</h2>
+      <p>
+        A curated suite of core-mechanics deep dives, Fiber scheduling engines, reconciliation algorithms, compiler optimizations, and mock questions.
+      </p>
+    </div>
+
+    <!-- Chapter Grid -->
+    <div class="grid-container">
+      
+      <!-- CHAPTER 1 (ACTIVE) -->
+      <article class="chapter-card">
+        <div>
+          <div class="card-meta">
+            <span class="chapter-badge">CHAPTER 01</span>
+            <span class="read-time">⏱ 30 min read</span>
+          </div>
+          <h3 class="chapter-title">React Fundamentals</h3>
+          <p class="chapter-desc">
+            Deep dive into React elements, fiber tree data structures, heuristic diffing algorithm specs, JSX transform mechanics, state updates batching, and cross-browser event delegation.
+          </p>
+          <ul class="topics-list">
+            <li class="topic-item">Component, Element & Instance boundaries</li>
+            <li class="topic-item">React Fiber vs old Virtual DOM</li>
+            <li class="topic-item">Heuristic O(n) diffing rules</li>
+            <li class="topic-item">Modern JSX transformations</li>
+            <li class="topic-item">SyntheticEvent system delegation</li>
+          </ul>
+        </div>
+        <a href="chapter1-react-fundamentals.html" class="card-action-btn">
+          Start Reading <span class="arrow">→</span>
+        </a>
+      </article>
+
+      <!-- CHAPTER 2 (QUEUED) -->
+      <article class="chapter-card locked">
+        <div>
+          <div class="card-meta">
+            <span class="chapter-badge" style="color: var(--text-muted); background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08);">CHAPTER 02</span>
+            <span class="read-time">⏱ Queued</span>
+          </div>
+          <h3 class="chapter-title" style="color: var(--text-muted);">Hooks & Closures</h3>
+          <p class="chapter-desc">
+            Analyze hook array linkages, state closures, effect cleanups lifecycle, reference stability, and dependency comparators.
+          </p>
+          <ul class="topics-list" style="border-top-color: rgba(255,255,255,0.04);">
+            <li class="topic-item" style="color: var(--text-faint);">useState & useReducer dispatch queues</li>
+            <li class="topic-item" style="color: var(--text-faint);">useEffect dynamic cleanup linkages</li>
+            <li class="topic-item" style="color: var(--text-faint);">Stale closures in callbacks & handlers</li>
+          </ul>
+        </div>
+        <div class="card-action-btn" style="background: rgba(255,255,255,0.02); color: var(--text-faint); cursor: not-allowed;">
+          Locked
+        </div>
+      </article>
+
+      <!-- CHAPTER 3 (QUEUED) -->
+      <article class="chapter-card locked">
+        <div>
+          <div class="card-meta">
+            <span class="chapter-badge" style="color: var(--text-muted); background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08);">CHAPTER 03</span>
+            <span class="read-time">⏱ Queued</span>
+          </div>
+          <h3 class="chapter-title" style="color: var(--text-muted);">Advanced Optimization</h3>
+          <p class="chapter-desc">
+            Explore render bailouts, React.memo reference checks, useTransition concurrent scheduler mechanics, and useDeferredValue logic.
+          </p>
+          <ul class="topics-list" style="border-top-color: rgba(255,255,255,0.04);">
+            <li class="topic-item" style="color: var(--text-faint);">Render bailout rules & Object.is checks</li>
+            <li class="topic-item" style="color: var(--text-faint);">Concurrent Mode scheduling priorities</li>
+            <li class="topic-item" style="color: var(--text-faint);">React Compiler (React Forget) desugaring</li>
+          </ul>
+        </div>
+        <div class="card-action-btn" style="background: rgba(255,255,255,0.02); color: var(--text-faint); cursor: not-allowed;">
+          Locked
+        </div>
+      </article>
+
+      <!-- CHAPTER 4 (QUEUED) -->
+      <article class="chapter-card locked">
+        <div>
+          <div class="card-meta">
+            <span class="chapter-badge" style="color: var(--text-muted); background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08);">CHAPTER 04</span>
+            <span class="read-time">⏱ Queued</span>
+          </div>
+          <h3 class="chapter-title" style="color: var(--text-muted);">State Management Models</h3>
+          <p class="chapter-desc">
+            Analyze global store mechanics: Context API propagation, Redux/Zustand external stores subscription, and atomic state paradigms.
+          </p>
+          <ul class="topics-list" style="border-top-color: rgba(255,255,255,0.04);">
+            <li class="topic-item" style="color: var(--text-faint);">Context rendering optimizations & selectors</li>
+            <li class="topic-item" style="color: var(--text-faint);">useSyncExternalStore subscription hooks</li>
+            <li class="topic-item" style="color: var(--text-faint);">Zustand vs Redux Toolkit architecture</li>
+          </ul>
+        </div>
+        <div class="card-action-btn" style="background: rgba(255,255,255,0.02); color: var(--text-faint); cursor: not-allowed;">
+          Locked
+        </div>
+      </article>
+
+      <!-- CHAPTER 5 (QUEUED) -->
+      <article class="chapter-card locked">
+        <div>
+          <div class="card-meta">
+            <span class="chapter-badge" style="color: var(--text-muted); background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08);">CHAPTER 05</span>
+            <span class="read-time">⏱ Queued</span>
+          </div>
+          <h3 class="chapter-title" style="color: var(--text-muted);">Server Components & Actions</h3>
+          <p class="chapter-desc">
+            Deconstruct React Server Components: serialization protocol, network boundaries, Suspense streaming, and Server Actions database mutations.
+          </p>
+          <ul class="topics-list" style="border-top-color: rgba(255,255,255,0.04);">
+            <li class="topic-item" style="color: var(--text-faint);">RSC payload serialization rules</li>
+            <li class="topic-item" style="color: var(--text-faint);">Suspense boundaries & HTML streaming</li>
+            <li class="topic-item" style="color: var(--text-faint);">Server Actions progressive enhancement</li>
+          </ul>
+        </div>
+        <div class="card-action-btn" style="background: rgba(255,255,255,0.02); color: var(--text-faint); cursor: not-allowed;">
+          Locked
+        </div>
+      </article>
+
+      <!-- CHAPTER 6 (QUEUED) -->
+      <article class="chapter-card locked">
+        <div>
+          <div class="card-meta">
+            <span class="chapter-badge" style="color: var(--text-muted); background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08);">CHAPTER 06</span>
+            <span class="read-time">⏱ Queued</span>
+          </div>
+          <h3 class="chapter-title" style="color: var(--text-muted);">Routing & SSR</h3>
+          <p class="chapter-desc">
+            Study server-side rendering lifecycles, static site generation, incremental regeneration, hydration mismatches, and App Router architectures.
+          </p>
+          <ul class="topics-list" style="border-top-color: rgba(255,255,255,0.04);">
+            <li class="topic-item" style="color: var(--text-faint);">SSR vs SSG vs ISR lifecycle engines</li>
+            <li class="topic-item" style="color: var(--text-faint);">Hydration mismatch triggers & fixes</li>
+            <li class="topic-item" style="color: var(--text-faint);">Layout-based routing & nested page nodes</li>
+          </ul>
+        </div>
+        <div class="card-action-btn" style="background: rgba(255,255,255,0.02); color: var(--text-faint); cursor: not-allowed;">
+          Locked
+        </div>
+      </article>
+
+    </div>
+  </main>
+
+</body>
+</html>

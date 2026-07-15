@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>React Mastery Handbook — Chapter 1: Fundamentals</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="handbook.css">
+</head>
+<body>
+
+  <!-- Navigation Sidebar -->
+  <aside>
+    <div class="brand">
+      <div class="tag">// handbook.react</div>
+      <h1>Interview Bible</h1>
+      <div class="sub">Chapter 1: React Fundamentals</div>
+    </div>
+    <ul class="nav-list">
+      <li class="nav-item active" id="nav-entities"><a href="#entities"><span class="num">01.</span> Entities</a></li>
+      <li class="nav-item" id="nav-fiber"><a href="#fiber"><span class="num">02.</span> React Fiber</a></li>
+      <li class="nav-item" id="nav-reconciliation"><a href="#reconciliation"><span class="num">03.</span> Reconciliation</a></li>
+      <li class="nav-item" id="nav-jsx"><a href="#jsx"><span class="num">04.</span> JSX Compilation</a></li>
+      <li class="nav-item" id="nav-state-props"><a href="#state-props"><span class="num">05.</span> State vs Props</a></li>
+      <li class="nav-item" id="nav-events"><a href="#events"><span class="num">06.</span> SyntheticEvent</a></li>
+      <li class="nav-item" id="nav-interview-qa"><a href="#interview-qa"><span class="num">07.</span> Interview Q&A</a></li>
+    </ul>
+  </aside>
+
+  <!-- Main Content -->
+  <main>
+    <div style="display: flex; gap: 16px; margin-bottom: 30px;">
+      <a href="index.html" class="top-nav-link" id="handbook-home-link" style="margin-bottom: 0;">← Handbook Home</a>
+      <span style="color: var(--text-faint);">|</span>
+      <a href="../../index.html" class="top-nav-link" id="hub-link" style="margin-bottom: 0;">← Hub Dashboard</a>
+    </div>
+    
+    <div class="intro-header">
+      <h2>Chapter 1: React Fundamentals</h2>
+      <p>
+        In-depth concepts, Fiber scheduler mechanics, heuristic reconciliation specs, JSX transform details, state batching updates, and event delegation pipelines we've analyzed during our senior technical preparation.
+      </p>
+    </div>
+
+    <!-- 1. ENTITIES -->
+    <section id="entities">
+      <div class="sec-header">
+        <span class="sec-num">01</span>
+        <h3 class="sec-title">Component vs Element vs Instance</h3>
+      </div>
+      
+      <div class="desc">
+        <p>
+          In React, understanding the conceptual boundaries between a <span class="bold-term">Component</span>, an <span class="bold-term">Element</span>, and an <span class="bold-term">Instance</span> is a foundational requirement.
+        </p>
+        <p>
+          A Component is a function or class that acts as a blueprint or factory. A React Element is a lightweight, plain JavaScript object that describes what should appear on screen. It is immutable and contains the element type and properties. An Instance is the internal, runtime data structure (a Fiber node in modern React) instantiated to manage a component's lifecycle and local state.
+        </p>
+      </div>
+
+      <pre><span class="comment">// 1. Component: The blueprint/factory</span>
+<span class="keyword">function</span> CustomButton({ title }) {
+  <span class="keyword">return</span> &lt;button&gt;{title}&lt;/button&gt;;
+}
+
+<span class="comment">// 2. Element: The plain description object</span>
+<span class="keyword">const</span> btnElement = &lt;CustomButton title="Submit" /&gt;;
+<span class="comment">// Under the hood, btnElement is a simple JS object:</span>
+<span class="comment">// { type: CustomButton, props: { title: "Submit" } }</span>
+
+<span class="comment">// 3. Instance: The runtime Fiber node managing state</span>
+<span class="comment">// React creates this internally during render to hold count state, refs, and link to the DOM node.</span></pre>
+
+      <div class="info-box hood">
+        <div class="box-header">Under the Hood: React Element Structure</div>
+        <div class="box-body">
+          According to React internals, calling <code>React.createElement</code> or the modern JSX runtime returns a frozen object matching this structure:
+          <ul style="margin-left: 20px; margin-top: 8px;">
+            <li><code>$$typeof</code>: A special Symbol (<code>Symbol.for('react.element')</code>) used to prevent XSS injection attacks.</li>
+            <li><code>type</code>: A string (like <code>'div'</code>) or a reference to a constructor/function component.</li>
+            <li><code>key</code>: A unique identifier for reconciling sibling nodes.</li>
+            <li><code>ref</code>: A reference handle to the native DOM node.</li>
+            <li><code>props</code>: An object containing attributes, classNames, and <code>children</code>.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="info-box trap">
+        <div class="box-header">Interview Trap</div>
+        <div class="box-body">
+          <p>
+            <b>Trap:</b> An interviewer asks: "Can you mutate a React Element's props directly to change what renders?"
+            <br><b>Correct Answer:</b> ❌ <b>No.</b> React Elements are strictly immutable. They are frozen using <code>Object.freeze(element)</code> or <code>Object.freeze(element.props)</code>. If you want to change what's rendered, you must trigger a re-render to generate a new element tree.
+          </p>
+        </div>
+      </div>
+
+      <div class="info-box answer">
+        <div class="box-header">Interview-Ready Answer</div>
+        <div class="box-body">
+          "A component is a template function or class. An element is a lightweight, immutable JavaScript description of a DOM element or component. An instance is the in-memory Fiber representation created by React's reconciler to track the component's state, props, and native DOM bindings."
+        </div>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">💡 Mini Quiz</div>
+        <div class="quiz-question">What is the value of <code>$$typeof</code> in a React element, and how does it prevent security exploits?</div>
+        <button class="quiz-btn" id="quiz-entities-btn" onclick="toggleQuiz('quiz-entities')">Show Answer & Explanation</button>
+        <div class="quiz-answer" id="quiz-entities">
+          <b>Answer:</b> <code>Symbol.for('react.element')</code>
+          <br><br>
+          <b>Explanation:</b>
+          If a database stores user-submitted JSON containing elements to render, a malicious user could submit a mock React element payload to cause an XSS injection. Since JSON cannot contain JavaScript Symbols, React checks <code>element.$$typeof === Symbol.for('react.element')</code>. If it is missing or invalid, React will refuse to render the object, preventing XSS exploits.
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. FIBER -->
+    <section id="fiber">
+      <div class="sec-header">
+        <span class="sec-num">02</span>
+        <h3 class="sec-title">Virtual DOM vs React Fiber</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          Before React 16, the <span class="bold-term">Stack Reconciler</span> executed updates recursively and synchronously. Once it started, it could not yield the thread, blocking user interactions (like typing) during large renders.
+        </p>
+        <p>
+          <span class="bold-term">React Fiber</span> is a complete rewrite of the reconciliation architecture. It represents the component tree as a linked list of Fiber nodes. Because it acts as a virtual call stack, React can pause, resume, or discard rendering computations, prioritizing urgent browser events (like typing or animation frames) using cooperative scheduling.
+        </p>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Under the Hood: Fiber Nodes and Linked Lists</div>
+        <div class="box-body">
+          Unlike the old virtual tree which required recursive traversal, Fiber maps the tree to a singly linked list with three pointer directions:
+          <ol style="margin-left: 20px; margin-top: 8px;">
+            <li><code>child</code>: Points to the first immediate child.</li>
+            <li><code>sibling</code>: Points to the immediate next sibling.</li>
+            <li><code>return</code>: Points back to the parent (simulating a stack frame return pointer).</li>
+          </ol>
+          This enables React to pause parsing at any node, return control to the browser main thread, and resume precisely where it left off.
+        </div>
+      </div>
+
+      <div class="diagram-panel">
+Linked List Navigation in Fiber:
+┌──────────────┐
+│  Parent Fiber│
+└──────┬───────┘
+       │ child
+       ▼
+┌──────────────┐  sibling  ┌──────────────┐
+│  Child Fiber1├──────────►│  Child Fiber2│
+└──────┬───────┘           └──────┬───────┘
+       │ return                   │ return
+       └───────────► Parent ◄─────┘</div>
+
+      <div class="desc">
+        <h4 style="margin-bottom: 8px;">The Two Phases of Fiber Rendering</h4>
+        <p>
+          <b>1. Render Phase (Asynchronous & Interruptible):</b> React walks the fiber tree, evaluates component updates, computes diffs, and compiles a list of side-effects. This phase can be paused or restarted.
+          <br><b>2. Commit Phase (Synchronous & Blocking):</b> React applies the calculated changes to the DOM and runs layout/effect hooks. This phase must complete in a single synchronous pass to avoid visual layout glitches.
+        </p>
+      </div>
+
+      <div class="info-box trap">
+        <div class="box-header">Interview Trap</div>
+        <div class="box-body">
+          <p>
+            <b>Trap:</b> "Since the Render phase is asynchronous and can run multiple times before committing, what is a common bug caused by putting side-effects (like fetch requests or mutations) inside the body of a functional component?"
+            <br><b>Correct Answer:</b> The render body runs during the interruptible Render phase. If rendering is paused or aborted, the body may run multiple times, causing duplicate fetch requests or data mutations. All side-effects must reside inside <code>useEffect</code> (which runs in the commit phase) or event handlers.
+          </p>
+        </div>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">💡 Mini Quiz</div>
+        <div class="quiz-question">Which phase of React rendering is interruptible, and why is the commit phase kept synchronous?</div>
+        <button class="quiz-btn" id="quiz-fiber-btn" onclick="toggleQuiz('quiz-fiber')">Show Answer</button>
+        <div class="quiz-answer" id="quiz-fiber">
+          <b>Answer:</b>
+          The Render Phase is interruptible.
+          <br><br>
+          <b>Explanation:</b>
+          The commit phase is kept synchronous because it performs actual DOM updates. If it were asynchronous or interruptible, the browser might render a partially updated page structure, resulting in visual stuttering and inconsistent layouts.
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. RECONCILIATION -->
+    <section id="reconciliation">
+      <div class="sec-header">
+        <span class="sec-num">03</span>
+        <h3 class="sec-title">Reconciliation & Diffing Heuristics</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          Reconciling two arbitrary tree structures has a computational complexity of O(n³). To make rendering fast, React employs a heuristic algorithm with <span class="bold-term">O(n) complexity</span>.
+        </p>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Under the Hood: The O(n) Heuristic Hypotheses</div>
+        <div class="box-body">
+          React's O(n) diffing relies on two rules:
+          <ol style="margin-left: 20px; margin-top: 8px;">
+            <li><b>Different Types:</b> Two elements of different component/DOM types will produce different trees. React destroys the old subtree entirely and creates the new subtree from scratch (unmounting old nodes, running cleanups, and mounting new elements).</li>
+            <li><b>Sibling Keys:</b> Sibling elements can be tagged with a stable <code>key</code> prop, hinting to the reconciler that they are stable across renders. Instead of remounting nodes, React reorders them.</li>
+          </ol>
+        </div>
+      </div>
+
+      <pre><span class="comment">// Scenario 1: Different Element Types (Subtree destroyed and rebuilt)</span>
+<span class="comment">// Old: &lt;div&gt;&lt;Counter /&gt;&lt;/div&gt;</span>
+<span class="comment">// New: &lt;section&gt;&lt;Counter /&gt;&lt;/section&gt; (Counter is unmounted and remounted!)</span>
+
+<span class="comment">// Scenario 2: Same Element Type, Different Attributes (Attributes mutated)</span>
+<span class="comment">// Old: &lt;div className="active" id="1" /&gt;</span>
+<span class="comment">// New: &lt;div className="inactive" id="1" /&gt; (DOM node preserved, attributes changed)</span></pre>
+
+      <div class="info-box trap">
+        <div class="box-header">Interview Trap: Using Array Index as Key</div>
+        <div class="box-body">
+          <p>
+            <b>Trap:</b> "Why is it bad to use the array index as a <code>key</code> prop for lists?"
+            <br><b>Correct Answer:</b> Sibling elements are matched by their key. If you delete the first item in a list of three elements:
+            <br>• Old: <code>{ key: 0, text: 'A' }, { key: 1, text: 'B' }, { key: 2, text: 'C' }</code>
+            <br>• New: <code>{ key: 0, text: 'B' }, { key: 1, text: 'C' }</code>
+            <br>React matches by key: key 0 (originally A) gets updated with B's props. Key 1 (originally B) gets updated with C's props. Key 2 is removed. This causes state matching bugs (such as input values staying on the wrong row) and breaks optimization.
+          </p>
+        </div>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">💡 Mini Quiz</div>
+        <div class="quiz-question">What happens to a stateful component when its type changes (e.g. from <code>&lt;div&gt;</code> to <code>&lt;span&gt;</code>)?</div>
+        <button class="quiz-btn" id="quiz-recon-btn" onclick="toggleQuiz('quiz-recon')">Show Answer</button>
+        <div class="quiz-answer" id="quiz-recon">
+          <b>Answer:</b>
+          The component's state is completely destroyed.
+          <br><br>
+          <b>Explanation:</b>
+          React tears down the old component tree completely, unmounting it from the DOM, which wipes out all local state and ref bindings.
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. JSX -->
+    <section id="jsx">
+      <div class="sec-header">
+        <span class="sec-num">04</span>
+        <h3 class="sec-title">JSX Compilation & Modern Transform</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          Browsers cannot execute JSX code directly. A compiler like Babel or SWC translates JSX markup into plain JavaScript functions.
+        </p>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Under the Hood: React.createElement vs Modern JSX runtime</div>
+        <div class="box-body">
+          <b>1. Classic Compiler (React 16 and older):</b>
+          <br>Compiles JSX elements into <code>React.createElement(type, props, ...children)</code>.
+          <br>• Tradeoff: Requires <code>import React from 'react'</code> to be declared in every file.
+          <br>• Tradeoff: Children arguments are passed as separate parameters, making performance optimization difficult.
+          <br><br>
+          <b>2. Modern Compiler (React 17+):</b>
+          <br>Compiles JSX elements into direct calls to the JSX runtime (like <code>_jsx</code>) imported automatically.
+          <br>• Advantage: No need to import React manually.
+          <br>• Advantage: Children are passed as part of the <code>props</code> object, allowing for cleaner optimizations.
+        </div>
+      </div>
+
+      <pre><span class="comment">// Input JSX:</span>
+<span class="keyword">const</span> el = &lt;div className="badge"&gt;React&lt;/div&gt;;
+
+<span class="comment">// Classic Compilation (React 16):</span>
+<span class="keyword">const</span> elClassic = React.createElement(<span class="string">'div'</span>, { className: <span class="string">'badge'</span> }, <span class="string">'React'</span>);
+
+<span class="comment">// Modern Compilation (React 17+):</span>
+<span class="keyword">import</span> { jsx <span class="keyword">as</span> _jsx } <span class="keyword">from</span> <span class="string">'react/jsx-runtime'</span>;
+<span class="keyword">const</span> elModern = _jsx(<span class="string">'div'</span>, { className: <span class="string">'badge'</span>, children: <span class="string">'React'</span> });</pre>
+
+      <div class="info-box answer">
+        <div class="box-header">Interview-Ready Answer</div>
+        <div class="box-body">
+          "JSX is a syntactical sugar that is compiled into standard JavaScript. In earlier versions of React, JSX was compiled to <code>React.createElement</code>. React 17 introduced a modern JSX transform that imports compiler entry points directly from <code>react/jsx-runtime</code>, so we don't have to manually import React just to use JSX."
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. STATE PROPS -->
+    <section id="state-props">
+      <div class="sec-header">
+        <span class="sec-num">05</span>
+        <h3 class="sec-title">State vs Props & Batching Mechanics</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          <span class="bold-term">Props</span> are read-only configuration attributes passed down from parent components. <span class="bold-term">State</span> is mutable data managed locally inside a component.
+        </p>
+        <p>
+          When you invoke a state setter, React queues a re-render. To avoid multiple re-renders when setting multiple state variables, React implements <span class="bold-term">Batching</span>.
+        </p>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Under the Hood: React 18 Automatic Batching</div>
+        <div class="box-body">
+          Before React 18, state updates were only batched inside React event handlers. Updates triggered inside promises, setTimeout blocks, or native browser listeners did not batch, triggering multiple renders.
+          <br>React 18 introduces <b>Automatic Batching</b>, aggregating state updates across all asynchronous boundaries.
+        </div>
+      </div>
+
+      <pre><span class="comment">// Updates inside event handlers or timeouts:</span>
+<span class="keyword">const</span> [count, setCount] = useState(<span class="number">0</span>);
+<span class="keyword">const</span> [flag, setFlag] = useState(<span class="keyword">false</span>);
+
+<span class="keyword">const</span> handleClick = () => {
+  setCount(c => c + <span class="number">1</span>);
+  setFlag(f => !f);
+  <span class="comment">// React 18: Batched together -> Only 1 render triggered!</span>
+};</pre>
+
+      <div class="info-box trap">
+        <div class="box-header">Interview Trap</div>
+        <div class="box-body">
+          <p>
+            <b>Trap:</b> "What will the console output be immediately after setting state?"
+            <pre>const [val, setVal] = useState(0);
+const click = () => {
+  setVal(1);
+  console.log(val);
+};</pre>
+            <b>Correct Answer:</b> <code>0</code>. State updates are queued and batched, meaning they are asynchronous relative to the current calling scope. The local variable <code>val</code> does not update until the next render phase.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. EVENTS -->
+    <section id="events">
+      <div class="sec-header">
+        <span class="sec-num">06</span>
+        <h3 class="sec-title">SyntheticEvent & Event Delegation</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          React wraps the browser's native events in a cross-browser <span class="bold-term">SyntheticEvent</span> object to guarantee consistent API properties across all platforms.
+        </p>
+        <p>
+          Instead of attaching event listeners to individual DOM nodes, React uses <span class="bold-term">Event Delegation</span>. In React 17+, event listeners are delegated to the React root DOM container (e.g. <code>&lt;div id="root"&gt;</code>) instead of the global <code>document</code> object.
+        </p>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Under the Hood: React 16 vs React 17 Delegation</div>
+        <div class="box-body">
+          In React 16, events bubbled all the way to <code>document</code> before being processed. This caused issues when nesting multiple React instances or when integrating with non-React libraries that stopped event propagation.
+          <br>React 17 attaches event listeners to the mount container root node, allowing sub-apps to stop events from escaping and isolating nested environments safely.
+        </div>
+      </div>
+
+      <pre><span class="keyword">function</span> Form() {
+  <span class="keyword">const</span> handle = (e) => {
+    e.preventDefault(); <span class="comment">// Normalized SyntheticEvent method</span>
+    console.log(e.nativeEvent); <span class="comment">// underlying browser Event object</span>
+  };
+  <span class="comment">// The click listener is NOT attached to the button itself,</span>
+  <span class="comment">// but delegated to the mount root node.</span>
+  <span class="keyword">return</span> &lt;button onClick={handle}&gt;Submit&lt;/button&gt;;
+}</pre>
+
+      <div class="info-box trap">
+        <div class="box-header">Interview Trap</div>
+        <div class="box-body">
+          <p>
+            <b>Trap:</b> "What was Event Pooling in React 16, and why was it removed in React 17?"
+            <br><b>Correct Answer:</b> In React 16, SyntheticEvent objects were pooled and reused across events to reduce memory allocation. Once an event handler executed, all properties on the event object were nullified. This meant you couldn't access event properties inside an asynchronous callback (e.g., <code>setTimeout(() => console.log(e.target.value))</code>) unless you called <code>e.persist()</code>. Because modern JS engine garbage collection is fast, event pooling was removed in React 17.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. INTERVIEW QUESTIONS -->
+    <section id="interview-qa">
+      <div class="sec-header">
+        <span class="sec-num">07</span>
+        <h3 class="sec-title">Interview Questions & Answers</h3>
+      </div>
+
+      <!-- Q1 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q1: How does React's reconciliation achieve O(n) complexity instead of O(n³)?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> React achieves O(n) complexity by applying two heuristic hypotheses: First, two elements of different types will generate different trees; React tears down the old tree and mounts the new one from scratch. Second, sibling elements can be tagged with stable <code>key</code> props so they can be matched and reordered instead of remounted.
+        </p>
+      </div>
+
+      <!-- Q2 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q2: What is React Fiber and how does it support Concurrent rendering?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> React Fiber is a linked-list-based reconciliation architecture. Each fiber node represents a virtual call stack frame. This enables React to pause, resume, or discard rendering work, letting high-priority updates (like input events) execute first and yielding control back to the browser main thread to keep the page responsive.
+        </p>
+      </div>
+
+      <!-- Q3 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q3: What is the difference between classic and modern JSX compilation?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> Classic compilation converts JSX to <code>React.createElement</code> calls, requiring React to be in scope. Modern compilation (React 17+) translates JSX directly into calls to internal runtime helpers (like <code>_jsx</code> from <code>react/jsx-runtime</code>) injected by the compiler, removing the manual React import requirement.
+        </p>
+      </div>
+
+      <!-- Q4 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q4: What is Event Delegation in React 17 and why is it preferred over React 16 delegation?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> React delegates events to a single listener rather than attaching them to every DOM element. In React 16, events bubbled up to the global <code>document</code> node. In React 17+, event listeners are bound to the mount root DOM container, which prevents event propagation bugs when nesting multiple React applications.
+        </p>
+      </div>
+    </section>
+
+    <!-- Footer Navigation -->
+    <div style="margin-top: 80px; padding-top: 30px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+      <span style="color: var(--text-faint); font-size: 13px;">Chapter 1: React Fundamentals</span>
+      <span style="color: var(--text-faint); font-size: 14px; font-weight: 600;">Chapter 2: Hooks & Closures (Locked)</span>
+    </div>
+  </main>
+
+  <script src="handbook.js" defer></script>
+</body>
+</html>
