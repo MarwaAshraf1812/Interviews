@@ -153,7 +153,7 @@
     <ul class="nav-list">
       <li class="nav-item active"><a href="#"><span class="num">00.</span> Overview</a></li>
       <li class="nav-item"><a href="chapter1-react-fundamentals.html"><span class="num">01.</span> Ch 1: Fundamentals</a></li>
-      <li class="nav-item"><a href="#" style="cursor: not-allowed;"><span class="num">02.</span> Ch 2: Hooks & Closures (Locked)</a></li>
+      <li class="nav-item"><a href="chapter2-hooks-closures.html"><span class="num">02.</span> Ch 2: Hooks & Closures</a></li>
       <li class="nav-item"><a href="#" style="cursor: not-allowed;"><span class="num">03.</span> Ch 3: Advanced Optimization (Locked)</a></li>
       <li class="nav-item"><a href="#" style="cursor: not-allowed;"><span class="num">04.</span> Ch 4: State Management (Locked)</a></li>
       <li class="nav-item"><a href="#" style="cursor: not-allowed;"><span class="num">05.</span> Ch 5: Server Components (Locked)</a></li>
@@ -163,7 +163,11 @@
 
   <!-- Main Content -->
   <main>
-    <a href="../../index.html" class="top-nav-link" id="hub-link">← Hub Dashboard</a>
+    <div style="display: flex; gap: 16px; margin-bottom: 30px;">
+      <a href="../../index.html" class="top-nav-link" id="hub-link" style="margin-bottom: 0;">← Hub Dashboard</a>
+      <span style="color: var(--text-faint);">|</span>
+      <a href="../interview-questions/react-questions.md" class="top-nav-link" id="interview-qa-link" style="margin-bottom: 0;">🗣 Interview Q&A File</a>
+    </div>
 
     <div class="intro-header">
       <h2>React & Next.js Interview Handbook</h2>
@@ -199,26 +203,26 @@
         </a>
       </article>
 
-      <!-- CHAPTER 2 (QUEUED) -->
-      <article class="chapter-card locked">
+      <!-- CHAPTER 2 (ACTIVE) -->
+      <article class="chapter-card">
         <div>
           <div class="card-meta">
-            <span class="chapter-badge" style="color: var(--text-muted); background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08);">CHAPTER 02</span>
-            <span class="read-time">⏱ Queued</span>
+            <span class="chapter-badge">CHAPTER 02</span>
+            <span class="read-time">⏱ 20 min read</span>
           </div>
-          <h3 class="chapter-title" style="color: var(--text-muted);">Hooks & Closures</h3>
+          <h3 class="chapter-title">Hooks & Closures</h3>
           <p class="chapter-desc">
             Analyze hook array linkages, state closures, effect cleanups lifecycle, reference stability, and dependency comparators.
           </p>
-          <ul class="topics-list" style="border-top-color: rgba(255,255,255,0.04);">
-            <li class="topic-item" style="color: var(--text-faint);">useState & useReducer dispatch queues</li>
-            <li class="topic-item" style="color: var(--text-faint);">useEffect dynamic cleanup linkages</li>
-            <li class="topic-item" style="color: var(--text-faint);">Stale closures in callbacks & handlers</li>
+          <ul class="topics-list">
+            <li class="topic-item">useEffect dynamic cleanup linkages</li>
+            <li class="topic-item">Stale closures in callbacks & handlers</li>
+            <li class="topic-item">Memory leaks & socket subscriptions</li>
           </ul>
         </div>
-        <div class="card-action-btn" style="background: rgba(255,255,255,0.02); color: var(--text-faint); cursor: not-allowed;">
-          Locked
-        </div>
+        <a href="chapter2-hooks-closures.html" class="card-action-btn">
+          Start Reading <span class="arrow">→</span>
+        </a>
       </article>
 
       <!-- CHAPTER 3 (QUEUED) -->

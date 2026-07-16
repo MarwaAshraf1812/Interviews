@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>React Mastery Handbook — Chapter 2: Hooks & Closures</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="handbook.css">
+</head>
+<body>
+
+  <!-- Navigation Sidebar -->
+  <aside>
+    <div class="brand">
+      <div class="tag">// handbook.react</div>
+      <h1>Interview Bible</h1>
+      <div class="sub">Chapter 2: Hooks & Closures</div>
+    </div>
+    <ul class="nav-list">
+      <li class="nav-item active" id="nav-useeffect"><a href="#useeffect"><span class="num">01.</span> useEffect Basics</a></li>
+      <li class="nav-item" id="nav-interview-qa"><a href="#interview-qa"><span class="num">02.</span> Interview Q&A</a></li>
+    </ul>
+  </aside>
+
+  <!-- Main Content -->
+  <main>
+    <div style="display: flex; gap: 16px; margin-bottom: 30px; flex-wrap: wrap;">
+      <a href="index.html" class="top-nav-link" id="handbook-home-link" style="margin-bottom: 0;">← Handbook Home</a>
+      <span style="color: var(--text-faint);">|</span>
+      <a href="../interview-questions/react-questions.md" class="top-nav-link" id="interview-qa-link" style="margin-bottom: 0;">🗣 Interview Q&A File</a>
+      <span style="color: var(--text-faint);">|</span>
+      <a href="../../index.html" class="top-nav-link" id="hub-link" style="margin-bottom: 0;">← Hub Dashboard</a>
+    </div>
+    
+    <div class="intro-header">
+      <h2>Chapter 2: Hooks & Closures</h2>
+      <p>
+        Detailed study of side effects, fiber hooks structures, closures under the hood, dependency arrays, cleanup workflows, and real-world socket/countdown timers.
+      </p>
+    </div>
+
+    <!-- 1. USEEFFECT -->
+    <section id="useeffect">
+      <div class="sec-header">
+        <span class="sec-num">01</span>
+        <h3 class="sec-title">useEffect: Why It Exists</h3>
+      </div>
+      
+      <div class="desc">
+        <p>
+          Think of a React component as a recipe that only knows how to describe a dish (the JSX/render output). But sometimes you need to do things that aren't "part of the dish" — like calling the supplier to order ingredients (fetching data), setting a kitchen timer (subscriptions/intervals), or writing to a logbook (updating <code>document.title</code>, <code>localStorage</code>, etc.).
+        </p>
+        <p>
+          These are called <span class="bold-term">side effects</span> — anything that reaches outside the component to interact with the outside world (network, browser APIs, timers, subscriptions), rather than just computing what to render.
+        </p>
+        <p>
+          <code>useEffect</code> is React's designated place to say: <i>"After you've rendered the UI, go do this side effect."</i>
+        </p>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Under the Hood: Pure Functions vs Side Effects</div>
+        <div class="box-body">
+          Function components are supposed to be pure — same props/state in, same JSX out, no side effects during render. If you fetch data directly inside the function body, it will run on every single render. Since data updates trigger a state change and a subsequent re-render, this quickly results in an <b>infinite loop</b>. <code>useEffect</code> delays execution until after paint, resolving this issue.
+        </div>
+      </div>
+
+      <pre><span class="comment">// ❌ Infinite Loop Trap: Runs on EVERY render, fetching and triggers a state update!</span>
+<span class="keyword">function</span> OrdersList() {
+  <span class="keyword">const</span> [orders, setOrders] = useState([]);
+  
+  fetch(<span class="string">'/api/orders'</span>)
+    .then(res => res.json())
+    .then(data => setOrders(data));
+    
+  <span class="keyword">return</span> &lt;ul&gt;{/* ... */}&lt;/ul&gt;;
+}</pre>
+
+      <div class="desc">
+        <h4 style="margin-bottom: 8px;">The Three Dependency Array Modes</h4>
+        <p>
+          The dependency array directs React on when to re-trigger the effect:
+          <ul style="margin-left: 20px; margin-top: 8px;">
+            <li><b>No array:</b> Runs after <i>every single render</i>.</li>
+            <li><b>Empty array (<code>[]</code>):</b> Runs <i>once</i>, after the initial mount only (simulates <code>componentDidMount</code>).</li>
+            <li><b>Array with values (<code>[dep1, dep2]</code>):</b> Runs after initial mount and subsequently only when any value in the dependency list changes.</li>
+          </ul>
+        </p>
+      </div>
+
+      <div class="diagram-panel">
+Execution Flow:
+Render 1 (initial mount) ──► Paint JSX ──► Run useEffect Callback
+                                                  │
+[Props or State Change] ◄─────────────────────────┘
+        │
+Render 2 ──► Update JSX ──► Run Cleanup from Render 1 ──► Run useEffect Callback 2</div>
+
+      <div class="desc">
+        <h4 style="margin-bottom: 8px;">Cleanup Functions — The Memory Leak Prevention Shield</h4>
+        <p>
+          Returning a function from your effect callback sets up a cleanup step. This cleanup runs right before the effect re-runs (if dependencies changed) and when the component unmounts.
+        </p>
+        <p>
+          In a live dashboard like FoodLoop, forgetting to clean up active listeners (like Socket.IO subscriptions or intervals) means these tasks keep executing in the background even after the user leaves the page—creating major memory leaks.
+        </p>
+      </div>
+
+      <pre><span class="comment">// ✅ Correct pattern with subscription cleanup</span>
+useEffect(() => {
+  <span class="keyword">const</span> socket = connectToOrderUpdates(orderId);
+  socket.on(<span class="string">'statusChange'</span>, handleStatusChange);
+
+  <span class="keyword">return</span> () => {
+    socket.off(<span class="string">'statusChange'</span>, handleStatusChange);
+    socket.disconnect(); <span class="comment">// Prevents duplicate active connections</span>
+  };
+}, [orderId]);</pre>
+
+      <div class="info-box trap">
+        <div class="box-header">Case Study: Expiry Countdown Component</div>
+        <div class="box-body">
+          <p>
+            <b>Scenario:</b> You are building a component to display the time remaining before a food item expires. It needs to fetch the expiry date once from the API and start a 1-second interval to update the countdown text.
+          </p>
+          <pre style="margin-top: 12px; margin-bottom: 0; background: var(--bg-panel); border-color: rgba(255,255,255,0.05); font-size:12.5px;"><span class="keyword">import</span> { useState, useEffect } <span class="keyword">from</span> <span class="string">'react'</span>;
+
+<span class="keyword">function</span> ExpiryCountdown({ productId }) {
+  <span class="keyword">const</span> [timeRemaining, setTimeRemaining] = useState(<span class="keyword">null</span>);
+
+  useEffect(() => {
+    <span class="keyword">let</span> isMounted = <span class="keyword">true</span>;
+    <span class="keyword">let</span> intervalId;
+
+    fetch(<span class="string">`/api/products/${productId}`</span>)
+      .then(res => res.json())
+      .then(data => {
+        <span class="keyword">if</span> (!isMounted) <span class="keyword">return</span>;
+        <span class="keyword">const</span> expiryDate = <span class="keyword">new</span> Date(data.expiryDate);
+
+        <span class="keyword">const</span> updateCountdown = () => {
+          <span class="keyword">const</span> now = <span class="keyword">new</span> Date();
+          <span class="keyword">const</span> difference = expiryDate - now;
+
+          <span class="keyword">if</span> (difference <= <span class="number">0</span>) {
+            setTimeRemaining(<span class="string">"Expired"</span>);
+            clearInterval(intervalId);
+            <span class="keyword">return</span>;
+          }
+
+          <span class="keyword">const</span> seconds = Math.floor((difference / <span class="number">1000</span>) % <span class="number">60</span>);
+          <span class="keyword">const</span> minutes = Math.floor((difference / <span class="number">1000</span> / <span class="number">60</span>) % <span class="number">60</span>);
+          <span class="keyword">const</span> hours = Math.floor((difference / (<span class="number">1000</span> * <span class="number">60</span> * <span class="number">60</span>)) % <span class="number">24</span>);
+          <span class="keyword">const</span> days = Math.floor(difference / (<span class="number">1000</span> * <span class="number">60</span> * <span class="number">60</span> * <span class="number">24</span>));
+
+          setTimeRemaining(<span class="string">`${days}d ${hours}h ${minutes}m ${seconds}s`</span>);
+        };
+
+        updateCountdown();
+        intervalId = setInterval(updateCountdown, <span class="number">1000</span>);
+      });
+
+    <span class="keyword">return</span> () => {
+      isMounted = <span class="keyword">false</span>;
+      <span class="keyword">if</span> (intervalId) clearInterval(intervalId);
+    };
+  }, [productId]);
+
+  <span class="keyword">return</span> &lt;div&gt;Time remaining: {timeRemaining ?? <span class="string">'Loading...'</span>}&lt;/div&gt;;
+}</pre>
+          <p style="margin-top: 10px; font-size: 13.5px;">
+            <b>Why [productId] is the dependency array:</b> If the array were empty (<code>[]</code>), the component would only set up the countdown for whichever product was mounted first. If the parent component changed the <code>productId</code> prop later, the hook would never re-trigger, resulting in stale data. Including <code>[productId]</code> ensures that as soon as the ID changes, the old timer is cleared and the component fetches the new product's details.
+          </p>
+        </div>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">💡 Mini Quiz</div>
+        <div class="quiz-question">What two events trigger a useEffect's cleanup function to execute?</div>
+        <button class="quiz-btn" id="quiz-cleanup-btn" onclick="toggleQuiz('quiz-cleanup')">Show Answer</button>
+        <div class="quiz-answer" id="quiz-cleanup">
+          <b>Answer:</b>
+          1. Right before the effect callback re-runs (if dependencies changed).
+          <br>2. When the component unmounts from the screen.
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. INTERVIEW QUESTIONS -->
+    <section id="interview-qa">
+      <div class="sec-header">
+        <span class="sec-num">02</span>
+        <h3 class="sec-title">Interview Questions & Answers</h3>
+      </div>
+
+      <!-- Q1 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q1: Why can't you perform side effects directly in the body of a functional component?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> The body of a functional component runs during the React Render phase, which must remain a pure function of props and state. Placing side-effects here causes them to run on every render. If the side-effect triggers a state update, it will cause another render, throwing the component into an infinite render loop.
+        </p>
+      </div>
+
+      <!-- Q2 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q2: What is the difference between passing an empty array vs no array as dependencies?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> Passing no array causes the effect to execute after every single render and paint cycle. Passing an empty array (<code>[]</code>) limits execution to once: immediately after the initial mount, and never again.
+        </p>
+      </div>
+
+      <!-- Q3 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q3: What are memory leaks in useEffect and how do you resolve them?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> Memory leaks occur when effects establish persistent tasks (e.g. setIntervals, EventListeners, WebSockets) but fail to release them when the component unmounts. Resolving them requires returning a cleanup function from the effect callback that clears timers (<code>clearInterval</code>), removes event listeners (<code>removeEventListener</code>), or closes sockets.
+        </p>
+      </div>
+    </section>
+
+    <!-- Footer Navigation -->
+    <div style="margin-top: 80px; padding-top: 30px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+      <a href="chapter1-react-fundamentals.html" class="top-nav-link" style="margin-bottom: 0; font-weight: 600;">← Chapter 1: React Fundamentals</a>
+      <span style="color: var(--text-faint); font-size: 14px; font-weight: 600;">Chapter 3: Custom Hooks (Locked)</span>
+    </div>
+  </main>
+
+  <script src="handbook.js" defer></script>
+</body>
+</html>

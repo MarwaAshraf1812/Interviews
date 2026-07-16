@@ -33,8 +33,10 @@
 
   <!-- Main Content -->
   <main>
-    <div style="display: flex; gap: 16px; margin-bottom: 30px;">
+    <div style="display: flex; gap: 16px; margin-bottom: 30px; flex-wrap: wrap;">
       <a href="index.html" class="top-nav-link" id="handbook-home-link" style="margin-bottom: 0;">← Handbook Home</a>
+      <span style="color: var(--text-faint);">|</span>
+      <a href="../interview-questions/react-questions.md" class="top-nav-link" id="interview-qa-link" style="margin-bottom: 0;">🗣 Interview Q&A File</a>
       <span style="color: var(--text-faint);">|</span>
       <a href="../../index.html" class="top-nav-link" id="hub-link" style="margin-bottom: 0;">← Hub Dashboard</a>
     </div>
@@ -302,48 +304,110 @@ Linked List Navigation in Fiber:
     <section id="state-props">
       <div class="sec-header">
         <span class="sec-num">05</span>
-        <h3 class="sec-title">State vs Props & Batching Mechanics</h3>
+        <h3 class="sec-title">State vs Props & useState Mechanics</h3>
       </div>
 
       <div class="desc">
         <p>
-          <span class="bold-term">Props</span> are read-only configuration attributes passed down from parent components. <span class="bold-term">State</span> is mutable data managed locally inside a component.
-        </p>
-        <p>
-          When you invoke a state setter, React queues a re-render. To avoid multiple re-renders when setting multiple state variables, React implements <span class="bold-term">Batching</span>.
+          <span class="bold-term">Props</span> are read-only configuration attributes passed down from parent components. <span class="bold-term">State</span> is mutable data managed locally inside a component. In functional components, state is declared via the <code>useState</code> hook.
         </p>
       </div>
 
       <div class="info-box hood">
-        <div class="box-header">Under the Hood: React 18 Automatic Batching</div>
+        <div class="box-header">Under the Hood: Why useState Returns an Array, Not an Object</div>
         <div class="box-body">
-          Before React 18, state updates were only batched inside React event handlers. Updates triggered inside promises, setTimeout blocks, or native browser listeners did not batch, triggering multiple renders.
-          <br>React 18 introduces <b>Automatic Batching</b>, aggregating state updates across all asynchronous boundaries.
+          <p>
+            If <code>useState</code> returned an object (e.g., <code>{ value, setValue }</code>), declaring multiple state variables in a single component would require verbose renaming syntax:
+            <br><code>const { value: count, setValue: setCount } = useState(0);</code>
+          </p>
+          <p style="margin-top: 8px;">
+            By returning an array (e.g., <code>[currentValue, updaterFunction]</code>), React leverages <b>array destructuring</b>, allowing developers to name the state and its setter freely and concisely with zero boilerplate:
+            <br><code>const [count, setCount] = useState(0);</code>
+            <br><code>const [theme, setTheme] = useState('dark');</code>
+          </p>
         </div>
       </div>
 
-      <pre><span class="comment">// Updates inside event handlers or timeouts:</span>
-<span class="keyword">const</span> [count, setCount] = useState(<span class="number">0</span>);
-<span class="keyword">const</span> [flag, setFlag] = useState(<span class="keyword">false</span>);
+      <div class="desc">
+        <h4 style="margin-bottom: 8px;">State Updates: Asynchronous & Batched</h4>
+        <p>
+          State setters do not mutate variables in place; instead, they queue a re-render. To optimize performance, React groups state updates triggered within event handlers, timeouts, promises, and native events into a single re-render cycle. This is known as <b>Automatic Batching</b> (standardized in React 18).
+        </p>
+      </div>
 
+      <pre><span class="comment">// 1. Classic Asynchronous Trap:</span>
+<span class="keyword">const</span> [val, setVal] = useState(<span class="number">0</span>);
 <span class="keyword">const</span> handleClick = () => {
-  setCount(c => c + <span class="number">1</span>);
-  setFlag(f => !f);
-  <span class="comment">// React 18: Batched together -> Only 1 render triggered!</span>
+  setVal(<span class="number">1</span>);
+  console.log(val); <span class="comment">// ❌ still logs 0! (Value is a constant snapshot from current render)</span>
+};
+
+<span class="comment">// 2. Stale Closures with Multiple Updates:</span>
+<span class="keyword">const</span> handleTripleAddWrong = () => {
+  setVal(val + <span class="number">1</span>);
+  setVal(val + <span class="number">1</span>);
+  setVal(val + <span class="number">1</span>);
+  <span class="comment">// If val starts at 0, all three setters read the same snapshot (val = 0).</span>
+  <span class="comment">// Result: val becomes 1, NOT 3.</span>
+};
+
+<span class="comment">// 3. Functional Updates (Always use when next state depends on previous state):</span>
+<span class="keyword">const</span> handleTripleAddCorrect = () => {
+  setVal(prev => prev + <span class="number">1</span>);
+  setVal(prev => prev + <span class="number">1</span>);
+  setVal(prev => prev + <span class="number">1</span>);
+  <span class="comment">// Each updater function receives the latest pending state from the queue.</span>
+  <span class="comment">// Result: val becomes 3.</span>
 };</pre>
+
+      <div class="info-box hood">
+        <div class="box-header">Case Study: FoodLoop Dynamic Pricing Clamp Logic</div>
+        <div class="box-body">
+          <p>
+            Consider a real-world scenario from the FoodLoop pricing module. A button decreases a product's price by 5 EGP every click, but must never drop below a <code>priceFloor</code> of 50 EGP.
+          </p>
+          <pre style="margin-top: 12px; margin-bottom: 0; background: var(--bg-panel); border-color: rgba(255,255,255,0.05); font-size:12.5px;"><span class="keyword">function</span> ProductPricing() {
+  <span class="keyword">const</span> priceFloor = <span class="number">50</span>;
+  <span class="keyword">const</span> [price, setPrice] = useState(<span class="number">200</span>);
+
+  <span class="keyword">function</span> handleDecreasePrice() {
+    <span class="comment">// Functional update ensures we evaluate the freshest value,</span>
+    <span class="comment">// and clamp against the price floor.</span>
+    setPrice((currentPrice) => {
+      <span class="keyword">const</span> newPrice = currentPrice - <span class="number">5</span>;
+      <span class="keyword">return</span> Math.max(newPrice, priceFloor);
+    });
+  }
+
+  <span class="keyword">return</span> (
+    &lt;div&gt;
+      &lt;p&gt;Current price: {price} EGP&lt;/p&gt;
+      &lt;button onClick={handleDecreasePrice}&gt;Decrease price&lt;/button&gt;
+    &lt;/div&gt;
+  );
+}</pre>
+        </div>
+      </div>
 
       <div class="info-box trap">
         <div class="box-header">Interview Trap</div>
         <div class="box-body">
           <p>
-            <b>Trap:</b> "What will the console output be immediately after setting state?"
-            <pre>const [val, setVal] = useState(0);
-const click = () => {
-  setVal(1);
-  console.log(val);
-};</pre>
-            <b>Correct Answer:</b> <code>0</code>. State updates are queued and batched, meaning they are asynchronous relative to the current calling scope. The local variable <code>val</code> does not update until the next render phase.
+            <b>Trap:</b> "What is the difference between passing a direct value (<code>setCount(count + 1)</code>) vs passing an updater function (<code>setCount(c => c + 1)</code>) to a state setter?"
+            <br><b>Correct Answer:</b> Passing a direct value uses the state value from the current render's scope closure. If multiple updates occur or updates are delayed (e.g. inside a promise closure), they may overwrite each other with stale values. Passing an updater function queues the function. React resolves it during the next render, passing the latest pending state from the queue as the argument, ensuring correctness.
           </p>
+        </div>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">💡 Mini Quiz</div>
+        <div class="quiz-question">Why does React batch state updates instead of applying them immediately?</div>
+        <button class="quiz-btn" id="quiz-state-btn" onclick="toggleQuiz('quiz-state')">Show Answer</button>
+        <div class="quiz-answer" id="quiz-state">
+          <b>Answer:</b> To prevent unnecessary re-renders and improve performance.
+          <br><br>
+          <b>Explanation:</b>
+          If React updated state and re-rendered the component immediately for every single state setter call, calling two setters in a row would trigger two complete render and diffing cycles. By batching them, React waits until all code in the event handler has run, then performs a single render update.
         </div>
       </div>
     </section>
@@ -431,6 +495,15 @@ const click = () => {
           <b>Answer:</b> React delegates events to a single listener rather than attaching them to every DOM element. In React 16, events bubbled up to the global <code>document</code> node. In React 17+, event listeners are bound to the mount root DOM container, which prevents event propagation bugs when nesting multiple React applications.
         </p>
       </div>
+
+      <!-- Q5 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q5: Why does useState return an array instead of an object, and when should you use functional updates?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> <code>useState</code> returns an array to allow developers to use array destructuring to name state variables and setters freely without forced key names or verbose renaming syntax. Functional updates (e.g., <code>setCount(prev => prev + 1)</code>) should be used whenever the new state depends on the previous state, preventing stale closure bugs during concurrent scheduling or batched updates.
+        </p>
+      </div>
+    </section>
     </section>
 
     <!-- Footer Navigation -->

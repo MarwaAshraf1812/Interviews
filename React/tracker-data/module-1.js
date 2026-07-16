@@ -198,7 +198,49 @@ setCount(3) ──┘`,
         ],
         interview: "\"React wraps native events in a `SyntheticEvent` object to ensure cross-browser normalization. It uses event delegation, attaching a single listener to the root container rather than the individual DOM elements. This reduces memory usage and simplifies cleanup.\"",
         interviewQ: "What is React's SyntheticEvent, and how does event delegation work in React 17+ vs 16?"
+      },
+      {
+        id: "usestate-basics",
+        title: "State Basics & useState",
+        status: "done",
+        analogy: "Props are like genes inherited from parents (read-only from the child's perspective). State is like mood (internal, mutable, can be updated locally). State updates are batched, like a person making a list of changes they want to make to their room and then carrying them out all at once rather than doing a complete remodel for every single change.",
+        core: "useState(initialValue) initializes state. It returns an array with [currentValue, updaterFunction] to allow clean variable naming via array destructuring with zero boilerplate. State updates are queued, batched, and asynchronous. The state variable is a constant snapshot of a specific render. When the next state depends on the previous state, the functional updater form should be used to prevent stale closure bugs.",
+        code: `import { useState } from 'react';
+
+function ProductPricing() {
+  const priceFloor = 50;
+  const [price, setPrice] = useState(200);
+
+  function handleDecreasePrice() {
+    // Functional update form prevents stale closures
+    setPrice((currentPrice) => {
+      const newPrice = currentPrice - 5;
+      return Math.max(newPrice, priceFloor);
+    });
+  }
+
+  return (
+    <div>
+      <p>Current price: {price} EGP</p>
+      <button onClick={handleDecreasePrice}>Decrease price</button>
+    </div>
+  );
+}`,
+        diagram: `Calling useState(initial):
+  → First render: returns [initial, setter]
+  → Next render: returns [latest state, setter]
+
+State updates are queued:
+  setPrice(200) → schedules re-render with price = 200`,
+        mistake: "Attempting to read state immediately after calling its setter function. The state value inside the handler remains a constant snapshot of the current render and will only change in the next render cycle.",
+        traps: [
+          "Thinking state updates are synchronous. Calling setCount(count + 1) three times in a single event handler only increments it by 1 because each call uses the same stale count snapshot. Use setCount(prev => prev + 1) instead.",
+          "Confusing why useState returns an array instead of an object. An array allows developers to use destructuring to rename variables freely without verbose renaming syntax (e.g. const [count, setCount] = useState(0) vs const { value: count, setValue: setCount } = useState(0))."
+        ],
+        interview: "\"useState returns an array with the current state and a setter. It uses array destructuring for clean, flexible renaming. State updates are queued and batched asynchronously, meaning they act as constant snapshots during a single render. When updating based on previous state, the functional updater form must be used to avoid stale closure bugs.\"",
+        interviewQ: "Why does useState return an array instead of an object, and why must you use a functional update when the next state depends on the previous state?"
       }
     ]
   }
 );
+
