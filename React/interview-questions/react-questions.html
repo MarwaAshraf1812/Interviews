@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>React Mastery Q&A — Senior Interview Questions</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../handbook/handbook.css">
+</head>
+<body>
+
+  <!-- Navigation Sidebar -->
+  <aside>
+    <div class="brand">
+      <div class="tag">// handbook.react</div>
+      <h1>Interview Bible</h1>
+      <div class="sub">React Q&A Dashboard</div>
+    </div>
+    <ul class="nav-list">
+      <li class="nav-item active" id="nav-intro"><a href="#intro"><span class="num">00.</span> Introduction</a></li>
+      <li class="nav-item" id="nav-q1"><a href="#q1"><span class="num">01.</span> Component vs Element</a></li>
+      <li class="nav-item" id="nav-q2"><a href="#q2"><span class="num">02.</span> Virtual DOM vs Fiber</a></li>
+      <li class="nav-item" id="nav-q3"><a href="#q3"><span class="num">03.</span> Reconciliation & Keys</a></li>
+      <li class="nav-item" id="nav-q4"><a href="#q4"><span class="num">04.</span> JSX Compilation</a></li>
+      <li class="nav-item" id="nav-q5"><a href="#q5"><span class="num">05.</span> State vs Props</a></li>
+      <li class="nav-item" id="nav-q6"><a href="#q6"><span class="num">06.</span> SyntheticEvent</a></li>
+      <li class="nav-item" id="nav-q7"><a href="#q7"><span class="num">07.</span> useState Design</a></li>
+      <li class="nav-item" id="nav-q8"><a href="#q8"><span class="num">08.</span> Pure Components</a></li>
+      <li class="nav-item" id="nav-q9"><a href="#q9"><span class="num">09.</span> useEffect deps</a></li>
+      <li class="nav-item" id="nav-q10"><a href="#q10"><span class="num">10.</span> useEffect Cleanups</a></li>
+      <li class="nav-item" id="nav-q11"><a href="#q11"><span class="num">11.</span> useRef Hook</a></li>
+      <li class="nav-item" id="nav-q12"><a href="#q12"><span class="num">12.</span> useRef vs useState</a></li>
+      <li class="nav-item" id="nav-q13"><a href="#q13"><span class="num">13.</span> useMemo vs useCallback</a></li>
+      <li class="nav-item" id="nav-q14"><a href="#q14"><span class="num">14.</span> Memoization Bypass</a></li>
+      <li class="nav-item" id="nav-q15"><a href="#q15"><span class="num">15.</span> useContext Hook</a></li>
+      <li class="nav-item" id="nav-q16"><a href="#q16"><span class="num">16.</span> Context Performance</a></li>
+      <li class="nav-item" id="nav-q17"><a href="#q17"><span class="num">17.</span> Context vs External Stores</a></li>
+    </ul>
+  </aside>
+
+  <!-- Main Content -->
+  <main>
+    <div style="display: flex; gap: 16px; margin-bottom: 30px; flex-wrap: wrap;">
+      <a href="../handbook/index.html" class="top-nav-link" id="handbook-home-link" style="margin-bottom: 0;">← Handbook Home</a>
+      <span style="color: var(--text-faint);">|</span>
+      <a href="../react-mastery-tracker.html" class="top-nav-link" id="tracker-link" style="margin-bottom: 0;">📈 Study Chain Tracker</a>
+      <span style="color: var(--text-faint);">|</span>
+      <a href="../../index.html" class="top-nav-link" id="hub-link" style="margin-bottom: 0;">← Hub Dashboard</a>
+    </div>
+    
+    <div class="intro-header" id="intro">
+      <h2>Senior Interview Questions & Answers</h2>
+      <p>
+        Compiled core technical interview questions, deep explanations, and senior-level answers for React Fundamentals, Hooks, and Closures.
+      </p>
+    </div>
+
+    <!-- 1. COMPONENT VS ELEMENT -->
+    <section id="q1">
+      <div class="sec-header">
+        <span class="sec-num">01</span>
+        <h3 class="sec-title">Component vs Element vs Instance</h3>
+      </div>
+      
+      <div class="desc">
+        <h4 style="margin-bottom: 8px; color: var(--color-react);">Question</h4>
+        <p style="font-weight: 600; font-size: 16px; margin-bottom: 16px;">
+          What is the difference between a React Component, a React Element, and a Component Instance?
+        </p>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Explanation</div>
+        <div class="box-body">
+          <ul style="margin-left: 20px; display: flex; flex-direction: column; gap: 8px;">
+            <li><b>Component:</b> A blueprint, factory, or template. It can be a class or a functional component that accepts <code>props</code> as input and returns a React element tree.</li>
+            <li><b>Element:</b> A lightweight, plain JavaScript object that describes what should be rendered on the screen. It has a <code>type</code> property (referencing a string for DOM nodes or the component function itself), a <code>props</code> object, and a special <code>$$typeof</code> symbol property to prevent XSS exploits. Elements are immutable and are frozen using <code>Object.freeze()</code>.</li>
+            <li><b>Instance:</b> The runtime representation of a stateful component. In modern React, instances are represented as <b>Fiber nodes</b> on the fiber tree, which hold the component’s local state, refs, lifecycle hooks, and direct bindings to the DOM.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="info-box answer">
+        <div class="box-header">Interview-Ready Answer</div>
+        <div class="box-body">
+          "A <b>Component</b> is the blueprint—a function or class that returns a UI description. A <b>React Element</b> is the lightweight, immutable plain JavaScript object returned by that blueprint (e.g. <code>{ type: 'div', props: { children: 'hello' } }</code>) which describes what should appear on the screen. A <b>Component Instance</b> is the internal in-memory object (represented as a <b>Fiber node</b>) created by React at runtime to manage the component's state, lifecycle, and native DOM bindings."
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. VIRTUAL DOM VS FIBER -->
+    <section id="q2">
+      <div class="sec-header">
+        <span class="sec-num">02</span>
+        <h3 class="sec-title">Virtual DOM vs React Fiber</h3>
+      </div>
+      
+      <div class="desc">
+        <h4 style="margin-bottom: 8px; color: var(--color-react);">Question</h4>
+        <p style="font-weight: 600; font-size: 16px; margin-bottom: 16px;">
+          How does React Fiber differ from the old Virtual DOM stack reconciler, and what problems does it solve?
+        </p>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Explanation</div>
+        <div class="box-body">
+          <ul style="margin-left: 20px; display: flex; flex-direction: column; gap: 8px;">
+            <li><b>Stack Reconciler (Pre-React 16):</b> Traversing the Virtual DOM tree was done recursively and synchronously. Once the render cycle began, it could not be paused. This blocked the browser’s single main thread, causing visual stuttering and lag during heavy rendering tasks (e.g., fast user typing or animations).</li>
+            <li><b>React Fiber (React 16+):</b> A complete rewrite of the reconciliation engine. It converts the component tree into a singly linked list of <b>Fiber nodes</b> (where each node has pointers to its <code>child</code>, <code>sibling</code>, and <code>return</code> parent). This acts as a virtual call stack, enabling <b>Cooperative Scheduling</b>. Rendering can be paused, prioritized, aborted, and resumed.</li>
+            <li><b>The Two Phases:</b>
+              <ol style="margin-left: 20px; margin-top: 6px;">
+                <li><b>Render Phase:</b> Asynchronous and interruptible. React walks the linked list to compute diffs and identify side-effects.</li>
+                <li><b>Commit Phase:</b> Synchronous and atomic. React applies the updates to the DOM in one go to prevent layout flickering.</li>
+              </ol>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="info-box answer">
+        <div class="box-header">Interview-Ready Answer</div>
+        <div class="box-body">
+          "The old <b>Stack Reconciler</b> executed updates recursively and synchronously, blocking the main thread during large renders. <b>React Fiber</b> is a linked-list-based scheduling architecture that represents the call stack virtually. It splits rendering into an <b>interruptible Render Phase</b> (which computes differences asynchronously and yields to high-priority tasks like typing) and a <b>synchronous Commit Phase</b> (which writes changes to the DOM atomically to prevent visual tearing)."
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. RECONCILIATION DIFFING -->
+    <section id="q3">
+      <div class="sec-header">
+        <span class="sec-num">03</span>
+        <h3 class="sec-title">Reconciliation Diffing Heuristics & Key Traps</h3>
+      </div>
+      
+      <div class="desc">
+        <h4 style="margin-bottom: 8px; color: var(--color-react);">Question</h4>
+        <p style="font-weight: 600; font-size: 16px; margin-bottom: 16px;">
+          How does React's diffing algorithm work, and why is using an array index as a <code>key</code> prop dangerous?
+        </p>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Explanation</div>
+        <div class="box-body">
+          <ul style="margin-left: 20px; display: flex; flex-direction: column; gap: 8px;">
+            <li><b>O(n) Heuristic:</b> Comparing two trees optimally is an O(n³) operation, which is far too slow for real-time UIs. React reduces this to O(n) using two heuristics:
+              <ol style="margin-left: 20px; margin-top: 6px;">
+                <li><b>Different Types:</b> If two elements have different types (e.g., <code>&lt;div&gt;</code> vs <code>&lt;span&gt;</code>), React tears down the old tree, destroys its state, and builds the new one from scratch.</li>
+                <li><b>Stable Keys:</b> Sibling elements are matched across renders using their <code>key</code> prop, allowing React to move and reorder elements rather than recreating them.</li>
+              </ol>
+            </li>
+            <li><b>The Index Key Trap:</b> If a list is reordered, prepended, or filtered, using the array index as the key maps the same index to a different data item. React assumes the element at index <code>0</code> is unchanged and merely mutates its properties in place. This leads to severe rendering bugs (e.g., input field text or focus remaining on the wrong item) and degrades performance.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="info-box answer">
+        <div class="box-header">Interview-Ready Answer</div>
+        <div class="box-body">
+          "React achieves <b>O(n) diffing complexity</b> by assuming that different element types produce completely different subtrees (which are destroyed and rebuilt), and by utilizing sibling <code>keys</code> to track identity. Using an <b>array index as a key is dangerous</b> because if the list is reordered, inserted into, or deleted from, the indexes shift. This causes React to match elements incorrectly, leading to persistent state rendering bugs (like text inputs staying on the wrong row) and rendering performance hits."
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. JSX COMPILATION -->
+    <section id="q4">
+      <div class="sec-header">
+        <span class="sec-num">04</span>
+        <h3 class="sec-title">JSX Compilation (Classic vs Modern)</h3>
+      </div>
+      
+      <div class="desc">
+        <h4 style="margin-bottom: 8px; color: var(--color-react);">Question</h4>
+        <p style="font-weight: 600; font-size: 16px; margin-bottom: 16px;">
+          Explain how JSX is compiled, and the difference between classic and modern React JSX compilation.
+        </p>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Explanation</div>
+        <div class="box-body">
+          <ul style="margin-left: 20px; display: flex; flex-direction: column; gap: 8px;">
+            <li><b>JSX Nature:</b> Browsers cannot run JSX directly; it is compiled into plain JavaScript functions using tools like Babel, SWC, or ESBuild.</li>
+            <li><b>Classic Compiler (React 16 and older):</b> Translates JSX tags into <code>React.createElement(type, props, ...children)</code> calls.
+              <ul style="margin-left: 20px; margin-top: 4px;">
+                <li><i>Downside:</i> Every file with JSX must manually <code>import React from 'react'</code>.</li>
+                <li><i>Downside:</i> Children are passed as extra arguments, which limits compiler-level performance optimizations.</li>
+              </ul>
+            </li>
+            <li><b>Modern Compiler (React 17+):</b> Automatically injects imports from the JSX runtime (<code>react/jsx-runtime</code>).
+              <ul style="margin-left: 20px; margin-top: 4px;">
+                <li><i>Benefit:</i> No manual <code>import React</code> is needed just for JSX.</li>
+                <li><i>Benefit:</i> Children are compiled into the <code>props</code> object, which allows the runtime to optimize node rendering.</li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="info-box answer">
+        <div class="box-header">Interview-Ready Answer</div>
+        <div class="box-body">
+          "JSX is syntactic sugar that transpiles into native JavaScript functions. In the <b>classic transform</b>, JSX is compiled into <code>React.createElement()</code> calls, requiring React to be imported in every file. In the <b>modern transform</b> introduced in React 17, JSX is compiled into direct calls to the automatic runtime helpers (<code>_jsx</code> from <code>react/jsx-runtime</code>), removing the need to import React manually and enabling better compiler optimizations."
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. STATE VS PROPS -->
+    <section id="q5">
+      <div class="sec-header">
+        <span class="sec-num">05</span>
+        <h3 class="sec-title">State vs Props & Automatic Batching</h3>
+      </div>
+      
+      <div class="desc">
+        <h4 style="margin-bottom: 8px; color: var(--color-react);">Question</h4>
+        <p style="font-weight: 600; font-size: 16px; margin-bottom: 16px;">
+          What are the core differences between state and props, and how does React's state batching work?
+        </p>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Explanation</div>
+        <div class="box-body">
+          <ul style="margin-left: 20px; display: flex; flex-direction: column; gap: 8px;">
+            <li><b>Props:</b> Configuration data passed down from a parent component. They are read-only (immutable) from the child's perspective.</li>
+            <li><b>State:</b> Local, mutable data managed internally by the component. Setting state triggers a re-render.</li>
+            <li><b>Batching:</b> React queues state updates and combines them into a single re-render to avoid layout thrashing and performance degradation.</li>
+            <li><b>Automatic Batching (React 18):</b> In React 17 and earlier, batching only occurred inside React event handlers. Updates in promises, <code>setTimeout</code>, or native event listeners triggered multiple re-renders. React 18 batches all state updates across all asynchronous boundaries automatically.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="info-box answer">
+        <div class="box-header">Interview-Ready Answer</div>
+        <div class="box-body">
+          "<b>Props</b> are read-only configuration variables passed down from parents, while <b>State</b> is internal, mutable data managed locally by the component. When state is updated, React queues a re-render. To optimize this, React implements <b>Automatic Batching</b> (standardized in React 18), grouping multiple state updates—even across promises, timeouts, and asynchronous boundaries—into a single re-render cycle to prevent redundant DOM updates."
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. SYNTHETICEVENT -->
+    <section id="q6">
+      <div class="sec-header">
+        <span class="sec-num">06</span>
+        <h3 class="sec-title">SyntheticEvent & Event Delegation (React 16 vs 17+)</h3>
+      </div>
+      
+      <div class="desc">
+        <h4 style="margin-bottom: 8px; color: var(--color-react);">Question</h4>
+        <p style="font-weight: 600; font-size: 16px; margin-bottom: 16px;">
+          What is React's SyntheticEvent, and how does event delegation work in React 17+ vs 16?
+        </p>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Explanation</div>
+        <div class="box-body">
+          <ul style="margin-left: 20px; display: flex; flex-direction: column; gap: 8px;">
+            <li><b>SyntheticEvent:</b> A wrapper around the browser's native event object to normalize behaviors, ensuring identical event attributes across Safari, Chrome, and Firefox.</li>
+            <li><b>Event Delegation:</b> React does not attach event handlers to individual DOM nodes. Instead, it registers one main listener at the root.</li>
+            <li><b>Delegation Target Shift:</b>
+              <ul style="margin-left: 20px; margin-top: 4px;">
+                <li><b>React 16:</b> Events were delegated to the global <code>document</code> node. This caused conflicts when nesting multiple React apps (since stopping propagation inside a sub-app couldn't prevent the event from hitting <code>document</code>).</li>
+                <li><b>React 17+:</b> Event delegation target was moved from the <code>document</code> to the <b>mount root DOM container</b> (e.g. <code>&lt;div id="root"&gt;</code>). This isolates nested apps safely.</li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="info-box answer">
+        <div class="box-header">Interview-Ready Answer</div>
+        <div class="box-body">
+          "React wraps native browser events in a normalized <b>SyntheticEvent</b> object to guarantee cross-browser consistency. Rather than binding events to individual DOM nodes, React uses <b>event delegation</b>. In React 16, events bubbled up and were handled at the <code>document</code> level. In React 17+, event delegation is bound to the <b>React mount root DOM container</b> instead, preventing event propagation conflicts when nesting multiple React instances or integrating with legacy libraries."
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. USESTATE DESIGN -->
+    <section id="q7">
+      <div class="sec-header">
+        <span class="sec-num">07</span>
+        <h3 class="sec-title">useState Design: Array vs Object & Functional Updates</h3>
+      </div>
+      
+      <div class="desc">
+        <h4 style="margin-bottom: 8px; color: var(--color-react);">Question</h4>
+        <p style="font-weight: 600; font-size: 16px; margin-bottom: 16px;">
+          Why does useState return an array instead of an object, and why must you use a functional update when the next state depends on the previous state?
+        </p>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Explanation</div>
+        <div class="box-body">
+          <ul style="margin-left: 20px; display: flex; flex-direction: column; gap: 8px;">
+            <li><b>Array Return Design:</b> Returning an array (e.g. <code>[state, setState]</code>) allows developers to take advantage of <b>array destructuring</b>. It lets us rename the variables freely and cleanly in a single line with zero boilerplate. If it returned an object (e.g. <code>{ value, setValue }</code>), renaming would require verbose destructuring: <code>const { value: count, setValue: setCount } = useState(0)</code>.</li>
+            <li><b>Functional Updates:</b> State updates are asynchronous and batched. Calling <code>setCount(count + 1)</code> multiple times in a row uses the same stale snapshot of <code>count</code> from the current render scope, resulting in only a single increment. Passing a functional updater <code>setCount(prev => prev + 1)</code> ensures React passes the freshest, pending value from the queue into the callback.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="info-box answer">
+        <div class="box-header">Interview-Ready Answer</div>
+        <div class="box-body">
+          "React's <code>useState</code> returns an <b>array</b> to allow clean, flexible variable renaming via <b>array destructuring</b> with zero boilerplate. We must use the <b>functional update form</b> (e.g. <code>setState(prev => prev + 1)</code>) whenever the next state depends on the previous state. Because state updates are asynchronous and batched, direct setter calls use a stale render scope snapshot of the state variable; the functional updater ensures we read the freshest queued state value."
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. USEEFFECT PURPOSE -->
+    <section id="q8">
+      <div class="sec-header">
+        <span class="sec-num">08</span>
+        <h3 class="sec-title">useEffect: Why It Exists & Pure Component Body Rules</h3>
+      </div>
+      
+      <div class="desc">
+        <h4 style="margin-bottom: 8px; color: var(--color-react);">Question</h4>
+        <p style="font-weight: 600; font-size: 16px; margin-bottom: 16px;">
+          Why can't you perform side effects directly in the body of a functional component?
+        </p>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Explanation</div>
+        <div class="box-body">
+          <ul style="margin-left: 20px; display: flex; flex-direction: column; gap: 8px;">
+            <li><b>Pure Render Phase:</b> The body of a functional component executes during React's Render phase. This phase calculates the virtual UI and must remain a pure function—accepting props/state and returning JSX, without causing side effects.</li>
+            <li><b>Infinite Loops:</b> If side-effects (like updating <code>document.title</code>, modifying external state, setting timers, or fetching APIs) run in the body, they execute on every render. If the side-effect triggers a state update, it triggers a re-render, running the side-effect again, resulting in an infinite render loop.</li>
+            <li><b>useEffect Solution:</b> It defers side-effect execution until after the render phase is complete and the changes have been painted to the screen.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="info-box answer">
+        <div class="box-header">Interview-Ready Answer</div>
+        <div class="box-body">
+          "The body of a functional component runs during the <b>Render Phase</b> and must remain a pure function. Performing side effects—like network fetches or subscriptions—directly in the body triggers them on every render. If these side-effects update state, they force a re-render, immediately causing an <b>infinite render loop</b>. <code>useEffect</code> solves this by deferring side-effects to run asynchronously *after* the render has completed and painted to the screen."
+        </div>
+      </div>
+    </section>
+
+    <!-- 9. USEEFFECT DEPENDENCIES -->
+    <section id="q9">
+      <div class="sec-header">
+        <span class="sec-num">09</span>
+        <h3 class="sec-title">useEffect Dependencies: Three Modes & Execution Flow</h3>
+      </div>
+      
+      <div class="desc">
+        <h4 style="margin-bottom: 8px; color: var(--color-react);">Question</h4>
+        <p style="font-weight: 600; font-size: 16px; margin-bottom: 16px;">
+          What is the difference between passing an empty array, no array, or an array with values as dependencies in useEffect?
+        </p>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Explanation</div>
+        <div class="box-body">
+          <ul style="margin-left: 20px; display: flex; flex-direction: column; gap: 8px;">
+            <li><b>No Array (<code>useEffect(() => {})</code>):</b> The effect runs after <b>every single render</b> and paint cycle. This is rarely what you want and poses a high risk of infinite loops if state is set inside.</li>
+            <li><b>Empty Array (<code>useEffect(() => {}, [])</code>):</b> The effect runs exactly <b>once</b> after the initial mount, acting similarly to class component <code>componentDidMount</code>.</li>
+            <li><b>Array with values (<code>useEffect(() => {}, [depA, depB])</code>):</b> The effect runs after the initial mount, and subsequently only if React detects that one or more values in the dependency list have changed (compared via <code>Object.is</code>).</li>
+            <li><b>Execution Flow:</b>
+              <ol style="margin-left: 20px; margin-top: 6px;">
+                <li>Component renders and paints to the screen.</li>
+                <li>The previous effect's <b>cleanup function</b> runs (if dependencies changed).</li>
+                <li>The current effect's <b>callback</b> runs.</li>
+              </ol>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="info-box answer">
+        <div class="box-header">Interview-Ready Answer</div>
+        <div class="box-body">
+          "The dependency array dictates when the effect re-runs. <b>No array</b> executes the effect on every single render. An <b>empty array <code>[]</code></b> executes the effect once upon initial mount. An <b>array with dependencies <code>[dep]</code></b> executes the effect on mount, and then only re-runs if any value in the array changes between renders. In terms of flow, when dependencies change, React updates the DOM, paints, executes the <b>cleanup</b> from the previous render, and then runs the new effect."
+        </div>
+      </div>
+    </section>
+
+    <!-- 10. USEEFFECT CLEANUPS -->
+    <section id="q10">
+      <div class="sec-header">
+        <span class="sec-num">10</span>
+        <h3 class="sec-title">useEffect Cleanups: Memory Leaks & Active Subscriptions</h3>
+      </div>
+      
+      <div class="desc">
+        <h4 style="margin-bottom: 8px; color: var(--color-react);">Question</h4>
+        <p style="font-weight: 600; font-size: 16px; margin-bottom: 16px;">
+          What are memory leaks in useEffect, and why is the cleanup function critical?
+        </p>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Explanation</div>
+        <div class="box-body">
+          <ul style="margin-left: 20px; display: flex; flex-direction: column; gap: 8px;">
+            <li><b>Memory Leaks:</b> If an effect establishes a persistent action—such as starting a <code>setInterval</code>, registering an event listener, or connecting to a WebSocket (e.g. order tracking updates in FoodLoop)—these actions live in the browser's global scope. If the component unmounts and the action is not cleared, it will continue running in the background, consuming memory and triggering state updates on destroyed components.</li>
+            <li><b>Cleanup Mechanism:</b> The function returned by the <code>useEffect</code> callback is the <b>cleanup function</b>. React runs it:
+              <ol style="margin-left: 20px; margin-top: 6px;">
+                <li>Immediately before running the effect again (to tear down the previous cycle’s resources).</li>
+                <li>When the component unmounts from the DOM.</li>
+              </ol>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="info-box answer">
+        <div class="box-header">Interview-Ready Answer</div>
+        <div class="box-body">
+          "Memory leaks occur in <code>useEffect</code> when persistent side-effects—like intervals, DOM event listeners, or WebSocket subscriptions—are left active after a component unmounts. To prevent this, we must return a <b>cleanup function</b> from the effect. React executes this cleanup to tear down active resources right before the effect re-runs (if dependencies change) and when the component unmounts, preventing memory leaks and duplicate event handlers."
+        </div>
+      </div>
+    </section>
+
+    <!-- 11. USEREF HOOK -->
+    <section id="q11">
+      <div class="sec-header">
+        <span class="sec-num">11</span>
+        <h3 class="sec-title">useRef: DOM Access vs Mutable Store</h3>
+      </div>
+      
+      <div class="desc">
+        <h4 style="margin-bottom: 8px; color: var(--color-react);">Question</h4>
+        <p style="font-weight: 600; font-size: 16px; margin-bottom: 16px;">
+          What is <code>useRef</code> in React, and what are its two primary use cases?
+        </p>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Explanation</div>
+        <div class="box-body">
+          <ul style="margin-left: 20px; display: flex; flex-direction: column; gap: 8px;">
+            <li><b>Nature of Refs:</b> <code>useRef</code> returns a mutable object <code>{ current: initialValue }</code> that remains stable (the same object reference) across all renders of a component.</li>
+            <li><b>No Re-renders:</b> Mutating the <code>.current</code> property of a ref is a direct assignment and does not trigger a component re-render.</li>
+            <li><b>Use Case 1: Direct DOM Access:</b> In React's declarative model, we occasionally need to touch the real DOM directly. Passing a ref to a JSX element (e.g. <code>&lt;input ref={inputRef} /&gt;</code>) causes React to set <code>inputRef.current</code> to the corresponding browser DOM node on mount. This is used for focusing elements, measuring dimensions, playing/pausing media, or triggering events on hidden elements.</li>
+            <li><b>Use Case 2: Persisting Mutable Values (Instance Variables):</b> Storing values that should survive renders but shouldn't trigger UI updates when they change, such as timer IDs (<code>setInterval</code>), canvas contexts, previous state snapshots, or cache stores.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="info-box answer">
+        <div class="box-header">Interview-Ready Answer</div>
+        <div class="box-body">
+          "<code>useRef</code> is a hook that returns a stable, mutable object with a <code>.current</code> property that persists across renders. Unlike <code>useState</code>, mutating a ref does not trigger a component re-render. Its two primary use cases are: <b>direct DOM access</b> to imperatively interact with HTML elements (like focusing an input or triggering a file picker), and <b>storing mutable instance variables</b> that persist across renders without causing unnecessary UI re-rendering cycles (like tracking a timer interval ID)."
+        </div>
+      </div>
+    </section>
+
+    <!-- 12. USEREF VS USESTATE -->
+    <section id="q12">
+      <div class="sec-header">
+        <span class="sec-num">12</span>
+        <h3 class="sec-title">useRef vs useState: Hook Selection Decisions</h3>
+      </div>
+      
+      <div class="desc">
+        <h4 style="margin-bottom: 8px; color: var(--color-react);">Question</h4>
+        <p style="font-weight: 600; font-size: 16px; margin-bottom: 16px;">
+          In FoodLoop's Bulk Upload feature, clicking a button triggers a hidden <code>&lt;input type="file" /&gt;</code> to open the file selection dialog. Which hook (<code>useState</code> or <code>useRef</code>) would you use to implement this, and why is the other option inappropriate?
+        </p>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Explanation</div>
+        <div class="box-body">
+          <ul style="margin-left: 20px; display: flex; flex-direction: column; gap: 8px;">
+            <li><b>Required Operation:</b> Triggering the file selection dialog requires calling the native DOM element's <code>.click()</code> method imperatively.</li>
+            <li><b>Ref Selection:</b> Since this requires a direct handle to a DOM element to call an imperative method (without modifying React's state or triggering re-renders), a ref is the correct choice. We bind the ref to the hidden input, and in the button's <code>onClick</code> handler, we execute <code>fileInputRef.current.click()</code>.</li>
+            <li><b>Why State is Wrong:</b>
+              <ol style="margin-left: 20px; margin-top: 6px;">
+                <li><code>useState</code> does not provide direct access to DOM nodes. Attempting to use state to reference a DOM node is a circular trap—React needs to render the node before it can be referenced, but setting state triggers renders.</li>
+                <li>If you store the DOM node in state on mount, it will trigger an extra, unnecessary re-render cycle just to store a reference that never directly affects what is rendered in the JSX.</li>
+                <li>Directly accessing the DOM via standard document query selectors (like <code>document.getElementById</code>) bypasses React's virtual tree, breaking component encapsulation and causing potential testing and server-side rendering issues.</li>
+              </ol>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="info-box answer">
+        <div class="box-header">Interview-Ready Answer</div>
+        <div class="box-body">
+          "To trigger a hidden file input's dialog from a styled button, I would use <b><code>useRef</code></b> to store a reference to the native file input DOM element. In the button's click handler, I would call <code>fileInputRef.current.click()</code>. Using <b><code>useState</code></b> is incorrect because we only need to call an imperative DOM method; storing the DOM element in state would trigger a useless, redundant re-render of the component when it mounts, and state does not provide a safe mechanism for direct DOM node manipulation."
+        </div>
+      </div>
+    </section>
+
+    <!-- Q13 -->
+    <section id="q13">
+      <div class="sec-header">
+        <span class="sec-num">13</span>
+        <h3 class="sec-title">useMemo vs useCallback: Conceptual Differences</h3>
+      </div>
+      
+      <div class="desc">
+        <h4 style="margin-bottom: 8px; color: var(--color-react);">Question</h4>
+        <p style="font-weight: 600; font-size: 16px; margin-bottom: 16px;">
+          How do <code>useMemo</code> and <code>useCallback</code> differ conceptually, and when should you choose one over the other?
+        </p>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Explanation</div>
+        <div class="box-body">
+          <ul style="margin-left: 20px; display: flex; flex-direction: column; gap: 8px;">
+            <li><b>Conceptual Difference:</b> 
+              <ul>
+                <li><code>useMemo</code> caches the <b>result</b> of an invocation (a calculated value). It executes the function you pass to it during rendering and stores the returned value.</li>
+                <li><code>useCallback</code> caches the <b>function reference itself</b>. It does not invoke the function; it simply stores the reference so it remains identical across renders.</li>
+              </ul>
+            </li>
+            <li><b>Equivalence:</b> Conceptually, <code>useCallback(fn, deps)</code> is identical to <code>useMemo(() => fn, deps)</code>.</li>
+            <li><b>When to use:</b> Use <code>useMemo</code> for CPU-heavy computations (like data filtering or calculations). Use <code>useCallback</code> to preserve function references when passing them as callback props to memoized child components or as dependencies for other hooks.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="info-box answer">
+        <div class="box-header">Interview-Ready Answer</div>
+        <div class="box-body">
+          "Conceptually, <code>useMemo</code> memoizes the <b>output value</b> of an expensive computation, whereas <code>useCallback</code> memoizes the <b>function reference itself</b>. Under the hood, <code>useCallback(fn, deps)</code> is syntactic sugar for <code>useMemo(() => fn, deps)</code>. I would choose <code>useMemo</code> when I need to avoid recalculating heavy operations (like complex array manipulations) on every render. I would choose <code>useCallback</code> when I need referential stability for callback functions to prevent unnecessary re-rendering of child components wrapped in <code>React.memo</code>."
+        </div>
+      </div>
+    </section>
+
+    <!-- Q14 -->
+    <section id="q14">
+      <div class="sec-header">
+        <span class="sec-num">14</span>
+        <h3 class="sec-title">Broken Memoization: React.memo & Unmemoized Callbacks</h3>
+      </div>
+      
+      <div class="desc">
+        <h4 style="margin-bottom: 8px; color: var(--color-react);">Question</h4>
+        <p style="font-weight: 600; font-size: 16px; margin-bottom: 16px;">
+          In FoodLoop's Dynamic Pricing Engine, you have a <code>&lt;PricingChart data={priceHistory} onPointClick={handlePointClick} /&gt;</code> component wrapped in <code>React.memo</code>. Explain what will go wrong if you do not wrap <code>handlePointClick</code> in <code>useCallback</code>, and why <code>React.memo</code> alone fails to prevent re-renders.
+        </p>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Explanation</div>
+        <div class="box-body">
+          <ul style="margin-left: 20px; display: flex; flex-direction: column; gap: 8px;">
+            <li><b>Function Recreation:</b> In JavaScript, functions are objects. Defining <code>handlePointClick</code> inline or as a standard function in the parent component creates a brand new function reference in memory on every single parent render.</li>
+            <li><b>Shallow Prop Checks:</b> <code>React.memo</code> performs a shallow comparison of props (equivalent to <code>===</code>). Since the reference to <code>handlePointClick</code> changes every render, <code>prevProps.onPointClick === nextProps.onPointClick</code> evaluates to <code>false</code>.</li>
+            <li><b>The Bypass:</b> Because of this referential discrepancy, <code>React.memo</code> detects that a prop has changed and triggers a full re-render of <code>PricingChart</code>, completely bypassing the caching optimization.</li>
+            <li><b>The Fix:</b> Wrapping <code>handlePointClick</code> in <code>useCallback</code> ensures it retains the same memory address across renders, allowing <code>React.memo</code> to successfully verify that the props are identical and skip re-rendering.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="info-box answer">
+        <div class="box-header">Interview-Ready Answer</div>
+        <div class="box-body">
+          "If <code>handlePointClick</code> is not wrapped in <code>useCallback</code>, a brand new function reference is generated in memory on every render of the parent component. When this callback is passed to <code>PricingChart</code>, <code>React.memo</code>'s shallow comparison check detects that the <code>onPointClick</code> prop reference has changed (e.g., Reference A !== Reference B). Because of this prop change, <code>React.memo</code> fails to skip the render, causing the expensive chart component to re-render from scratch on every parent update, completely defeating the purpose of memoization."
+        </div>
+      </div>
+    </section>
+
+    <!-- Q15 -->
+    <section id="q15">
+      <div class="sec-header">
+        <span class="sec-num">15</span>
+        <h3 class="sec-title">useContext Hook: Concept & Prop Drilling</h3>
+      </div>
+      
+      <div class="desc">
+        <h4 style="margin-bottom: 8px; color: var(--color-react);">Question</h4>
+        <p style="font-weight: 600; font-size: 16px; margin-bottom: 16px;">
+          In FoodLoop's Admin Portal, you have a <code>currentLanguage</code> (Arabic/English, for RTL layout support) needed by 6 different nested components. Would you use props or Context here, and why?
+        </p>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Explanation</div>
+        <div class="box-body">
+          <ul style="margin-left: 20px; display: flex; flex-direction: column; gap: 8px;">
+            <li><b>Prop Drilling Pain:</b> Passing the <code>currentLanguage</code> prop through a deep tree of layout, container, and sidebar components (prop drilling) forces intermediate components to serve as mere passthroughs for data they do not consume, making the code verbose, fragile, and hard to refactor.</li>
+            <li><b>Context Bulletin Board:</b> Setting up a <code>LanguageContext.Provider</code> at the root level acts as a global bulletin board. Any of the 6 consumer components, regardless of their nesting depth, can directly read and subscribe to the value using <code>useContext(LanguageContext)</code>.</li>
+            <li><b>Ideal Value Frequency:</b> App settings like language, locale, or visual theme are low-frequency-updating, high-impact configurations. They change rarely (only when the user explicitly switches language) but are widely read, making them the absolute ideal use case for React Context.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="info-box answer">
+        <div class="box-header">Interview-Ready Answer</div>
+        <div class="box-body">
+          "For a widely needed, low-frequency configuration like <code>currentLanguage</code>, I would choose <b>React Context</b> over props. Passing it down manually through intermediate container components that do not consume the value is a classic example of prop drilling, which makes components fragile and highly coupled. Instead, placing a <code>LanguageContext.Provider</code> at the root layout allows all 6 child components to consume the value directly via the <code>useContext</code> hook. Since language changes are low-frequency events, we avoid any concern about high-frequency rendering bottlenecks while keeping the component tree clean and decoupled."
+        </div>
+      </div>
+    </section>
+
+    <!-- Q16 -->
+    <section id="q16">
+      <div class="sec-header">
+        <span class="sec-num">16</span>
+        <h3 class="sec-title">Context Performance: Unnecessary Consumer Re-renders</h3>
+      </div>
+      
+      <div class="desc">
+        <h4 style="margin-bottom: 8px; color: var(--color-react);">Question</h4>
+        <p style="font-weight: 600; font-size: 16px; margin-bottom: 16px;">
+          What is wrong with this Provider pattern, and how would you optimize it to prevent unnecessary consumer re-renders?
+          <pre style="margin: 12px 0 0 0; background: var(--bg-card); border: 1px solid var(--border); padding: 12px; border-radius: 8px; color: var(--text-muted);">
+function App() {
+  const [cart, setCart] = useState([]);
+  return (
+    &lt;CartContext.Provider value={{ cart, setCart, itemCount: cart.length }}&gt;
+      &lt;StoreLayout /&gt;
+    &lt;/CartContext.Provider>
+  );
+}</pre>
+        </p>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Explanation</div>
+        <div class="box-body">
+          <ul style="margin-left: 20px; display: flex; flex-direction: column; gap: 8px;">
+            <li><b>Inline Object References:</b> Every time the <code>App</code> component renders, the object literal passed to <code>value</code> (<code>{ cart, setCart, itemCount: cart.length }</code>) is recreated in memory. Its reference changes (Reference A !== Reference B).</li>
+            <li><b>Aggressive Consumer Updates:</b> Because React uses <code>Object.is</code> reference comparison, it detects that the provider's value changed, triggering a re-render of <b>every single consumer component</b> subscribing to <code>CartContext</code>, even if the underlying cart array values are identical.</li>
+            <li><b>The Solution:</b> Memoize the context value object using <code>useMemo</code>, listing <code>[cart]</code> as the dependency. Because <code>setCart</code> is reference-stable from useState, the context value reference will only change when the cart contents actually update.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="info-box answer">
+        <div class="box-header">Interview-Ready Answer</div>
+        <div class="box-body">
+          "The main issue with this pattern is that an inline object literal (<code>value={{ cart, setCart, itemCount }}</code>) is created on every single render of the <code>App</code> component. This creates a brand new memory reference on each render. Because React Context triggers re-renders in all consumer components when the provider's value changes reference, every single consumer of <code>CartContext</code> will re-render on every parent update, regardless of whether the cart contents actually changed. To fix this, I would wrap the context value in a <code>useMemo</code> hook, defining the <code>cart</code> array as its dependency. This ensures that the context value maintains its referential identity and only notifies consumers of updates when the cart state actually mutates."
+        </div>
+      </div>
+    </section>
+
+    <!-- Q17 -->
+    <section id="q17">
+      <div class="sec-header">
+        <span class="sec-num">17</span>
+        <h3 class="sec-title">Context vs External Stores: High-Frequency Updates</h3>
+      </div>
+      
+      <div class="desc">
+        <h4 style="margin-bottom: 8px; color: var(--color-react);">Question</h4>
+        <p style="font-weight: 600; font-size: 16px; margin-bottom: 16px;">
+          FoodLoop's real-time pricing updates (from the Dynamic Pricing Engine) change every few seconds for products on a business's dashboard. A teammate suggests putting this live price data in Context so any component can access it. Do you agree or push back — and what would you recommend instead?
+        </p>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Explanation</div>
+        <div class="box-body">
+          <ul style="margin-left: 20px; display: flex; flex-direction: column; gap: 8px;">
+            <li><b>High-Frequency Context Bottleneck:</b> Since Context updates force all subscribing components to re-render, placing a frequently updated value (such as live prices changing every second) in a global context will trigger massive, cascading re-renders across the dashboard component tree. This quickly leads to UI sluggishness, lag, and dropped frames.</li>
+            <li><b>Context is NOT State Management:</b> Context is a transport mechanism, not a state store. It lacks built-in selector capabilities to let a consumer component select and subscribe only to a specific product's price (e.g. only product #42). If one product price changes, all components listening to the context will re-render.</li>
+            <li><b>The Recommendation:</b> Push back and suggest using a dedicated state management library (like Zustand or Redux) or React 18's <code>useSyncExternalStore</code>. These tools support granular subscriptions (selectors), meaning a component only re-renders when the specific slice of state it consumes changes, isolating updates and preserving page performance.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="info-box answer">
+        <div class="box-header">Interview-Ready Answer</div>
+        <div class="box-body">
+          "I would push back on placing high-frequency pricing updates in Context. Because Context updates force a re-render of every consumer subscribing to that context, broadcasting rapid data changes (like real-time price updates) down the tree will cause massive, cascading re-render bottlenecks. Context lacks selector-based subscriptions: if a single product's price updates, all components listening to the context re-render, even if they only display different products. Instead, I would recommend using a state management library like <b>Zustand</b> or <b>Redux Toolkit</b>. These libraries support granular subscriptions (selectors), ensuring a component only re-renders when the specific price slice it consumes changes, effectively isolating updates and maintaining dashboard performance."
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="../handbook/handbook.js" defer></script>
+</body>
+</html>

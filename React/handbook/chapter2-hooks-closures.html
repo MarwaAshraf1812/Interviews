@@ -22,7 +22,10 @@
     </div>
     <ul class="nav-list">
       <li class="nav-item active" id="nav-useeffect"><a href="#useeffect"><span class="num">01.</span> useEffect Basics</a></li>
-      <li class="nav-item" id="nav-interview-qa"><a href="#interview-qa"><span class="num">02.</span> Interview Q&A</a></li>
+      <li class="nav-item" id="nav-useref"><a href="#useref"><span class="num">02.</span> useRef Basics</a></li>
+      <li class="nav-item" id="nav-memo-callback"><a href="#memo-callback"><span class="num">03.</span> Memo & Callback</a></li>
+      <li class="nav-item" id="nav-usecontext"><a href="#usecontext"><span class="num">04.</span> useContext Basics</a></li>
+      <li class="nav-item" id="nav-interview-qa"><a href="#interview-qa"><span class="num">05.</span> Interview Q&A</a></li>
     </ul>
   </aside>
 
@@ -31,7 +34,7 @@
     <div style="display: flex; gap: 16px; margin-bottom: 30px; flex-wrap: wrap;">
       <a href="index.html" class="top-nav-link" id="handbook-home-link" style="margin-bottom: 0;">← Handbook Home</a>
       <span style="color: var(--text-faint);">|</span>
-      <a href="../interview-questions/react-questions.md" class="top-nav-link" id="interview-qa-link" style="margin-bottom: 0;">🗣 Interview Q&A File</a>
+      <a href="../interview-questions/react-questions.html" class="top-nav-link" id="interview-qa-link" style="margin-bottom: 0;">🗣 Interview Q&A Console</a>
       <span style="color: var(--text-faint);">|</span>
       <a href="../../index.html" class="top-nav-link" id="hub-link" style="margin-bottom: 0;">← Hub Dashboard</a>
     </div>
@@ -190,10 +193,202 @@ useEffect(() => {
       </div>
     </section>
 
-    <!-- 2. INTERVIEW QUESTIONS -->
-    <section id="interview-qa">
+    <!-- 2. USEREF -->
+    <section id="useref">
       <div class="sec-header">
         <span class="sec-num">02</span>
+        <h3 class="sec-title">useRef: DOM Access & Persistent Values</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          While <code>useState</code> manages state variables that determine what gets painted on the screen (triggering a re-render when they change), <code>useRef</code> lets you remember values across renders <i>without</i> triggering a re-render.
+        </p>
+        <p>
+          Think of <code>useState</code> as a <b>public whiteboard</b>—whenever you write on it, everyone looks up and React re-renders. Think of <code>useRef</code> as a <b>private sticky note in your pocket</b>—you can read and write to it freely at any time, but it won't trigger a visual update.
+        </p>
+        <h4 style="margin-top: 18px; margin-bottom: 8px;">The Two Core Use Cases</h4>
+        <ol style="margin-left: 20px; margin-bottom: 18px;">
+          <li><b>Direct DOM Access:</b> Accessing real HTML nodes directly (e.g., focusing an input, playing media, or triggering actions on hidden elements).</li>
+          <li><b>Mutable Instance Store:</b> Holding mutable values that must persist across render cycles but shouldn't trigger re-renders when updated (e.g., storing a <code>setInterval</code> timer ID so it can be cleared later).</li>
+        </ol>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Under the Hood: The Immutable Ref Object</div>
+        <div class="box-body">
+          Calling <code>useRef(initialValue)</code> returns a plain JavaScript object: <code>{ current: initialValue }</code>. React guarantees that this object is <b>exactly the same reference</b> on every single render. You can mutate its <code>.current</code> property directly, but since React only tracks state updates via <code>useState</code>/<code>useReducer</code>, mutating a ref never schedules a re-render.
+        </div>
+      </div>
+
+      <pre><span class="comment">// Use Case: Styled button triggering hidden file input</span>
+<span class="keyword">import</span> { useRef } <span class="keyword">from</span> <span class="string">'react'</span>;
+
+<span class="keyword">function</span> BulkUpload() {
+  <span class="keyword">const</span> fileInputRef = useRef(<span class="keyword">null</span>);
+
+  <span class="keyword">const</span> handleBtnClick = () => {
+    <span class="comment">// Escape the declarative model and click the hidden DOM node directly!</span>
+    fileInputRef.current.click();
+  };
+
+  <span class="keyword">return</span> (
+    &lt;div&gt;
+      &lt;input
+        type="file"
+        ref={fileInputRef}
+        style={{ display: <span class="string">'none'</span> }}
+        onChange={(e) => processFiles(e.target.files)}
+      /&gt;
+      &lt;button onClick={handleBtnClick} class="styled-btn"&gt;
+        Upload CSV File
+      &lt;/button&gt;
+    &lt;/div&gt;
+  );
+}</pre>
+
+      <div class="info-box trap">
+        <div class="box-header">Gotcha: Reading/Writing refs during Render is a Violation</div>
+        <div class="box-body">
+          React assumes the render phase is a pure calculation. Mutating or reading <code>ref.current</code> during render (e.g., <code>ref.current++</code> in the component body) makes the render impure. In Concurrent Mode or Strict Mode, React may render components multiple times or abort rendering midway, leading to unpredictable ref values and visual bugs. Always keep ref updates inside <b>event handlers</b> or <b>effects</b>.
+        </div>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">💡 Mini Quiz</div>
+        <div class="quiz-question">In FoodLoop's Bulk Upload feature, why would using useState instead of useRef to store the file input element be a bad choice?</div>
+        <button class="quiz-btn" id="quiz-ref-vs-state-btn" onclick="toggleQuiz('quiz-ref-vs-state')">Show Answer</button>
+        <div class="quiz-answer" id="quiz-ref-vs-state">
+          <b>Answer:</b>
+          1. <b>Unnecessary Re-renders:</b> When the element is mounted, setting state would trigger an extra, useless render cycle because we only need the ref to trigger the file dialog imperatively, not to update any UI elements in the JSX.
+          <br>2. <b>Declarative vs Imperative:</b> Opening a file dialog requires calling the imperative <code>.click()</code> DOM method. A state hook doesn't provide a direct handle to the DOM node, making direct DOM interaction impossible without query selectors, which breaks React's isolated component scope.
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. USEMEMO & USECALLBACK -->
+    <section id="memo-callback">
+      <div class="sec-header">
+        <span class="sec-num">03</span>
+        <h3 class="sec-title">useMemo & useCallback: Memoization Hook Pair</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          Memoization is an optimization technique used to speed up computer programs by storing the results of expensive function calls and returning the cached result when the same inputs occur again. React provides two hooks to do this:
+        </p>
+        <ol style="margin-left: 20px; margin-bottom: 18px;">
+          <li><code>useMemo</code>: Caches the <b>computed value</b> returned by a function.</li>
+          <li><code>useCallback</code>: Caches the <b>function definition reference</b> itself.</li>
+        </ol>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">The Analogy: Sticky Notes vs Brand New Objects</div>
+        <div class="box-body">
+          Imagine you have an expensive calculator (heavy computation) in your kitchen. Every time anyone opens the kitchen door (component re-renders), you re-run the entire calculation from scratch—even if the inputs to the calculation haven't changed.
+          <br><br>
+          <b>useMemo</b> is like writing the calculation result on a sticky note and sticking it to the calculator. You only recalculate if the actual inputs change.
+          <br><br>
+          <b>useCallback</b> does the same thing, but for <b>function references</b>. In JavaScript, functions are objects, so a newly declared function in a component body gets a fresh memory address on every single render. <code>useCallback</code> ensures the function retains the exact same reference between render passes.
+        </div>
+      </div>
+
+      <pre><span class="keyword">import</span> { useMemo, useCallback } <span class="keyword">from</span> <span class="string">'react'</span>;
+
+<span class="comment">// 1. useMemo Caching computed total EGP value</span>
+<span class="keyword">function</span> OrderSummary({ items }) {
+  <span class="keyword">const</span> total = useMemo(() => {
+    <span class="keyword">return</span> items.reduce((sum, item) => sum + item.price, <span class="number">0</span>);
+  }, [items]);
+
+  <span class="keyword">return</span> &lt;p&gt;Total: {total} EGP&lt;/p&gt;;
+}
+
+<span class="comment">// 2. useCallback Caching function reference to keep it identical</span>
+<span class="keyword">function</span> ProductList({ products }) {
+  <span class="keyword">const</span> handleAddToCart = useCallback((productId) => {
+    console.log(<span class="string">'Adding'</span>, productId);
+  }, []); <span class="comment">// Empty deps = same function reference returned on every render</span>
+
+  <span class="keyword">return</span> products.map(p => (
+    &lt;ProductCard key={p.id} product={p} onAdd={handleAddToCart} /&gt;
+  ));
+}</pre>
+
+      <div class="info-box trap">
+        <div class="box-header">Gotcha: Caching has overhead. Do NOT overuse!</div>
+        <div class="box-body">
+          useMemo and useCallback are not free. They cost memory (storing the cache) and CPU cycles (comparing dependency arrays on every render). Memoizing a cheap operation like <code>const doubled = useMemo(() => count * 2, [count])</code> actually makes performance <i>worse</i> due to the check overhead. Only use them for genuinely expensive calculations, or to maintain referential stability for props passed to <code>React.memo</code> child components.
+        </div>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-title">💡 Mini Quiz</div>
+        <div class="quiz-question">In FoodLoop's Dynamic Pricing Engine, you have an expensive chart component wrapped in React.memo: &lt;PricingChart data={priceHistory} onPointClick={handlePointClick} /&gt;. If the parent component does not wrap handlePointClick in useCallback, what will happen?</div>
+        <button class="quiz-btn" id="quiz-memo-callback-btn" onclick="toggleQuiz('quiz-memo-callback')">Show Answer</button>
+        <div class="quiz-answer" id="quiz-memo-callback">
+          <b>Answer:</b>
+          1. <b>Referential Discrepancy:</b> On every parent render, a new <code>handlePointClick</code> function reference is created.
+          <br>2. <b>React.memo Bypass:</b> Since <code>React.memo</code> does a shallow equality comparison (<code>===</code>) on props, it sees that the <code>onPointClick</code> reference changed (e.g., Address A !== Address B).
+          <br>3. <b>Unnecessary Render:</b> The chart will re-render on every parent render cycle, completely wasting the heavy computation cache of <code>React.memo</code>.
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. USECONTEXT -->
+    <section id="usecontext">
+      <div class="sec-header">
+        <span class="sec-num">04</span>
+        <h3 class="sec-title">useContext & Prop Drilling</h3>
+      </div>
+
+      <div class="desc">
+        <p>
+          In React, data is typically passed top-down via props (prop drilling). If a piece of data is needed by many deeply nested components, passing it down through intermediates that do not need it becomes highly verbose and error-prone.
+        </p>
+        <p>
+          The <span class="bold-term">Context API</span> solves this by creating a global bulletin board. A Provider component stores the value, and any child component at any depth can consume it directly using the <code>useContext</code> hook, skipping intermediate components.
+        </p>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Under the Hood: Resolution & Subscription</div>
+        <div class="box-body">
+          When you call <code>useContext(MyContext)</code>, React walks up the fiber node tree at read-time to find the nearest matching <code>MyContext.Provider</code> above the component, and subscribes to its value. 
+          <br><br>
+          ⚠️ <b>The Performance Trap:</b> Whenever the provider's value changes, React automatically re-renders <b>all components</b> that consume that context. If the provider's value is an inline object literal (e.g. <code>value={{ user, theme }}</code>), it gets a new reference on every render, causing all consumers to re-render even if the properties did not change. Always wrap context values in <code>useMemo</code>!
+        </div>
+      </div>
+
+      <pre><span class="keyword">import</span> { createContext, useContext, useState, useMemo } <span class="keyword">from</span> <span class="string">'react'</span>;
+
+<span class="keyword">const</span> UserContext = createContext(<span class="keyword">null</span>);
+
+<span class="keyword">function</span> App() {
+  <span class="keyword">const</span> [user, setUser] = useState({ name: <span class="string">'Marwa'</span> });
+  
+  <span class="comment">// Caching the context value ensures consumers only re-render when user actually changes</span>
+  <span class="keyword">const</span> value = useMemo(() => ({ user, setUser }), [user]);
+
+  <span class="keyword">return</span> (
+    &lt;UserContext.Provider value={value}&gt;
+      &lt;Dashboard /&gt;
+    &lt;/UserContext.Provider&gt;
+  );
+}
+
+<span class="keyword">function</span> UserBadge() {
+  <span class="comment">// Accesses the context directly, skipping intermediate components</span>
+  <span class="keyword">const</span> { user } = useContext(UserContext);
+  &lt;p&gt;Logged in as: {user.name}&lt;/p&gt;;
+}</pre>
+    </section>
+
+    <!-- 5. INTERVIEW QUESTIONS -->
+    <section id="interview-qa">
+      <div class="sec-header">
+        <span class="sec-num">05</span>
         <h3 class="sec-title">Interview Questions & Answers</h3>
       </div>
 
@@ -218,6 +413,54 @@ useEffect(() => {
         <h4 style="font-size: 16px; margin-bottom: 6px;">Q3: What are memory leaks in useEffect and how do you resolve them?</h4>
         <p style="color: var(--text-muted); font-size: 14.5px;">
           <b>Answer:</b> Memory leaks occur when effects establish persistent tasks (e.g. setIntervals, EventListeners, WebSockets) but fail to release them when the component unmounts. Resolving them requires returning a cleanup function from the effect callback that clears timers (<code>clearInterval</code>), removes event listeners (<code>removeEventListener</code>), or closes sockets.
+        </p>
+      </div>
+
+      <!-- Q4 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q4: When should you use useRef instead of useState?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> Use <code>useState</code> when the value is directly rendered in the JSX or affects what appears on the screen (since changing state schedules a re-render to update the UI). Use <code>useRef</code> when you need to persist a mutable value across renders without triggering a re-render, or when you need direct access to a raw DOM node.
+        </p>
+      </div>
+
+      <!-- Q5 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q5: Why is reading or writing ref.current during rendering considered an anti-pattern?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> Reading or mutating <code>ref.current</code> during the render phase is unsafe because React rendering must be a pure, side-effect-free calculation. React may render components concurrently or repeat renders before updating the DOM. Mutating a ref during render violates purity and can cause stale reads, race conditions, or erratic behaviors, particularly when React's concurrent mode features are active.
+        </p>
+      </div>
+
+      <!-- Q6 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q6: How do useMemo and useCallback differ conceptually?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> <code>useMemo</code> is designed to cache the <b>result of a calculation</b> (a computed value) between render cycles. It runs the provided function and stores its output. <code>useCallback</code> caches the <b>actual function reference itself</b>. It does not call the function; it simply retains the memory address of the function declaration across renders to maintain reference stability.
+        </p>
+      </div>
+
+      <!-- Q7 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q7: Why does passing a non-memoized callback to a React.memo component break its optimization?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> <code>React.memo</code> prevents a component from re-rendering only if its props are unchanged, verifying equality using reference comparison (<code>===</code>). Since standard JS functions are objects, defining an inline function or normal callback in the parent component creates a brand new function reference on every single parent render. Consequently, <code>React.memo</code> detects a "new" prop reference, bypasses the cache, and re-renders the child component anyway. Wrapping the callback in <code>useCallback</code> preserves the exact same reference and prevents this issue.
+        </p>
+      </div>
+
+      <!-- Q8 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q8: How does useContext resolve the value under the hood, and what triggers consumer components to re-render?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> Under the hood, <code>useContext</code> walks up the Fiber tree starting from the calling component until it matches the nearest Provider node. When the value of the Provider changes (verified using <code>Object.is</code> reference comparison), React automatically marks all subscribing consumer components as dirty, triggering them to re-render.
+        </p>
+      </div>
+
+      <!-- Q9 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q9: Why is Context considered a poor fit for high-frequency state updates, and what should be used instead?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> Context is not optimized for high-frequency updates because any change to the Provider's value forces every consuming component to re-render, which can bottleneck performance. For high-frequency state updates, developer-controlled granular subscription models (like Zustand, Redux, or Signals) are preferred because they allow components to select and subscribe only to specific slices of state.
         </p>
       </div>
     </section>
