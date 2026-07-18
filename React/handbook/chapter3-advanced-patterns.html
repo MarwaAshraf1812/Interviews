@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>React Mastery Handbook — Chapter 3: Advanced Patterns</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="handbook.css">
+</head>
+<body>
+
+  <!-- Navigation Sidebar -->
+  <aside>
+    <div class="brand">
+      <div class="tag">// handbook.react</div>
+      <h1>Interview Bible</h1>
+      <div class="sub">Chapter 3: Advanced Patterns</div>
+    </div>
+    <ul class="nav-list">
+      <li class="nav-item active" id="nav-compound"><a href="#compound"><span class="num">01.</span> Compound Components</a></li>
+      <li class="nav-item" id="nav-render-props"><a href="#render-props"><span class="num">02.</span> Render Props</a></li>
+      <li class="nav-item" id="nav-hocs"><a href="#hocs"><span class="num">03.</span> Higher-Order Components</a></li>
+      <li class="nav-item" id="nav-comparison"><a href="#comparison"><span class="num">04.</span> Pattern Comparison</a></li>
+      <li class="nav-item" id="nav-interview-qa"><a href="#interview-qa"><span class="num">05.</span> Interview Q&A</a></li>
+    </ul>
+  </aside>
+
+  <!-- Main Content -->
+  <main>
+    <div style="display: flex; gap: 16px; margin-bottom: 30px; flex-wrap: wrap;">
+      <a href="index.html" class="top-nav-link" id="handbook-home-link" style="margin-bottom: 0;">← Handbook Home</a>
+      <span style="color: var(--text-faint);">|</span>
+      <a href="../interview-questions/react-questions.html" class="top-nav-link" id="interview-qa-link" style="margin-bottom: 0;">🗣 Interview Q&A Console</a>
+      <span style="color: var(--text-faint);">|</span>
+      <a href="../../index.html" class="top-nav-link" id="hub-link" style="margin-bottom: 0;">← Hub Dashboard</a>
+    </div>
+    
+    <div class="intro-header">
+      <h2>Chapter 3: Advanced React Patterns</h2>
+      <p>
+        Master modern composition paradigms: Compound Components for flexible UI libraries, legacy Render Props logic-sharing mechanics, and Higher-Order Components (HOCs).
+      </p>
+    </div>
+
+    <!-- 1. COMPOUND COMPONENTS -->
+    <section id="compound">
+      <div class="sec-header">
+        <span class="sec-num">01</span>
+        <h3 class="sec-title">Compound Components Pattern</h3>
+      </div>
+      
+      <div class="desc">
+        <p>
+          Imagine a restaurant menu with fixed combos (e.g. "Burger + Fries + Drink", no substitutions) vs a build-your-own-bowl place where you pick each ingredient yourself, but the system (bowl → base → toppings → sauce) enforces a sensible structure.
+        </p>
+        <p>
+          Composition patterns are React's way of building the second kind — components that give consumers complete flexibility within a structural boundary, instead of one rigid, over-configured component with 15 boolean props (an anti-pattern known as <span class="bold-term">prop explosion</span>).
+        </p>
+        <p>
+          Instead of writing a monolithic component that controls everything internally, you expose several sub-components meant to be used together, sharing implicit state via React Context.
+        </p>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Real-World Reference: UI Libraries</div>
+        <div class="box-body">
+          This is exactly how state-of-the-art UI libraries like Radix UI, shadcn/ui, and Reach UI structure components — such as <code>&lt;Select&gt;</code>, <code>&lt;Select.Trigger&gt;</code>, <code>&lt;Select.Content&gt;</code>, etc. It allows developers to customize rendering layout and markup without breaking the component's internal behavior.
+        </div>
+      </div>
+
+      <pre><span class="keyword">import</span> { createContext, useContext, useState } <span class="keyword">from</span> <span class="string">'react'</span>;
+
+<span class="keyword">const</span> ModalContext = createContext();
+
+<span class="comment">// 1. Parent wrapper defines provider and shared state</span>
+<span class="keyword">function</span> Modal({ children, onClose }) {
+  <span class="keyword">return</span> (
+    &lt;ModalContext.Provider value={{ onClose }}&gt;
+      &lt;div className=<span class="string">"modal-overlay"</span>&gt;{children}&lt;/div&gt;
+    &lt;/ModalContext.Provider&gt;
+  );
+}
+
+// Attach sub-components as static properties
+Modal.Header = <span class="keyword">function</span> ModalHeader({ children }) {
+  <span class="keyword">const</span> { onClose } = useContext(ModalContext);
+  <span class="keyword">return</span> (
+    &lt;div className=<span class="string">"modal-header"</span>&gt;
+      {children}
+      &lt;button onClick={onClose}&gt;&times;&lt;/button&gt;
+    &lt;/div&gt;
+  );
+};
+
+Modal.Body = <span class="keyword">function</span> ModalBody({ children }) {
+  <span class="keyword">return</span> &lt;div className=<span class="string">"modal-body"</span>&gt;{children}&lt;/div&gt;;
+};
+
+Modal.Footer = <span class="keyword">function</span> ModalFooter({ children }) {
+  <span class="keyword">return</span> &lt;div className=<span class="string">"modal-footer"</span>&gt;{children}&lt;/div&gt;;
+};</pre>
+
+      <div class="diagram-panel">
+Compound Component Implicit Context:
+Modal (Provider: onClose)
+ ├── Modal.Header (Consumes: onClose)
+ ├── Modal.Body (Children)
+ └── Modal.Footer (Children)
+      </div>
+    </section>
+
+    <!-- 2. RENDER PROPS -->
+    <section id="render-props">
+      <div class="sec-header">
+        <span class="sec-num">02</span>
+        <h3 class="sec-title">Render Props Pattern</h3>
+      </div>
+      
+      <div class="desc">
+        <p>
+          The <span class="bold-term">Render Props</span> pattern involves passing a function as a prop to a component, which the component calls to render its UI. The component owns the stateful logic (such as tracking coordinates, fetching data, or handling subscriptions) and delegates UI styling to the consumer.
+        </p>
+        <p>
+          Before React Hooks (pre-2019), render props was one of the standard patterns for sharing stateful logic. In modern React, custom hooks have largely replaced render props, but it is still vital to recognize it in older codebases.
+        </p>
+      </div>
+
+      <pre><span class="keyword">function</span> DataFetcher({ url, render }) {
+  <span class="keyword">const</span> [data, setData] = useState(<span class="keyword">null</span>);
+
+  useEffect(() =&gt; {
+    fetch(url).then(res =&gt; res.json()).then(setData);
+  }, [url]);
+
+  <span class="comment">// The caller controls layout by passing a callback function</span>
+  <span class="keyword">return</span> render(data);
+}
+
+// Usage:
+&lt;DataFetcher
+  url="/api/orders"
+  render={(data) =&gt; data ? &lt;OrderList orders={data} /&gt; : &lt;p&gt;Loading...&lt;/p&gt;}
+/&gt;</pre>
+    </section>
+
+    <!-- 3. HIGHER-ORDER COMPONENTS -->
+    <section id="hocs">
+      <div class="sec-header">
+        <span class="sec-num">03</span>
+        <h3 class="sec-title">Higher-Order Components (HOCs)</h3>
+      </div>
+      
+      <div class="desc">
+        <p>
+          A <span class="bold-term">Higher-Order Component (HOC)</span> is a pure function that takes a component as an argument and returns a new, enhanced component. This is a functional programming pattern used for cross-cutting concerns (such as authorization, logging, or caching).
+        </p>
+        <p>
+          Similar to Render Props, HOCs were widely used pre-2019 to share stateful behaviors. In modern React, custom hooks are preferred because HOCs introduce wrapper nesting and can lead to prop namespace collisions.
+        </p>
+      </div>
+
+      <pre><span class="keyword">function</span> withAuth(WrappedComponent) {
+  <span class="keyword">return</span> <span class="keyword">function</span> AuthenticatedComponent(props) {
+    <span class="keyword">const</span> { user } = useContext(UserContext);
+    <span class="keyword">if</span> (!user) <span class="keyword">return</span> &lt;p&gt;Please log in&lt;/p&gt;;
+    
+    <span class="comment">// Pass down props and inject the user context</span>
+    <span class="keyword">return</span> &lt;WrappedComponent {...props} user={user} /&gt;;
+  };
+}</pre>
+    </section>
+
+    <!-- 4. PATTERN COMPARISON -->
+    <section id="comparison">
+      <div class="sec-header">
+        <span class="sec-num">04</span>
+        <h3 class="sec-title">Composition Pattern Comparison</h3>
+      </div>
+      
+      <div class="desc">
+        <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+          <thead>
+            <tr style="border-bottom: 2px solid var(--border); text-align: left;">
+              <th style="padding: 12px; font-weight: 600;">Pattern</th>
+              <th style="padding: 12px; font-weight: 600;">Primary Era</th>
+              <th style="padding: 12px; font-weight: 600;">Still Write New Ones?</th>
+              <th style="padding: 12px; font-weight: 600;">Modern Replacement</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: 12px; font-weight: 600; color: var(--accent);">Compound Components</td>
+              <td style="padding: 12px;">React 15 - Present</td>
+              <td style="padding: 12px; color: var(--success); font-weight: 600;">✅ Yes (UI kits)</td>
+              <td style="padding: 12px; color: var(--text-muted);">—</td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: 12px; font-weight: 600; color: var(--accent);">Render Props</td>
+              <td style="padding: 12px;">Pre-Hooks (< 2019)</td>
+              <td style="padding: 12px; color: var(--warning); font-weight: 600;">❌ Rarely</td>
+              <td style="padding: 12px; font-weight: 600; color: var(--success);">Custom Hooks</td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: 12px; font-weight: 600; color: var(--accent);">Higher-Order Components</td>
+              <td style="padding: 12px;">Pre-Hooks (< 2019)</td>
+              <td style="padding: 12px; color: var(--warning); font-weight: 600;">⚠️ Occasionally</td>
+              <td style="padding: 12px; font-weight: 600; color: var(--success);">Custom Hooks (for logic)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 5. INTERVIEW QUESTIONS -->
+    <section id="interview-qa">
+      <div class="sec-header">
+        <span class="sec-num">05</span>
+        <h3 class="sec-title">Interview Questions & Answers</h3>
+      </div>
+
+      <!-- Q1 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q1: What is 'prop explosion' and how do compound components resolve it?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> Prop explosion is the anti-pattern where components accept a bloated list of props to manage layout and sub-component visibility, making them fragile and hard to maintain. Compound components resolve this by using a shared context to allow parent components to compose their children (like <code>Modal.Header</code> or <code>Modal.Body</code>) directly, placing control back into the caller's hands while keeping the internal state hidden.
+        </p>
+      </div>
+
+      <!-- Q2 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q2: Why are Render Props and Higher-Order Components largely obsolete in modern React?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> Render Props and HOCs were introduced to share stateful logic across components. However, they both create "wrapper hell" (extra layers in the React component tree) and can lead to prop namespace collisions. Modern React uses Custom Hooks instead, which share stateful logic directly within the component body without nesting.
+        </p>
+      </div>
+
+      <!-- Q3 -->
+      <div style="margin-bottom: 24px;">
+        <h4 style="font-size: 16px; margin-bottom: 6px;">Q3: How do compound components share implicit state, and what is the risk of using child elements outside the parent container?</h4>
+        <p style="color: var(--text-muted); font-size: 14.5px;">
+          <b>Answer:</b> Compound components share implicit state via React Context (the parent acts as a Provider, and sub-components use <code>useContext</code>). The main risk of using a sub-component outside the parent container is that the context lookup will fail (resulting in <code>undefined</code>), which can cause runtime exceptions unless the sub-component explicitly guards against a null context.
+        </p>
+      </div>
+    </section>
+
+    <!-- Footer Navigation -->
+    <div style="margin-top: 80px; padding-top: 30px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+      <a href="chapter2-hooks-closures.html" class="top-nav-link" style="margin-bottom: 0; font-weight: 600;">← Chapter 2: Hooks & Closures</a>
+      <span style="color: var(--text-faint); font-size: 14px; font-weight: 600;">Chapter 4: React Internals (Locked)</span>
+    </div>
+  </main>
+
+  <script src="handbook.js" defer></script>
+</body>
+</html>

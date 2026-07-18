@@ -39,6 +39,9 @@
       <li class="nav-item" id="nav-q15"><a href="#q15"><span class="num">15.</span> useContext Hook</a></li>
       <li class="nav-item" id="nav-q16"><a href="#q16"><span class="num">16.</span> Context Performance</a></li>
       <li class="nav-item" id="nav-q17"><a href="#q17"><span class="num">17.</span> Context vs External Stores</a></li>
+      <li class="nav-item" id="nav-q18"><a href="#q18"><span class="num">18.</span> Prop Explosion</a></li>
+      <li class="nav-item" id="nav-q19"><a href="#q19"><span class="num">19.</span> HOC to Hooks</a></li>
+      <li class="nav-item" id="nav-q20"><a href="#q20"><span class="num">20.</span> Card Layout Design</a></li>
     </ul>
   </aside>
 
@@ -55,7 +58,7 @@
     <div class="intro-header" id="intro">
       <h2>Senior Interview Questions & Answers</h2>
       <p>
-        Compiled core technical interview questions, deep explanations, and senior-level answers for React Fundamentals, Hooks, and Closures.
+        Compiled core technical interview questions, deep explanations, and senior-level answers for React Fundamentals, Hooks, Closures, and Advanced Patterns.
       </p>
     </div>
 
@@ -673,6 +676,119 @@ function App() {
         <div class="box-header">Interview-Ready Answer</div>
         <div class="box-body">
           "I would push back on placing high-frequency pricing updates in Context. Because Context updates force a re-render of every consumer subscribing to that context, broadcasting rapid data changes (like real-time price updates) down the tree will cause massive, cascading re-render bottlenecks. Context lacks selector-based subscriptions: if a single product's price updates, all components listening to the context re-render, even if they only display different products. Instead, I would recommend using a state management library like <b>Zustand</b> or <b>Redux Toolkit</b>. These libraries support granular subscriptions (selectors), ensuring a component only re-renders when the specific price slice it consumes changes, effectively isolating updates and maintaining dashboard performance."
+        </div>
+      </div>
+    </section>
+
+    <!-- Q18 -->
+    <section id="q18">
+      <div class="sec-header">
+        <span class="sec-num">18</span>
+        <h3 class="sec-title">Prop Explosion: The Rigid API Problem</h3>
+      </div>
+      
+      <div class="desc">
+        <h4 style="margin-bottom: 8px; color: var(--color-react);">Question</h4>
+        <p style="font-weight: 600; font-size: 16px; margin-bottom: 16px;">
+          What is the main problem with a component API that has 15 boolean/string props for every possible configuration? Name one alternative pattern.
+        </p>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Explanation</div>
+        <div class="box-body">
+          <ul style="margin-left: 20px; display: flex; flex-direction: column; gap: 8px;">
+            <li><b>Rigidity & Scale Pain:</b> As new configuration needs arise, developers are forced to append more customization props (e.g. <code>showCloseButton</code>, <code>footerAlign</code>). This turns the component into an unreadable monolithic wall of code that cannot adapt to layout variations the author did not explicitly foresee.</li>
+            <li><b>Alternative (Compound Components):</b> By separating the monolith into a family of coordinating sub-components (like <code>Modal</code>, <code>Modal.Header</code>, <code>Modal.Body</code>, <code>Modal.Footer</code>) that share state implicitly via Context, the caller gains full control over nesting, layout, and HTML structure.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="info-box answer">
+        <div class="box-header">Interview-Ready Answer</div>
+        <div class="box-body">
+          "The main problem with a component API that has dozens of customization props is **rigidity and lack of scalability**. It forces the component to manage layout variations imperatively through configuration flags. This results in a convoluted internal codebase filled with conditional rendering blocks that cannot adapt to layout changes the author didn't anticipate. An excellent alternative is the **Compound Components pattern**. By breaking the component into smaller sub-components that share implicit state via Context, we return structural layout control to the calling developer, making the API highly extensible and simple."
+        </div>
+      </div>
+    </section>
+
+    <!-- Q19 -->
+    <section id="q19">
+      <div class="sec-header">
+        <span class="sec-num">19</span>
+        <h3 class="sec-title">Refactoring HOCs to Modern Hooks</h3>
+      </div>
+      
+      <div class="desc">
+        <h4 style="margin-bottom: 8px; color: var(--color-react);">Question</h4>
+        <p style="font-weight: 600; font-size: 16px; margin-bottom: 16px;">
+          You find this Higher-Order Component in an older part of the FoodLoop codebase:
+          <pre style="margin: 12px 0 0 0; background: var(--bg-card); border: 1px solid var(--border); padding: 12px; border-radius: 8px; color: var(--text-muted);">
+function withLoading(WrappedComponent) {
+  return function(props) {
+    if (props.isLoading) return &lt;Spinner /&gt;;
+    return &lt;WrappedComponent {...props} /&gt;;
+  };
+}</pre>
+          How would you rewrite the logic-sharing intent of this using a modern hooks-based approach instead?
+        </p>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Explanation</div>
+        <div class="box-body">
+          <ul style="margin-left: 20px; display: flex; flex-direction: column; gap: 8px;">
+            <li><b>Wrapper Hell:</b> HOCs inject variables or manipulate elements by wrapping components, creating deeply nested DOM and virtual component trees (wrapper hell) and making prop sources hard to trace.</li>
+            <li><b>The Hook Shift:</b> Hooks share stateful logic directly inside a component's body without introducing wrapper elements. For a loading indicator, we can either extract the loading state into a custom hook or handle it declaratively in the component or via a simple wrapper component, keeping the component footprint flat and clean.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="info-box answer">
+        <div class="box-header">Interview-Ready Answer</div>
+        <div class="box-body">
+          "To migrate away from this HOC pattern, we can replace the loading state check with a simple, declarative inline check within our component using a custom loading hook. Instead of wrapping the entire component—which leads to wrapper nesting and obscures props—we can write:
+          <br><br>
+          <code>function UserProfile({ userId }) {<br>
+          &nbsp;&nbsp;const { data, isLoading } = useProductData(userId);<br>
+          &nbsp;&nbsp;if (isLoading) return &lt;Spinner /&gt;;<br>
+          &nbsp;&nbsp;return &lt;ProfileDetails data={data} /&gt;;<br>
+          }</code>
+          <br><br>
+          This isolates the loading logic into a reusable custom hook, keeps our component tree flat, and makes the component's render flow explicit and easy to read."
+        </div>
+      </div>
+    </section>
+
+    <!-- Q20 -->
+    <section id="q20">
+      <div class="sec-header">
+        <span class="sec-num">20</span>
+        <h3 class="sec-title">UI Architecture: PricingCard Design Decision</h3>
+      </div>
+      
+      <div class="desc">
+        <h4 style="margin-bottom: 8px; color: var(--color-react);">Question</h4>
+        <p style="font-weight: 600; font-size: 16px; margin-bottom: 16px;">
+          You're designing FoodLoop's reusable <code>&lt;PricingCard&gt;</code> component for the Business Portal — it needs to show a product, a price, an optional discount badge, an optional "AI-suggested price" indicator, and optional action buttons in the footer, with different businesses wanting different combinations. Would you use compound components, or a flexible single component with a slots/children-based API? Justify your choice.
+        </p>
+      </div>
+
+      <div class="info-box hood">
+        <div class="box-header">Explanation</div>
+        <div class="box-body">
+          <ul style="margin-left: 20px; display: flex; flex-direction: column; gap: 8px;">
+            <li><b>Slots/Children API:</b> For a visual layout component like a card (where sub-components like price, product info, and discount badges don't share complex state), a slot-based API (passing components as props like <code>badge={...}</code> or using nested children) is much simpler and cleaner than Compound Components.</li>
+            <li><b>Compound Component Overhead:</b> Compound Components require setting up a Context Provider to share state. If there's no state to share (e.g. the card is purely visual layout), using Context introduces unnecessary overhead and makes child components like <code>PricingCard.Price</code> unusable outside the wrapper.</li>
+            <li><b>Conclusion:</b> A flexible single component with a slots/children-based API is the superior choice because it provides layout flexibility without the state-sharing overhead of context.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="info-box answer">
+        <div class="box-header">Interview-Ready Answer</div>
+        <div class="box-body">
+          "For a visual card component like <code>PricingCard</code>, I would choose a **slots/children-based API** over compound components. Compound components are designed for a family of components that must share implicit state (like a selected tab index or menu open state) via context. Since the card's sub-elements (price, badge, AI indicator) are purely presentational and do not share runtime state, using compound components would introduce unnecessary context overhead. A slots-based API (passing elements directly to designated props like <code>header</code>, <code>actions</code>, or using nested <code>children</code>) provides the same layout flexibility while keeping the implementation simpler and cleaner."
         </div>
       </div>
     </section>

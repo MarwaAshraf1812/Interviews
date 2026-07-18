@@ -154,10 +154,10 @@
       <li class="nav-item active"><a href="#"><span class="num">00.</span> Overview</a></li>
       <li class="nav-item"><a href="chapter1-react-fundamentals.html"><span class="num">01.</span> Ch 1: Fundamentals</a></li>
       <li class="nav-item"><a href="chapter2-hooks-closures.html"><span class="num">02.</span> Ch 2: Hooks & Closures</a></li>
-      <li class="nav-item"><a href="#" style="cursor: not-allowed;"><span class="num">03.</span> Ch 3: Advanced Optimization (Locked)</a></li>
-      <li class="nav-item"><a href="#" style="cursor: not-allowed;"><span class="num">04.</span> Ch 4: State Management (Locked)</a></li>
-      <li class="nav-item"><a href="#" style="cursor: not-allowed;"><span class="num">05.</span> Ch 5: Server Components (Locked)</a></li>
-      <li class="nav-item"><a href="#" style="cursor: not-allowed;"><span class="num">06.</span> Ch 6: Routing & SSR (Locked)</a></li>
+      <li class="nav-item"><a href="chapter3-advanced-patterns.html"><span class="num">03.</span> Ch 3: Advanced Patterns</a></li>
+      <li class="nav-item"><a href="#" style="cursor: not-allowed;"><span class="num">04.</span> Ch 4: React Internals (Locked)</a></li>
+      <li class="nav-item"><a href="#" style="cursor: not-allowed;"><span class="num">05.</span> Ch 5: State Management (Locked)</a></li>
+      <li class="nav-item"><a href="#" style="cursor: not-allowed;"><span class="num">06.</span> Ch 6: Server Components & Routing (Locked)</a></li>
     </ul>
   </aside>
 
@@ -225,26 +225,26 @@
         </a>
       </article>
 
-      <!-- CHAPTER 3 (QUEUED) -->
-      <article class="chapter-card locked">
+      <!-- CHAPTER 3 (ACTIVE) -->
+      <article class="chapter-card">
         <div>
           <div class="card-meta">
-            <span class="chapter-badge" style="color: var(--text-muted); background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08);">CHAPTER 03</span>
-            <span class="read-time">⏱ Queued</span>
+            <span class="chapter-badge">CHAPTER 03</span>
+            <span class="read-time">⏱ 15 min read</span>
           </div>
-          <h3 class="chapter-title" style="color: var(--text-muted);">Advanced Optimization</h3>
+          <h3 class="chapter-title">Advanced Patterns</h3>
           <p class="chapter-desc">
-            Explore render bailouts, React.memo reference checks, useTransition concurrent scheduler mechanics, and useDeferredValue logic.
+            Explore advanced React composition architectures: Compound Components, Render Props, and Higher-Order Components (HOCs).
           </p>
-          <ul class="topics-list" style="border-top-color: rgba(255,255,255,0.04);">
-            <li class="topic-item" style="color: var(--text-faint);">Render bailout rules & Object.is checks</li>
-            <li class="topic-item" style="color: var(--text-faint);">Concurrent Mode scheduling priorities</li>
-            <li class="topic-item" style="color: var(--text-faint);">React Compiler (React Forget) desugaring</li>
+          <ul class="topics-list">
+            <li class="topic-item">Compound Components Implicit Context</li>
+            <li class="topic-item">Render Props pattern logic extraction</li>
+            <li class="topic-item">Higher-Order Components wrapper dynamics</li>
           </ul>
         </div>
-        <div class="card-action-btn" style="background: rgba(255,255,255,0.02); color: var(--text-faint); cursor: not-allowed;">
-          Locked
-        </div>
+        <a href="chapter3-advanced-patterns.html" class="card-action-btn">
+          Start Reading <span class="arrow">→</span>
+        </a>
       </article>
 
       <!-- CHAPTER 4 (QUEUED) -->
@@ -254,14 +254,14 @@
             <span class="chapter-badge" style="color: var(--text-muted); background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08);">CHAPTER 04</span>
             <span class="read-time">⏱ Queued</span>
           </div>
-          <h3 class="chapter-title" style="color: var(--text-muted);">State Management Models</h3>
+          <h3 class="chapter-title" style="color: var(--text-muted);">React Internals</h3>
           <p class="chapter-desc">
-            Analyze global store mechanics: Context API propagation, Redux/Zustand external stores subscription, and atomic state paradigms.
+            Deconstruct Fiber nodes, tree traversals, render & commit cycles, priority scheduling, and concurrent rendering hooks.
           </p>
           <ul class="topics-list" style="border-top-color: rgba(255,255,255,0.04);">
-            <li class="topic-item" style="color: var(--text-faint);">Context rendering optimizations & selectors</li>
-            <li class="topic-item" style="color: var(--text-faint);">useSyncExternalStore subscription hooks</li>
-            <li class="topic-item" style="color: var(--text-faint);">Zustand vs Redux Toolkit architecture</li>
+            <li class="topic-item" style="color: var(--text-faint);">Fiber Node structure and properties</li>
+            <li class="topic-item" style="color: var(--text-faint);">Render phase vs Commit phase scheduling</li>
+            <li class="topic-item" style="color: var(--text-faint);">useTransition & useDeferredValue concurrent engine</li>
           </ul>
         </div>
         <div class="card-action-btn" style="background: rgba(255,255,255,0.02); color: var(--text-faint); cursor: not-allowed;">
@@ -276,14 +276,14 @@
             <span class="chapter-badge" style="color: var(--text-muted); background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08);">CHAPTER 05</span>
             <span class="read-time">⏱ Queued</span>
           </div>
-          <h3 class="chapter-title" style="color: var(--text-muted);">Server Components & Actions</h3>
+          <h3 class="chapter-title" style="color: var(--text-muted);">State Management</h3>
           <p class="chapter-desc">
-            Deconstruct React Server Components: serialization protocol, network boundaries, Suspense streaming, and Server Actions database mutations.
+            Analyze global store mechanics: Context API propagation, Redux/Zustand external stores subscription, and atomic state paradigms.
           </p>
           <ul class="topics-list" style="border-top-color: rgba(255,255,255,0.04);">
-            <li class="topic-item" style="color: var(--text-faint);">RSC payload serialization rules</li>
-            <li class="topic-item" style="color: var(--text-faint);">Suspense boundaries & HTML streaming</li>
-            <li class="topic-item" style="color: var(--text-faint);">Server Actions progressive enhancement</li>
+            <li class="topic-item" style="color: var(--text-faint);">Context rendering optimizations & selectors</li>
+            <li class="topic-item" style="color: var(--text-faint);">useSyncExternalStore subscription hooks</li>
+            <li class="topic-item" style="color: var(--text-faint);">Zustand vs Redux Toolkit architecture</li>
           </ul>
         </div>
         <div class="card-action-btn" style="background: rgba(255,255,255,0.02); color: var(--text-faint); cursor: not-allowed;">
@@ -298,14 +298,14 @@
             <span class="chapter-badge" style="color: var(--text-muted); background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08);">CHAPTER 06</span>
             <span class="read-time">⏱ Queued</span>
           </div>
-          <h3 class="chapter-title" style="color: var(--text-muted);">Routing & SSR</h3>
+          <h3 class="chapter-title" style="color: var(--text-muted);">Server Components & Routing</h3>
           <p class="chapter-desc">
-            Study server-side rendering lifecycles, static site generation, incremental regeneration, hydration mismatches, and App Router architectures.
+            Study server-side rendering lifecycles, static site generation, hydration mismatches, and App Router architectures.
           </p>
           <ul class="topics-list" style="border-top-color: rgba(255,255,255,0.04);">
-            <li class="topic-item" style="color: var(--text-faint);">SSR vs SSG vs ISR lifecycle engines</li>
+            <li class="topic-item" style="color: var(--text-faint);">RSC payload serialization rules</li>
+            <li class="topic-item" style="color: var(--text-faint);">Suspense boundaries & HTML streaming</li>
             <li class="topic-item" style="color: var(--text-faint);">Hydration mismatch triggers & fixes</li>
-            <li class="topic-item" style="color: var(--text-faint);">Layout-based routing & nested page nodes</li>
           </ul>
         </div>
         <div class="card-action-btn" style="background: rgba(255,255,255,0.02); color: var(--text-faint); cursor: not-allowed;">

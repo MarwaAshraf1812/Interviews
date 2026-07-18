@@ -2,21 +2,21 @@ if (!window.TRACKER_DATA) window.TRACKER_DATA = [];
 
 window.TRACKER_DATA.push(
   {
-    batch: "Module 5 — Server Components & Actions",
+    batch: "Batch E — State Management & External Stores",
     topics: [
       {
-        id: "rsc-payload",
-        title: "RSC Payload Serialization Rules",
+        id: "context-optimization",
+        title: "E.1 — Context Rendering Optimizations & Selectors",
         status: "pending"
       },
       {
-        id: "suspense-streaming",
-        title: "Suspense Boundaries & HTML Streaming",
+        id: "usesyncexternalstore",
+        title: "E.2 — useSyncExternalStore Subscription Hooks",
         status: "pending"
       },
       {
-        id: "server-actions",
-        title: "Server Actions Progressive Enhancement",
+        id: "zustand-redux",
+        title: "E.3 — Zustand vs Redux Toolkit Architecture",
         status: "pending"
       }
     ]
